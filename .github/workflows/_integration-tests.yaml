@@ -5,6 +5,7 @@ on:
 
 jobs:
   integration-test:
+    name: Integration Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
