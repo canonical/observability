@@ -9,8 +9,6 @@ on:
     secrets:
        CHARMHUB_TOKEN:
          required: true
-       GITHUB_TOKEN:
-         required: true
 jobs:
   lib-check:
     name: Check libraries
