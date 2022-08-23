@@ -1,0 +1,35 @@
+name: Pull Request
+
+on:
+  workflow_call:
+    inputs:
+      component:
+        required: true
+        type: string
+    secrets:
+       CHARMHUB_TOKEN:
+         required: true
+       GITHUB_TOKEN:
+         required: true
+jobs:
+  lib-check:
+    name: Check libraries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Check libs
+        uses: canonical/charming-actions/check-libraries@2.0.0-rc2
+        with:
+          credentials: "${{ secrets.CHARMHUB_TOKEN }}"
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+  static-analysis:
+    uses: canonical/observability/.github/workflows/_static-analysis.yml@main
+  linting:
+    uses: canonical/observability/.github/workflows/_linting.yml@main
+  unit-test:
+    uses: canonical/observability/.github/workflows/_unit-tests.yml@main
+  integration-test:
+    uses: canonical/observability/.github/workflows/_integration-tests.yml@main
