@@ -24,10 +24,14 @@ jobs:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
   static-analysis:
+    name: Static Analysis
     uses: canonical/observability/.github/workflows/_static-analysis.yaml@main
   linting:
+    name: Linting
     uses: canonical/observability/.github/workflows/_linting.yaml@main
   unit-test:
+    name: Unit Tests
     uses: canonical/observability/.github/workflows/_unit-tests.yaml@main
   integration-test:
+    name: Integration Tests
     uses: canonical/observability/.github/workflows/_integration-tests.yaml@main
