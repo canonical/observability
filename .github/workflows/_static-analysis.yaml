@@ -5,7 +5,7 @@ on:
 
 jobs:
   static-lib:
-    name: Static analysis of /lib for Python 3.5
+    name: Libs for Py 3.5
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,7 +21,7 @@ jobs:
       - name: Run static analysis for /lib for 3.5
         run: tox -vve static-lib
   static-charm:
-    name: Static analysis of the charm and tests
+    name: Charm
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
