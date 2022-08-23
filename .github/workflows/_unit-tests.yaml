@@ -4,6 +4,7 @@ on:
   workflow_call: {}
 
 jobs:
+  unit-tests:
     name: Unit tests
     runs-on: ubuntu-latest
     steps:
