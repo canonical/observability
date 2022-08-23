@@ -8,7 +8,7 @@ on:
 
 jobs:
   quality-checks:
-    uses: canonical/observability/.github/workflows/pull-request.yaml@main
+    uses: canonical/observability/.github/workflows/_quality-checks.yaml@main
     secrets: inherit
   release-charm:
     uses: canonical/observability/.github/workflows/_release_charm.yaml@main
