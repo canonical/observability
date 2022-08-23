@@ -2,10 +2,6 @@ name: Pull Request
 
 on:
   workflow_call:
-    inputs:
-      component:
-        required: true
-        type: string
     secrets:
        CHARMHUB_TOKEN:
          required: true
