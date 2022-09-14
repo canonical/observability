@@ -3,8 +3,8 @@ name: Pull Request
 on:
   workflow_call:
     secrets:
-       CHARMHUB_TOKEN:
-         required: true
+      CHARMHUB_TOKEN:
+        required: true
 jobs:
   lib-check:
     name: Check libraries
@@ -30,4 +30,9 @@ jobs:
     uses: canonical/observability/.github/workflows/_unit-tests.yaml@main
   integration-test:
     name: Integration Tests
+    needs:
+      - lib-check
+      - static-analysis
+      - linting
+      - unit-test
     uses: canonical/observability/.github/workflows/_integration-tests.yaml@main
