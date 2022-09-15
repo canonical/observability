@@ -4,7 +4,7 @@ on:
   workflow_call:
     secrets:
        CHARMHUB_TOKEN:
-         required: true
+         required: false
 jobs:
   quality-checks:
     name: Quality Checks
