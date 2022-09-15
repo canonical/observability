@@ -44,7 +44,6 @@ jobs:
   integration-test:
     name: Integration Tests
     needs:
-      - lib-check
       - static-analysis
       - linting
       - unit-test
