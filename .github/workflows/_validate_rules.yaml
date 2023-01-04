@@ -17,6 +17,6 @@ jobs:
           wget https://github.com/canonical/cos-tool/releases/download/rel-20220621/cos-tool-amd64
           chmod +x ./cos-tool-amd64
       - name: Validate prometheus alert rules
-        run: find . -path '*/prometheus_alert_rules/*' -type f -exec ./cos-tool-amd64 --format promql lint {} \;
+        run: find . -path '*/prometheus_alert_rules/*' -type f -exec ./cos-tool-amd64 --format promql lint {} +
       - name: Validate loki alert rules
-        run: find . -path '*/loki_alert_rules/*' -type f -exec ./cos-tool-amd64 --format logql lint {} \;
+        run: find . -path '*/loki_alert_rules/*' -type f -exec ./cos-tool-amd64 --format logql lint {} +
