@@ -2,6 +2,12 @@ name: Release charm to Edge
 
 on:
   workflow_call:
+    inputs:
+      charm-path:
+        description: "Path to the charm we want to publish. Defaults to the current working directory."
+        default: '.'
+        required: false
+        type: string
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -24,3 +30,4 @@ jobs:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           channel: "${{ steps.channel.outputs.name }}"
+          charm-path: "${{ inputs.charm-path }}"
