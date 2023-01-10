@@ -4,6 +4,8 @@ on:
     secrets:
       CHARMHUB_TOKEN:
         required: false
+      OBSERVABILITY_NOCTUA_TOKEN:
+        required: true
 
 permissions:
   contents: write
@@ -30,7 +32,7 @@ jobs:
         uses: peter-evans/create-pull-request@v4.2.3
         id: cpr
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
           commit-message: "chore: bump charm libraries"
           committer: "Github Actions <github-actions@github.com>"
           author: "Github Actions <github-actions@github.com>"
