@@ -38,6 +38,11 @@ jobs:
           body: Automated action to fetch latest version of charm libraries.
           branch: "chore/auto-libs"
           delete-branch: true
-          reviewers: lucabello
-          assignees: lucabello
-
+          reviewers: |
+            lucabello
+            abuelodelanada
+            dstathis
+            pietropasotti
+            rbarry82
+            sed-i
+            simskij
