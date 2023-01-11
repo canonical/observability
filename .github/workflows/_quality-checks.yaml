@@ -43,6 +43,9 @@ jobs:
   linting:
     name: Linting
     uses: canonical/observability/.github/workflows/_linting.yaml@main
+  validate-rules:
+    name: Validate rules
+    uses: canonical/observability/.github/workflows/_validate_rules.yaml@main
   unit-test:
     name: Unit Tests
     uses: canonical/observability/.github/workflows/_unit-tests.yaml@main
