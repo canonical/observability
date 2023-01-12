@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       charm-path:
-        input: string
+        type: string
         required: false
 
 jobs:
