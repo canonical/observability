@@ -4,6 +4,7 @@ on:
   workflow_call:
     inputs:
       charm-path:
+        description: "Path to the charm we want to promote. Defaults to the current working directory."
         type: string
         default: '.'
         required: false

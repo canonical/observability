@@ -4,7 +4,10 @@ on:
   workflow_call:
     inputs:
       charm-path:
+        description: "Path to the charm we want to publish. Defaults to the current working directory."
+        default: '.'
         required: false
+        type: string
     secrets:
        CHARMHUB_TOKEN:
          required: false
