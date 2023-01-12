@@ -1,6 +1,9 @@
 name: Auto-update Charm Libraries
 on:
   workflow_call:
+    inputs:
+      charm-path:
+        required: false
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -17,13 +20,14 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3
+        uses: actions/checkout@v3 # v3
         with:
           fetch-depth: 0
 
       - name: Check libs
         run: |
           sudo snap install charmcraft --classic --channel latest/stable
+          cd ${{ inputs.charm-path }}
           charmcraft fetch-lib
         env:
           CHARMCRAFT_AUTH: "${{ secrets.CHARMHUB_TOKEN }}"
@@ -33,18 +37,10 @@ jobs:
         id: cpr
         with:
           token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
-          commit-message: "chore: bump charm libraries"
+          commit-message: "chore: update charm libraries"
           committer: "Github Actions <github-actions@github.com>"
           author: "Github Actions <github-actions@github.com>"
-          title: "Bump charm libraries"
+          title: "Update charm libraries"
           body: Automated action to fetch latest version of charm libraries.
           branch: "chore/auto-libs"
           delete-branch: true
-          reviewers: |
-            lucabello
-            abuelodelanada
-            dstathis
-            pietropasotti
-            rbarry82
-            sed-i
-            simskij
