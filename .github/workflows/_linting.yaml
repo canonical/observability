@@ -1,7 +1,10 @@
 name: Linting
 
 on:
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      charm-path:
+        required: false
 
 jobs:
   lint:
@@ -19,4 +22,4 @@ jobs:
       - name: Install dependencies
         run: python3 -m pip install tox
       - name: Run linters
-        run: tox -vve lint
+        run: cd ${{ inputs.charm-path }} && tox -vve lint
