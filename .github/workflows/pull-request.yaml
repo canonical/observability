@@ -2,6 +2,9 @@ name: Pull Request
 
 on:
   workflow_call:
+    inputs:
+      charm-path:
+        required: false
     secrets:
        CHARMHUB_TOKEN:
          required: false
@@ -10,3 +13,5 @@ jobs:
     name: Quality Checks
     uses: canonical/observability/.github/workflows/_quality-checks.yaml@main
     secrets: inherit
+    with:
+      charm-path: ${{ inputs.charm-path }}

@@ -1,7 +1,10 @@
 name: Unit Tests
 
 on:
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      charm-path:
+        required: false
 
 jobs:
   unit-tests:
@@ -19,4 +22,4 @@ jobs:
       - name: Install dependencies
         run: python -m pip install tox
       - name: Run tests
-        run: tox -e unit
+        run: cd ${{ inputs.charm-path }} && tox -e unit

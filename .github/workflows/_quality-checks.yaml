@@ -2,6 +2,9 @@ name: Pull Request
 
 on:
   workflow_call:
+    inputs:
+      charm-path:
+        required: false
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -37,15 +40,22 @@ jobs:
         with:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
+          charm-path: "${{ inputs.charm-path }}"
   static-analysis:
     name: Static Analysis
     uses: canonical/observability/.github/workflows/_static-analysis.yaml@main
+    with:
+      charm-path: "${{ inputs.charm-path }}"
   linting:
     name: Linting
     uses: canonical/observability/.github/workflows/_linting.yaml@main
+    with:
+      charm-path: "${{ inputs.charm-path }}"
   unit-test:
     name: Unit Tests
     uses: canonical/observability/.github/workflows/_unit-tests.yaml@main
+    with:
+      charm-path: "${{ inputs.charm-path }}"
   integration-test:
     name: Integration Tests
     needs:
@@ -53,3 +63,5 @@ jobs:
       - linting
       - unit-test
     uses: canonical/observability/.github/workflows/_integration-tests.yaml@main
+    with:
+      charm-path: "${{ inputs.charm-path }}"

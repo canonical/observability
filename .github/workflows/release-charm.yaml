@@ -2,6 +2,12 @@ name: Release Charm
 
 on:
   workflow_call:
+    inputs:
+      charm-path:
+        description: "Path to the charm we want to publish. Defaults to the current working directory."
+        default: '.'
+        required: false
+        type: string
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -14,8 +20,12 @@ jobs:
   quality-checks:
     uses: canonical/observability/.github/workflows/_quality-checks.yaml@main
     secrets: inherit
+    with:
+      charm-path: "${{ inputs.charm-path }}"
   release-charm:
     needs: 
       - quality-checks
     uses: canonical/observability/.github/workflows/_release_charm.yaml@main
     secrets: inherit
+    with:
+      charm-path: "${{ inputs.charm-path }}"

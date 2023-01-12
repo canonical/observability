@@ -3,6 +3,10 @@ name: Promote Charm
 on:
   workflow_call:
     inputs:
+      charm-path:
+        type: string
+        default: '.'
+        required: false
       promotion:
         type: string
         required: true
@@ -34,6 +38,7 @@ jobs:
       - name: Promote Charm
         uses: canonical/charming-actions/release-charm@2.0.0
         with:
+          charm-path: ${{ inputs.charm-path }}
           credentials: ${{ secrets.CHARMHUB_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           destination-channel: latest/${{ env.promote-to }}
