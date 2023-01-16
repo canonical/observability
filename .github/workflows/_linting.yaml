@@ -21,6 +21,6 @@ jobs:
         with:
           python-version: 3.8
       - name: Install dependencies
-        run: python3 -m pip install tox
+        run: python3 -m pip install tox==4.2.8
       - name: Run linters
         run: cd ${{ inputs.charm-path }} && tox -vve lint

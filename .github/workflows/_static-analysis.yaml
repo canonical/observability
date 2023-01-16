@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: 3.8
       - name: Install dependencies
-        run: python3 -m pip install tox
+        run: python3 -m pip install tox==4.2.8
       - name: Run static analysis for /lib for 3.8
         run: cd ${{ inputs.charm-path }} && tox -vve static-lib
   static-charm:
@@ -37,6 +37,6 @@ jobs:
         with:
           python-version: 3.8
       - name: Install dependencies
-        run: python3 -m pip install tox
+        run: python3 -m pip install tox==4.2.8
       - name: Run static analysis (charm)
         run: cd ${{ inputs.charm-path }} && tox -vve static-charm
