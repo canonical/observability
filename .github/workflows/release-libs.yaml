@@ -11,6 +11,8 @@ on:
     secrets:
       CHARMHUB_TOKEN:
         required: true
+      OBSERVABILITY_NOCTUA_TOKEN:
+        required: true
 
 jobs:
   release-libs:
@@ -26,5 +28,5 @@ jobs:
         with:
           charm-path: "${{ inputs.charm-path }}"
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          github-token: "${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
 
