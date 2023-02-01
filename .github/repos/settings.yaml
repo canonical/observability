@@ -76,6 +76,7 @@ shared-labels: &shared-labels
 
 repos:
   canonical/avalanche-k8s-operator: *shared-config
+  canonical/catalogue-k8s-operator: *shared-config
   canonical/cassandra-k8s-operator: *shared-config
   canonical/charming-actions: *shared-config
   canonical/cos-configuration-k8s-operator: *shared-config
@@ -87,6 +88,7 @@ repos:
   canonical/karma-alertmanager-proxy-k8s-operator: *shared-config
   canonical/karma-k8s-operator: *shared-config
   canonical/nrpe_exporter: *shared-config
+  canonical/observability: *shared-config
   canonical/observability-libs: *shared-config
   canonical/prometheus-scrape-config-k8s-operator: *shared-config
   canonical/prometheus-scrape-target-k8s-operator: *shared-config
