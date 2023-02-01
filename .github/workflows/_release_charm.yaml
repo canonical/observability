@@ -7,7 +7,7 @@ on:
         type: string
         required: false
       artifacts:
-        description: "Json encoded list of artifacts to download before the build."
+        description: "Json encoded list of artifacts to download before the build in the format [[name, path],...]"
         default: "[]"
         required: false
         type: string
@@ -30,7 +30,8 @@ jobs:
           matrix:
             artifact-name: ${{ fromJson(inputs.artifacts) }}
         with:
-          name: "${{ matrix.artifact_name }}"
+          name: "${{ matrix.artifact_name[0] }}"
+          path: "${{ matrix.artifact_name[1] }}"
       - name: Select charmhub channel
         uses: canonical/charming-actions/channel@2.1.1
         id: channel
