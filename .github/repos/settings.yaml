@@ -124,6 +124,9 @@ repos:
   canonical/alertmanager-rock: *shared-config
   canonical/s3proxy-rock: *shared-config
   canonical/mimir-rock: *shared-config
+  canonical/tempo-rock: *shared-config
+  canonical/grafana-rock: *shared-config
+  canonical/loki-rock: *shared-config
   
   # bundles
   canonical/cos-lite-bundle: *shared-config
