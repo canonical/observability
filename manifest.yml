@@ -25,9 +25,6 @@ repos:
     track: main
     url: git@github.com:canonical/cos-proxy-operator.git
   
-  - path: ../cos-proxy-operator
-    track: main
-    url: git@github.com:canonical/cos-proxy-operator.git
   
   - path: ../grafana-agent-k8s-operator
     track: main
