@@ -33,5 +33,5 @@ jobs:
     uses: canonical/observability/.github/workflows/_release_charm.yaml@main
     secrets: inherit
     with:
-      artifacts: "${{ inputs.artifacts }}"
+      artifact: "${{ inputs.artifact }}"
       charm-path: "${{ inputs.charm-path }}"
