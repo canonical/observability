@@ -8,9 +8,9 @@ on:
         default: '.'
         required: false
         type: string
-      artifacts:
-        description: "Json encoded list of artifacts to download before the build in the format [[name, path],...]"
-        default: "[]"
+      artifact:
+        description: "Name of artifact to download before building"
+        default: ""
         required: false
         type: string
     secrets:

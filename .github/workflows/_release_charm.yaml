@@ -6,9 +6,9 @@ on:
       charm-path:
         type: string
         required: false
-      artifacts:
-        description: "Json encoded list of artifacts to download before the build in the format [[name, path],...]"
-        default: "[]"
+      artifact:
+        description: "Name of artifact to download before building"
+        default: ""
         required: false
         type: string
     secrets:
@@ -24,14 +24,13 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - name: Download Artifacts
+      - name: Download Artifact
         uses: actions/download-artifact@v3
-        strategy:
-          matrix:
-            artifact-name: ${{ fromJson(inputs.artifacts) }}
         with:
-          name: "${{ matrix.artifact_name[0] }}"
-          path: "${{ matrix.artifact_name[1] }}"
+          name: "${{ inputs.artifact }}"
+          path: ./artifact.tar.gz
+      - name: Unpack Artifact
+        run: sudo apt-get update && sudo apt-get install tar && tar xf artifact.tar.gz
       - name: Select charmhub channel
         uses: canonical/charming-actions/channel@2.1.1
         id: channel
