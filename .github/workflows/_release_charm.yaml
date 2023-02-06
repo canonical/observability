@@ -8,7 +8,7 @@ on:
         required: false
       artifact:
         description: "Name of artifact to download before building"
-        default: ""
+        default: ''
         required: false
         type: string
     secrets:
@@ -29,10 +29,10 @@ jobs:
         with:
           name: "${{ inputs.artifact }}"
           path: ./artifact.tar.gz
-        if: ${{ inputs.artifact != "" }}
+        if: ${{ inputs.artifact != '' }}
       - name: Unpack Artifact
         run: sudo apt-get update && sudo apt-get install tar && tar xf artifact.tar.gz
-        if: ${{ inputs.artifact != "" }}
+        if: ${{ inputs.artifact != '' }}
       - name: Select charmhub channel
         uses: canonical/charming-actions/channel@2.1.1
         id: channel

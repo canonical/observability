@@ -10,7 +10,7 @@ on:
         type: string
       artifact:
         description: "Name of artifact to download before building"
-        default: ""
+        default: ''
         required: false
         type: string
     secrets:
