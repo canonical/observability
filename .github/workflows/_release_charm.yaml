@@ -26,12 +26,12 @@ jobs:
           fetch-depth: 1
       - name: Download Artifact
         uses: actions/download-artifact@v3
+        id: download_artifact
         with:
           name: "${{ inputs.artifact }}"
-          path: ./artifact.tar.gz
         if: ${{ inputs.artifact != '' }}
       - name: Unpack Artifact
-        run: sudo apt-get update && sudo apt-get install tar && tar xf artifact.tar.gz
+        run: sudo apt-get update && sudo apt-get install tar && tar xf ${{steps.download_artifact.outputs.download-path}}
         if: ${{ inputs.artifact != '' }}
       - name: Select charmhub channel
         uses: canonical/charming-actions/channel@2.1.1
