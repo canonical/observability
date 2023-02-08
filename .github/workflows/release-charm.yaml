@@ -9,7 +9,7 @@ on:
         required: false
         type: string
       artifact:
-        description: "Name of artifact to download before building"
+        description: "Name of artifact to download before building. Should contain the file artifact.tar.gz."
         default: ''
         required: false
         type: string
