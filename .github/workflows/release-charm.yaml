@@ -8,6 +8,11 @@ on:
         default: '.'
         required: false
         type: string
+      artifact:
+        description: "Name of artifact to download before building. Must contain the file artifact.tar.gz."
+        default: ''
+        required: false
+        type: string
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -25,7 +30,8 @@ jobs:
   release-charm:
     needs: 
       - quality-checks
-    uses: canonical/observability/.github/workflows/_release_charm.yaml@main
+    uses: ./.github/workflows/_release_charm.yaml
     secrets: inherit
     with:
+      artifact: "${{ inputs.artifact }}"
       charm-path: "${{ inputs.charm-path }}"

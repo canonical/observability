@@ -6,6 +6,11 @@ on:
       charm-path:
         type: string
         required: false
+      artifact:
+        description: "Name of artifact to download before building. Must contain the file artifact.tar.gz."
+        default: ''
+        required: false
+        type: string
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -19,6 +24,15 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 1
+      - name: Download Artifact
+        uses: actions/download-artifact@v3
+        id: download_artifact
+        with:
+          name: "${{ inputs.artifact }}"
+        if: ${{ inputs.artifact != '' }}
+      - name: Unpack Artifact
+        run: sudo apt-get update && sudo apt-get install tar && tar xf artifact.tar.gz
+        if: ${{ inputs.artifact != '' }}
       - name: Select charmhub channel
         uses: canonical/charming-actions/channel@2.1.1
         id: channel
