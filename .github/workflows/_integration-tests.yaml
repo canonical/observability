@@ -26,6 +26,5 @@ jobs:
           provider: microk8s
           channel: 1.25-strict/stable
           microk8s-addons: "hostpath-storage dns metallb:${{ env.IPADDR }}-${{ env.IPADDR }}"
-          bootstrap-options: "--agent-version 3.0.2"
       - name: Run integration tests
         run: cd ${{ inputs.charm-path }} && tox -vve integration
