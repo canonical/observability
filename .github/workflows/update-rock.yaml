@@ -58,7 +58,7 @@ jobs:
           fi
 
       - id: check-go-version
-        name: Checkout application source and eventually update the Go version in ROCK
+        name: Checkout application source for the Go version check
         if: ${{ inputs.check-go }} && ${{ steps.check.outputs.release != '' }}
         uses: actions/checkout@v3
         with:
@@ -66,14 +66,20 @@ jobs:
           ref: ${{ steps.check.outputs.release }}
           path: application-src
 
-      - name: Update the version file and push a branch
+      - name: Update the Go version
         if: ${{ inputs.check-go }} && ${{ steps.check.outputs.release != '' }}
         shell: bash
         run: |
-          source_tag="${{ steps.check.outputs.release }}" \
-          version=${source_tag#"v"} \
-          go_version=$(grep -Po "^go \K(\S+)" $GITHUB_WORKSPACE/application-src/go.mod) \
-          yq -i '.version = strenv(version) | .parts.${{ inputs.rock-name }}["source-tag"] = strenv(source_tag) | .parts.${{ inputs.rock-name }}["build-snaps"] = ["go/" + strenv(go_version) + "/stable"]' $GITHUB_WORKSPACE/main/rockcraft.yaml
+          go_version=$(grep -Po "^go \K(\S+)" $GITHUB_WORKSPACE/application-src/go.mod)
+          yq -i '.parts.${{ inputs.rock-name }}["build-snaps"] = ["go/" + strenv(go_version) + "/stable"]' $GITHUB_WORKSPACE/main/rockcraft.yaml
+
+      - name: Update the application version
+        if: ${{ steps.check.outputs.release != '' }}
+        shell: bash
+        run: |
+          source_tag="${{ steps.check.outputs.release }}"
+          version=${source_tag#"v"}
+          yq -i '.version = strenv(version) | .parts.${{ inputs.rock-name }}["source-tag] = strenv(source_tag)' $GITHUB_WORKSPACE/main/rockcraft.yaml
 
       - name: Create a PR
         if: ${{ steps.check.outputs.release != '' }}
