@@ -44,6 +44,9 @@ jobs:
           committer: "Github Actions <github-actions@github.com>"
           author: "Github Actions <github-actions@github.com>"
           title: "Update charm libraries"
-          body: Automated action to fetch latest version of charm libraries.
+          body: |
+            Automated action to fetch latest version of charm libraries. The branch of this PR 
+            will be wiped during the next check. Unless you really know what you're doing, you 
+            most likely don't want to push any commits to this branch.
           branch: "chore/auto-libs"
           delete-branch: true
