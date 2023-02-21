@@ -79,7 +79,7 @@ jobs:
         run: |
           source_tag="${{ steps.check.outputs.release }}"
           version=${source_tag#"v"}
-          yq -i '.version = strenv(version) | .parts.${{ inputs.rock-name }}["source-tag] = strenv(source_tag)' $GITHUB_WORKSPACE/main/rockcraft.yaml
+          yq -i '.version = strenv(version) | .parts.${{ inputs.rock-name }}["source-tag"] = strenv(source_tag)' $GITHUB_WORKSPACE/main/rockcraft.yaml
 
       - name: Create a PR
         if: ${{ steps.check.outputs.release != '' }}
