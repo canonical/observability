@@ -22,56 +22,55 @@ shared-config: &shared-config
     merge-commit: false
     rebase-merge: false
   delete-branch-on-merge: true
-
-shared-labels: &shared-labels
-  "good first issue":
-    color: "00ff00"
-  "Priority: Critical":
-    color: "ff0000"
-  "Priority: High":
-    color: "ffa500"
-  "Priority: Medium":
-    color: "00ff00"
-  "Priority: Low":
-    color: "00ff00"
-    replaces: "Priority: low"
-  "Status: Blocked":
-    color: "d93f0b"
-  "Status: Cannot Reproduce":
-    color: "3f3887"
-  "Status: Confirmed":
-    color: "bfd4f2"
-  "Status: Draft":
-    color: "81b056"
-  "Status: Duplicate":
-    color: "cfd3d7"
-  "Status: Help Wanted":
-    color: "008672"
-  "Status: Testing Needed":
-    color: "76ea93"
-  "Status: Triage":
-    color: "d15141"
-  "Status: Won't Fix":
-    color: "ffffff"
-    replaces: "Status: Won't fix"
-  "Type: Bug":
-    color: "d73a4a"
-  "Type: Cleanup":
-    color: "3d8262"
-  "Type: Documentation":
-    color: "0075ca"
-  "Type: Enhancement":
-    color: "a2eeef"
-  "Type: Invalid":
-    color: "e4e669"
-  "Type: Question":
-    color: "d876e3"
-  "Type: Idea Bank":
-    color: "22b1a3"
-  "Type: Refactor":
-    color: "7a7014"
-  "Type: Research":
-    color: "fbca04"
+  labels:
+    "good first issue":
+      color: "00ff00"
+    "Priority: Critical":
+      color: "ff0000"
+    "Priority: High":
+      color: "ffa500"
+    "Priority: Medium":
+      color: "00ff00"
+    "Priority: Low":
+      color: "00ff00"
+      replaces: "Priority: low"
+    "Status: Blocked":
+      color: "d93f0b"
+    "Status: Cannot Reproduce":
+      color: "3f3887"
+    "Status: Confirmed":
+      color: "bfd4f2"
+    "Status: Draft":
+      color: "81b056"
+    "Status: Duplicate":
+      color: "cfd3d7"
+    "Status: Help Wanted":
+      color: "008672"
+    "Status: Testing Needed":
+      color: "76ea93"
+    "Status: Triage":
+      color: "d15141"
+    "Status: Won't Fix":
+      color: "ffffff"
+      replaces: "Status: Won't fix"
+    "Type: Bug":
+      color: "d73a4a"
+    "Type: Cleanup":
+      color: "3d8262"
+    "Type: Documentation":
+      color: "0075ca"
+    "Type: Enhancement":
+      color: "a2eeef"
+    "Type: Invalid":
+      color: "e4e669"
+    "Type: Question":
+      color: "d876e3"
+    "Type: Idea Bank":
+      color: "22b1a3"
+    "Type: Refactor":
+      color: "7a7014"
+    "Type: Research":
+      color: "fbca04"
 
 alertmanager-config: &alertmanager-config
     <<: *shared-config
