@@ -154,6 +154,7 @@ repos:
   canonical/nrpe_exporter: *shared-config
   canonical/observability: *shared-config
   canonical/observability-libs: *shared-config
+  canonical/cos-lib: *shared-config
   
   # archived
   canonical/cassandra-k8s-operator: *shared-config
