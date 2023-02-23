@@ -99,4 +99,4 @@ repos:
   
   - path: ../cos-lib
     track: main
-    url: git@github.com:canonical/cos-lib.gi
+    url: git@github.com:canonical/cos-lib.git
