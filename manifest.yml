@@ -1,0 +1,102 @@
+repos:
+  # bundles
+  - path: ../cos-lite-bundle 
+    track: main
+    url: git@github.com:canonical/cos-lite-bundle.git
+
+  # charms
+  - path: ../alertmanager-k8s-operator
+    track: main
+    url: git@github.com:canonical/alertmanager-k8s-operator.git
+  
+  - path: ../avalanche-k8s-operator
+    track: main
+    url: git@github.com:canonical/avalanche-k8s-operator.git
+  
+  - path: ../catalogue-k8s-operator
+    track: main
+    url: git@github.com:canonical/catalogue-k8s-operator.git
+  
+  - path: ../cos-configuration-k8s-operator
+    track: main
+    url: git@github.com:canonical/cos-configuration-k8s-operator.git
+  
+  - path: ../cos-proxy-operator
+    track: main
+    url: git@github.com:canonical/cos-proxy-operator.git
+  
+  
+  - path: ../grafana-agent-k8s-operator
+    track: main
+    url: git@github.com:canonical/grafana-agent-k8s-operator.git
+
+  - path: ../grafana-k8s-operator
+    track: main
+    url: git@github.com:canonical/grafana-k8s-operator.git
+  
+  - path: ../karma-alertmanager-proxy-k8s-operator
+    track: main
+    url: git@github.com:canonical/karma-alertmanager-proxy-k8s-operator.git
+  
+  - path: ../karma-k8s-operator
+    track: main
+    url: git@github.com:canonical/karma-k8s-operator.git
+  
+  - path: ../loki-k8s-operator
+    track: main
+    url: git@github.com:canonical/loki-k8s-operator.git
+  
+  - path: ../mimir-k8s-operator
+    track: main
+    url: git@github.com:canonical/mimir-k8s-operator.git
+  
+  - path: ../prometheus-k8s-operator
+    track: main
+    url: git@github.com:canonical/prometheus-k8s-operator.git
+  
+  - path: ../prometheus-pushgateway-k8s-operator
+    track: main
+    url: git@github.com:canonical/prometheus-pushgateway-k8s-operator.git
+
+  - path: ../prometheus-scrape-config-k8s-operator
+    track: main
+    url: git@github.com:canonical/prometheus-scrape-config-k8s-operator.git
+
+  - path: ../prometheus-scrape-target-k8s-operator
+    track: main
+    url: git@github.com:canonical/prometheus-scrape-target-k8s-operator.git
+  
+  - path: ../traefik-k8s-operator
+    track: main
+    url: git@github.com:canonical/traefik-k8s-operator.git
+  
+  - path: ../traefik-route-k8s-operator
+    track: main
+    url: git@github.com:canonical/traefik-route-k8s-operator.git
+
+  # rocks
+  - path: ../mimir-rock
+    track: main
+    url: git@github.com:canonical/mimir-rock.git
+  
+  - path: ../prometheus-rock
+    track: main
+    url: git@github.com:canonical/prometheus-rock.git
+
+  # aux
+  
+  - path: ../observability-libs
+    track: main
+    url: git@github.com:canonical/observability-libs.git
+  
+  - path: ../cos-tool 
+    track: main
+    url: git@github.com:canonical/cos-tool.git
+
+  - path: ../nrpe_exporter 
+    track: main
+    url: git@github.com:canonical/nrpe_exporter.git
+  
+  - path: ../cos-lib
+    track: main
+    url: git@github.com:canonical/cos-lib.gi
