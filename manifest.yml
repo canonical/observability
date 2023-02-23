@@ -97,6 +97,6 @@ repos:
     track: main
     url: git@github.com:canonical/nrpe_exporter.git
   
-  - path: ../charming-actions
+  - path: ../cos-lib
     track: main
-    url: git@github.com:canonical/charming-actions.git
+    url: git@github.com:canonical/cos-lib.gi
