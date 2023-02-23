@@ -7,22 +7,6 @@
 #   GITHUB_TOKEN=your-gh-token python reposettings.py ./settings.yaml
 # ```
 
-shared-config: &shared-config
-  branch-protection:
-    dismiss-stale-reviews: false
-    required-review-count: 1
-  protect-default-branch: true
-  features:
-    issues: true
-    projects: false
-    wiki: false
-    downloads: true
-  allow:
-    squash-merge: true
-    merge-commit: false
-    rebase-merge: false
-  delete-branch-on-merge: true
-
 shared-labels: &shared-labels
   "good first issue":
     color: "00ff00"
@@ -72,6 +56,25 @@ shared-labels: &shared-labels
     color: "7a7014"
   "Type: Research":
     color: "fbca04"
+
+shared-config: &shared-config
+  branch-protection:
+    dismiss-stale-reviews: false
+    required-review-count: 1
+  protect-default-branch: true
+  features:
+    issues: true
+    projects: false
+    wiki: false
+    downloads: true
+  allow:
+    squash-merge: true
+    merge-commit: false
+    rebase-merge: false
+  delete-branch-on-merge: true
+  labels: *shared-labels
+
+
 
 alertmanager-config: &alertmanager-config
     <<: *shared-config
