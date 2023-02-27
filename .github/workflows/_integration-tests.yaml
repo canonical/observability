@@ -24,7 +24,6 @@ jobs:
         with:
           juju-channel: latest/stable
           provider: microk8s
-          channel: 1.25-strict/stable
           microk8s-addons: "hostpath-storage dns metallb:${{ env.IPADDR }}-${{ env.IPADDR }}"
       - name: Run integration tests
         run: cd ${{ inputs.charm-path }} && tox -vve integration
