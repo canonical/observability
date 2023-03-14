@@ -32,13 +32,19 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
+          sudo snap install jq
           sudo snap install yq
 
       - id: latest-release
-        uses: pozetroninc/github-action-get-latest-release@v0.6.0
-        with:
-          repository: ${{ inputs.source-repo }}
-          excludes: prerelease, draft
+        name: Fetch version used in *latest* release
+        run: |
+          TAG=$(curl -L \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"\
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${{ inputs.source-repo }}/releases/latest \
+            | jq -r .tag_name)
+          echo "release=$TAG" >> $GITHUB_OUTPUT
 
       - name: Checkout the ROCK source
         uses: actions/checkout@v3
