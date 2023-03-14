@@ -130,6 +130,7 @@ repos:
   canonical/tempo-rock: *shared-config
   canonical/grafana-rock: *shared-config
   canonical/loki-rock: *shared-config
+  canonical/prometheus-rock: *shared-config
   
   # bundles
   canonical/cos-lite-bundle: *shared-config
