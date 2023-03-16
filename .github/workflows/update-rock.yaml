@@ -15,7 +15,7 @@ on:
         description: "Repository of the source application in 'org/repo' form"
         required: true
         type: string
-      check-go: 
+      check-go:
         description: "Flag to check updates on the Go version"
         default: false
         required: false
@@ -56,7 +56,8 @@ jobs:
         shell: bash
         run: |
           release=$(yq '.parts.${{ inputs.rock-name }}["source-tag"]' $GITHUB_WORKSPACE/main/rockcraft.yaml)
-          if [ "${release}" != "${{steps.latest-release.outputs.release}}" ]; then
+          if [ "${release}" != "${{steps.latest-release.outputs.release}}" ] && \
+            [[ "${release}" > "${{steps.latest-release.outputs.release}}" ]]; then
             echo "release=${{steps.latest-release.outputs.release}}" >> $GITHUB_OUTPUT
             echo "New upstream release ${{steps.latest-release.outputs.release}} found"
           else
