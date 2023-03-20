@@ -29,3 +29,21 @@ jobs:
           microk8s-addons: "hostpath-storage dns metallb:${{ env.IPADDR }}-${{ env.IPADDR }}"
       - name: Run integration tests
         run: cd ${{ inputs.charm-path }} && tox -vve integration
+      - name: Dump charmcraft logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: charmcraft-logs
+          path: ~/.local/state/charmcraft/log/*.log
+      - name: Dump deployments
+        if: failure()
+        run: kubectl describe deployments -A
+      - name: Dump replicasets
+        if: failure()
+        run: kubectl describe replicasets -A
+      - name: Dump pods and their logs
+        if: failure()
+        shell: bash
+        run: |
+          juju status --relations --storage
+          kubectl get pods -A -o=jsonpath='{range.items[*]}{.metadata.namespace} {.metadata.name}{"\n"}' --sort-by=.metadata.namespace | while read namespace pod; do kubectl -n $namespace describe pod $pod; kubectl -n $namespace logs $pod --all-containers=true --tail=100; done
