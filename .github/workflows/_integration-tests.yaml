@@ -46,4 +46,4 @@ jobs:
         shell: bash
         run: |
           juju status --relations --storage
-          kubectl get pods -A -o=jsonpath='{range.items[*]}{.metadata.namespace} {.metadata.name}{"\n"}' --sort-by=.metadata.namespace | while read namespace pod; do kubectl -n $namespace describe pod $pod; kubectl -n $namespace logs $pod --all-containers=true --tail=100; done
+          kubectl get pods -A -o=jsonpath='{range.items[*]}{.metadata.namespace} {.metadata.name}{"\n"}' --sort-by=.metadata.namespace | grep -v "^\s*$" | while read namespace pod; do kubectl -n $namespace describe pod $pod; kubectl -n $namespace logs $pod --all-containers=true --tail=100; done
