@@ -29,6 +29,9 @@ jobs:
           microk8s-addons: "hostpath-storage dns metallb:${{ env.IPADDR }}-${{ env.IPADDR }}"
       - name: Run integration tests
         run: cd ${{ inputs.charm-path }} && tox -vve integration
+      - name: Dump debug log
+        if: failure()
+        run: juju debug-log --replay
       - name: Dump charmcraft logs
         if: failure()
         uses: actions/upload-artifact@v3
