@@ -31,7 +31,8 @@ jobs:
         run: cd ${{ inputs.charm-path }} && tox -vve integration
       - name: Dump debug log
         if: failure()
-        run: juju debug-log --replay
+        run: for m in $(juju models --format json | jq -r '.models[].name' | grep -v "admin/controller"); do juju debug-log -m $m --replay --ms --no-tail; done
+        shell: bash
       - name: Dump charmcraft logs
         if: failure()
         uses: actions/upload-artifact@v3
