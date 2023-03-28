@@ -1,0 +1,11 @@
+**/*.md
+.**/*.md
+
+.github/**/*
+
+
+.ciignore
+.gitignore
+CODEOWNERS
+LICENSE
+icon.svg

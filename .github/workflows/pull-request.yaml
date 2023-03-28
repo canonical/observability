@@ -12,8 +12,38 @@ on:
        CHARMHUB_TOKEN:
          required: false
 jobs:
+  ci-ignore:
+    name: Check against ignorelist
+    runs-on: ubuntu-latest
+    outputs:
+      files: ${{ steps.diff.outputs.files }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Expand ignorelist
+        shell: bash
+        run: |
+          test -f .ciignore || wget https://raw.githubusercontent.com/canonical/observability/main/.ciignore
+          while IFS= read -r globline; do
+            compgen -G "$globline" >> .ciignore
+          done < .ciignore
+          sed -i '/^$/d'
+      - name: Generate diff
+        id: diff
+        shell: bash
+        run: |
+          base="remotes/origin/${{ github.base_ref }}"
+          head="remotes/origin/${{ github.head_ref }}"
+          echo "Comparing $base to $head"
+          files=$(comm -23 <(git diff --name-only $base $head | sort) <(sort .ciignore))
+          echo "$files"
+          echo "files=$files" | tr -d '\n' >> $GITHUB_OUTPUT
   quality-checks:
     name: Quality Checks
+    needs:
+      - ci-ignore
+    if: ${{ needs.ci-ignore.outputs.files != '' }}
     uses: canonical/observability/.github/workflows/_quality-checks.yaml@main
     secrets: inherit
     with:
