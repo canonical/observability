@@ -4,6 +4,7 @@
 .github/**/*
 
 
+.ciignore
 .gitignore
 CODEOWNERS
 LICENSE

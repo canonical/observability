@@ -26,9 +26,9 @@ jobs:
         run: |
           test -f .ciignore || wget https://raw.githubusercontent.com/canonical/observability/main/.ciignore
           while IFS= read -r globline; do
-            compgen -G "$globline" >> .ciignore-expanded
+            compgen -G "$globline" >> .ciignore
           done < .ciignore
-          sed -i '/^$/d' .ciignore-expanded
+          sed -i '/^$/d'
       - name: Generate diff
         id: diff
         shell: bash
@@ -36,7 +36,7 @@ jobs:
           base="remotes/origin/${{ github.base_ref }}"
           head="remotes/origin/${{ github.head_ref }}"
           echo "Comparing $base to $head"
-          files=$(comm -23 <(git diff --name-only $base $head | sort) <(sort .ciignore-expanded))
+          files=$(comm -23 <(git diff --name-only $base $head | sort) <(sort .ciignore))
           echo "$files"
           echo "files=$files" | tr -d '\n' >> $GITHUB_OUTPUT
   quality-checks:
