@@ -28,7 +28,7 @@ jobs:
           while IFS= read -r globline; do
             compgen -G "$globline" >> .ciignore
           done < .ciignore
-          sed -i '/^$/d'
+          sed -i '/^$/d' .ciignore
       - name: Generate diff
         id: diff
         shell: bash
