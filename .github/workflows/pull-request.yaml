@@ -26,8 +26,9 @@ jobs:
         run: |
           test -f .ciignore || wget https://raw.githubusercontent.com/canonical/observability/main/.ciignore
           while IFS= read -r globline; do
-            compgen -G "$globline" >> .ciignore
+            compgen -G "$globline" >> .ciignore-expanded
           done < .ciignore
+          mv .ciignore-expanded .ciignore
           sed -i '/^$/d' .ciignore
       - name: Generate diff
         id: diff
