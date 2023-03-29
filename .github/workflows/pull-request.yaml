@@ -26,7 +26,7 @@ jobs:
         run: |
           test -f .ciignore || wget https://raw.githubusercontent.com/canonical/observability/main/.ciignore
           while IFS= read -r globline; do
-            compgen -G "$globline" >> .ciignore-expanded
+            python -c "from glob import glob; print(\"\n\".join(glob(\"$globline\", recursive=True)))" >> .ciignore-expanded
           done < .ciignore
           mv .ciignore-expanded .ciignore
           sed -i '/^$/d' .ciignore
