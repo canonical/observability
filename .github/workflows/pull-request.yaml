@@ -35,9 +35,16 @@ jobs:
         shell: bash
         run: |
           base="remotes/origin/${{ github.base_ref }}"
+          base_repo="${{ github.repository }}"
           head="remotes/origin/${{ github.head_ref }}"
+          head_repo="${{ github.event.pull_request.head.repo.name }}"
+          
           echo "Comparing $base to $head"
-          files=$(comm -23 <(git diff --name-only $base $head | sort) <(sort .ciignore))
+          if [[ "$base_repo" == "$head_repo" ]]; then # if the PR is NOT from a fork
+            files=$(comm -23 <(git diff --name-only $base $head | sort) <(sort .ciignore))
+          else
+            files="(run the checks anyway)"
+          fi
           echo "$files"
           echo "files=$files" | tr -d '\n' >> $GITHUB_OUTPUT
   quality-checks:
