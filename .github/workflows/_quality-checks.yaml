@@ -38,7 +38,7 @@ jobs:
           fetch-depth: 1
       - name: Install snap
         run: |
-          sudo apt-get update && sudo apt-get install snap 
+          sudo apt-get update && sudo apt-get install snapd
           echo "/usr/bin/snap" >> $GITHUB_PATH
       - name: Check libs
         uses: canonical/charming-actions/check-libraries@2.0.0
