@@ -22,7 +22,7 @@ jobs:
         run: echo "::set-output name=defined::true"
   call-inclusive-naming-check:
     name: Inclusive naming
-    uses: canonical-web-and-design/Inclusive-naming/.github/workflows/woke.yaml@runner-test
+    uses: canonical-web-and-design/Inclusive-naming/.github/workflows/woke.yaml@main
     with:
       fail-on-error: "true"
   lib-check:
