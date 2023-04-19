@@ -18,7 +18,7 @@ jobs:
           fetch-depth: 1
       - name: Install snap
         run: |
-          sudo apt install snap
+          sudo apt-get update && sudo apt-get install snap
       - name: Get prefsrc
         run: |
           echo "IPADDR=$(ip -4 -j route get 2.2.2.2 | jq -r '.[] | .prefsrc')" >> $GITHUB_ENV
