@@ -10,12 +10,15 @@ on:
 jobs:
   integration-test:
     name: Integration Tests
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 1
+      - name: Install snap
+        run: |
+          sudo apt install snap
       - name: Get prefsrc
         run: |
           echo "IPADDR=$(ip -4 -j route get 2.2.2.2 | jq -r '.[] | .prefsrc')" >> $GITHUB_ENV

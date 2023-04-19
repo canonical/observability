@@ -10,7 +10,7 @@ on:
 jobs:
   static-lib:
     name: Static Analysis of Libs
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -26,7 +26,7 @@ jobs:
         run: cd ${{ inputs.charm-path }} && tox -vve static-lib
   static-charm:
     name: Static Analysis of Charm
-    runs-on: ubuntu-latest
+    runs-on: self-hosted 
     steps:
       - name: Checkout
         uses: actions/checkout@v3

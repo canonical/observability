@@ -11,7 +11,7 @@ on:
         required: false
 jobs:
   check-secret:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted 
     outputs:
       defined: ${{ steps.check.outputs.defined }}
     steps:
@@ -27,7 +27,7 @@ jobs:
       fail-on-error: "true"
   lib-check:
     name: Check libraries
-    runs-on: ubuntu-latest
+    runs-on: self-hosted 
     needs:
       - check-secret
     if: needs.check-secret.outputs.defined == 'true'

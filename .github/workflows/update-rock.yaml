@@ -28,7 +28,7 @@ permissions:
 jobs:
   check-version:
     name: Detect new releases
-    runs-on: ubuntu-latest
+    runs-on: self-hosted 
     steps:
       - name: Install dependencies
         run: |
