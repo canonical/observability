@@ -22,7 +22,7 @@ jobs:
         run: echo "::set-output name=defined::true"
   call-inclusive-naming-check:
     name: Inclusive naming
-    uses: canonical-web-and-design/Inclusive-naming/.github/workflows/woke.yaml@main
+    uses: canonical-web-and-design/Inclusive-naming/.github/workflows/woke.yaml@runner-test
     with:
       fail-on-error: "true"
   lib-check:
@@ -44,17 +44,17 @@ jobs:
           charm-path: "${{ inputs.charm-path }}"
   static-analysis:
     name: Static Analysis
-    uses: canonical/observability/.github/workflows/_static-analysis.yaml@main
+    uses: canonical/observability/.github/workflows/_static-analysis.yaml@runner-test
     with:
       charm-path: "${{ inputs.charm-path }}"
   linting:
     name: Linting
-    uses: canonical/observability/.github/workflows/_linting.yaml@main
+    uses: canonical/observability/.github/workflows/_linting.yaml@runner-test
     with:
       charm-path: "${{ inputs.charm-path }}"
   unit-test:
     name: Unit Tests
-    uses: canonical/observability/.github/workflows/_unit-tests.yaml@main
+    uses: canonical/observability/.github/workflows/_unit-tests.yaml@runner-test
     with:
       charm-path: "${{ inputs.charm-path }}"
   integration-test:
@@ -63,6 +63,6 @@ jobs:
       - static-analysis
       - linting
       - unit-test
-    uses: canonical/observability/.github/workflows/_integration-tests.yaml@main
+    uses: canonical/observability/.github/workflows/_integration-tests.yaml@runner-test
     with:
       charm-path: "${{ inputs.charm-path }}"
