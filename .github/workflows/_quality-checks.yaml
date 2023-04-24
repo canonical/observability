@@ -19,7 +19,7 @@ jobs:
         env:
           CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
         if: "${{ env.CHARMHUB_TOKEN != '' }}"
-        run: echo "::set-output name=defined::true"
+        run: echo "defined=true" >> $GITHUB_OUTPUT
   call-inclusive-naming-check:
     name: Inclusive naming
     uses: canonical-web-and-design/Inclusive-naming/.github/workflows/woke.yaml@main
@@ -37,7 +37,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Check libs
-        uses: canonical/charming-actions/check-libraries@2.0.0
+        uses: canonical/charming-actions/check-libraries@2.2.0
         with:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
