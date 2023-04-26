@@ -7,6 +7,10 @@ on:
         description: "Name of the application for which to build the ROCK"
         required: true
         type: string
+      tag-minor:
+        description: "Switch to add a tag for the minor version"
+        type: boolean
+        default: false
     secrets:
       OBSERVABILITY_NOCTUA_TOKEN:
         required: true
@@ -29,13 +33,29 @@ jobs:
         sudo snap install --classic --channel edge rockcraft
 
     - name: Build ROCK
-      run: rockcraft pack --verbose
+      id: build_rock
+      run: |
+        rockcraft pack --verbose
+        digest=$(skopeo inspect oci-archive:$(realpath ./${{ inputs.rock-name }}_*.rock) --format '{{.Digest}}')
+        echo "digest=${digest#*:}" >> "$GITHUB_OUTPUT"
+
+    - name: Add git tag
+      uses: mathieudutour/github-tag-action@v6.1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        custom_tag: "${{ steps.build_rock.outputs.digest }}"
+        tag_prefix: ""
 
     - name: Upload ROCK to ghcr.io
       run: |
         VERSION=$(yq -r '.version' rockcraft.yaml)
         sudo skopeo --insecure-policy copy oci-archive:$(realpath ./${{ inputs.rock-name }}_*.rock) docker://ghcr.io/canonical/${{ inputs.rock-name }}:$VERSION --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
         sudo skopeo --insecure-policy copy oci-archive:$(realpath ./${{ inputs.rock-name }}_*.rock) docker://ghcr.io/canonical/${{ inputs.rock-name }}:latest --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
+        if [ "${{ inputs.tag-minor }}" == "true" ]; then
+          MINOR_VERSION=${VERSION%.*}
+          sudo skopeo --insecure-policy copy oci-archive:$(realpath ./${{ inputs.rock-name }}_*.rock) docker://ghcr.io/canonical/${{ inputs.rock-name }}:$MINOR_VERSION --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
+        fi
+
     - name: Install Syft
       run: |
         curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
