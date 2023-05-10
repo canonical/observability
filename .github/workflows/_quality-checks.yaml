@@ -66,3 +66,12 @@ jobs:
     uses: canonical/observability/.github/workflows/_integration-tests.yaml@main
     with:
       charm-path: "${{ inputs.charm-path }}"
+  codeql:
+    name: CodeQL analysis
+    needs:
+      - static-analysis
+      - linting
+      - unit-test
+    uses: canonical/observability/.github/workflows/_codeql-analysis.yml@main
+    with:
+      charm-path: "${{ inputs.charm-path }}"
