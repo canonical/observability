@@ -146,6 +146,9 @@ repos:
   canonical/karma-alertmanager-proxy-k8s-operator: *shared-config
   canonical/karma-k8s-operator: *shared-config
   canonical/loki-k8s-operator: *loki-config
+  canonical/mimir-coordinator-k8s-operator: *shared-config
+  canonical/mimir-k8s-operator: *shared-config
+  canonical/mimir-worker-k8s-operator: *shared-config
   canonical/prometheus-k8s-operator: *prometheus-config
   canonical/prometheus-scrape-config-k8s-operator: *shared-config
   canonical/prometheus-scrape-target-k8s-operator: *shared-config
