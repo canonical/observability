@@ -1,0 +1,9 @@
+name: Pull Request
+
+on:
+  workflow_call:
+
+jobs:
+  test-build:
+    name: Test ROCK build
+    uses: canonical/observability/.github/workflows/_rock-build-test.yaml

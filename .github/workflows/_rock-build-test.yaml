@@ -1,0 +1,34 @@
+name: Build ROCK
+
+on:
+  workflow_call:
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup LXD
+      uses: canonical/setup-lxd@v0.1.0
+      with:
+        channel: latest/stable
+
+    - name: Install dependencies
+      run: |
+        sudo snap install yq
+        sudo snap install --classic --channel edge rockcraft
+
+    - name: Determine the rockcraft.yaml changed in the PR
+      id: changed-files
+      uses: tj-actions/changed-files@v35
+      with:
+        files: **/rockcraft.yaml
+
+    - name: Build ROCK
+      if: steps.changed-files.outputs.any_changed
+      run: |
+        for file in ${{ steps.changed-files.outputs.changed_files }}; do
+          rockcraft pack "$file" --verbose #TODO: check this is the way to pass a path to rockraft pack
+        done

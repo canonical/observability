@@ -1,0 +1,109 @@
+name: Update ROCK on new releases of its source
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_call:
+    inputs:
+      rock-name:
+        description: "Name of the application for which to build the ROCK"
+        required: true
+        type: string
+      source-repo:
+        description: "Repository of the source application in 'org/repo' form"
+        required: true
+        type: string
+      check-go: 
+        description: "Flag to check updates on the Go version"
+        default: false
+        required: false
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-version:
+    name: Detect new releases
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo snap install jq
+          sudo snap install yq
+
+      - id: latest-release
+        name: Fetch version used in *latest* release
+        run: |
+          TAG=$(curl -L \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"\
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${{ inputs.source-repo }}/releases/latest \
+            | jq -r .tag_name)
+          echo "release=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Checkout the ROCK source
+        uses: actions/checkout@v3
+        with:
+          path: main
+
+      - id: check
+        name: Check if the release has already been added
+        shell: bash
+        run: |
+          source_tag="${{ steps.check.outputs.release }}"
+          version=${source_tag#"v"}
+          if [ ! -f /$version/rockcraft.yaml ]; then
+            echo "version=$version" >> $GITHUB_OUTPUT
+            echo "release=${{steps.latest-release.outputs.release}}" >> $GITHUB_OUTPUT
+            echo "New upstream release ${{steps.latest-release.outputs.release}} found"
+          else
+            echo "No new upstream release found"
+          fi
+
+      - id: check-go-version
+        name: Checkout application source for the Go version check
+        if: ${{ inputs.check-go }} && ${{ steps.check.outputs.release != '' }}
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.source-repo }}
+          ref: ${{ steps.check.outputs.release }}
+          path: application-src
+      
+      - name: Create a new rockcraft.yaml for the new application version
+        if: ${{ steps.check.outputs.release != '' }}
+        shell: bash
+        run: |
+          source_tag="${{ steps.check.outputs.release }}"
+          version="${{ steps.check.outputs.version }}"
+          latest_rockcraft_file=$(find $GITHUB_WORKSPACE/main/ -name "rockcraft.yaml" | sort -V | tail -n1)
+          cp "$latest_rockcraft_file" "$GITHUB_WORKSPACE/main/$version/rockcraft.yaml"
+          source_tag="$source_tag" \
+          version="$version" \
+          yq -i '.version = strenv(version) | .parts.${{ inputs.rock-name }}["source-tag"] = strenv(source_tag)' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
+
+      - name: Update the Go version
+        if: ${{ inputs.check-go }} && ${{ steps.check.outputs.release != '' }}
+        shell: bash
+        run: |
+          version="${{ steps.check.outputs.version }}"
+          go_version=$(grep -Po "^go \K(\S+)" $GITHUB_WORKSPACE/application-src/go.mod) \
+          yq -i '.parts.${{ inputs.rock-name }}["build-snaps"] = ["go/" + strenv(go_version) + "/stable"]' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
+
+      - name: Create a PR
+        if: ${{ steps.check.outputs.release != '' }}
+        uses: peter-evans/create-pull-request@v4.2.3
+        with:
+          path: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(deps): bump ${{ inputs.rock-name }} version to ${{ steps.check.outputs.release }}"
+          committer: "Github Actions <github-actions@github.com>"
+          author: "Github Actions <github-actions@github.com>"
+          title: "chore: add ROCK for ${{ inputs.rock-name }} ${{ steps.check.outputs.release }}"
+          body: Automated update to follow upstream [release](https://github.com/${{ inputs.source-repo }}/releases/tag/${{ steps.check.outputs.release }}) of ${{ inputs.rock-name }}.
+          branch: "chore/bump-version-to-${{ steps.check.outputs.release }}"
+          delete-branch: true
