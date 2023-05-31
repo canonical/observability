@@ -6,4 +6,4 @@ on:
 jobs:
   test-build:
     name: Test ROCK build
-    uses: canonical/observability/.github/workflows/_rock-build-test.yaml
+    uses: canonical/observability/.github/workflows/_rock-build-test.yaml@main
