@@ -24,7 +24,7 @@ jobs:
       id: changed-files
       uses: tj-actions/changed-files@v35
       with:
-        files: **/rockcraft.yaml
+        files: "**/rockcraft.yaml"
 
     - name: Build ROCK
       if: steps.changed-files.outputs.any_changed
