@@ -1,4 +1,4 @@
-name: Build ROCK
+name: Build ROCKs
 
 on:
   workflow_call:
