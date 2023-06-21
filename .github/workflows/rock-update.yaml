@@ -1,3 +1,4 @@
+# This action automatically creates a folder with the same name as the upstream version
 name: Update ROCK on new releases of its source
 
 concurrency:
@@ -65,8 +66,7 @@ jobs:
             echo "No new upstream release found"
           fi
 
-      - id: check-go-version
-        name: Checkout application source for the Go version check
+      - name: Checkout application source for the Go version check
         if: ${{ inputs.check-go }} && ${{ steps.check.outputs.release != '' }}
         uses: actions/checkout@v3
         with:

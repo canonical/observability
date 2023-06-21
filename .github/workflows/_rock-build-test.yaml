@@ -10,16 +10,17 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Setup LXD
-      uses: canonical/setup-lxd@v0.1.0
-      with:
-        channel: latest/stable
-
     - name: Determine any rockcraft.yaml changed in the PR
       id: changed-files
       uses: tj-actions/changed-files@v35
       with:
         files: "**/rockcraft.yaml"
+
+    - name: Setup LXD
+      if: steps.changed-files.outputs.any_changed
+      uses: canonical/setup-lxd@v0.1.0
+      with:
+        channel: latest/stable
 
     - name: Install dependencies
       if: steps.changed-files.outputs.any_changed
