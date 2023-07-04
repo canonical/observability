@@ -97,7 +97,6 @@ jobs:
         run: |
           version="${{ steps.check.outputs.version }}"
           go_version=$(grep -Po "^go \K(\S+)" $GITHUB_WORKSPACE/application-src/go.mod) \
-          dependencies=$(yq '.parts.${{ inputs.rock-name }}.build-snaps.[]' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml)
           # Delete the Go dependency and add the updated one
           yq -i 'del(.parts.${{ inputs.rock-name }}.build-snaps.[] | select(. == "go/*"))' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
           go_v="$go_version" yq -i '.parts.${{ inputs.rock-name }}.build-snaps += strenv(go_v)' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
