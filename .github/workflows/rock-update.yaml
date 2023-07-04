@@ -21,6 +21,10 @@ on:
         default: false
         required: false
         type: boolean
+      update-script:
+        description: "Custom script to update external dependencies in rockcraf.yaml"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -93,7 +97,19 @@ jobs:
         run: |
           version="${{ steps.check.outputs.version }}"
           go_version=$(grep -Po "^go \K(\S+)" $GITHUB_WORKSPACE/application-src/go.mod) \
-          yq -i '.parts.${{ inputs.rock-name }}["build-snaps"] = ["go/" + strenv(go_version) + "/stable"]' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
+          dependencies=$(yq '.parts.${{ inputs.rock-name }}.build-snaps.[]' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml)
+          # Delete the Go dependency and add the updated one
+          yq -i 'del(.parts.${{ inputs.rock-name }}.build-snaps.[] | select(. == "go/*"))' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
+          go_v="$go_version" yq -i '.parts.${{ inputs.rock-name }}.build-snaps += strenv(go_v)' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
+
+      - name: Update other build dependencies
+        if: ${{ steps.check.outputs.release != '' && inputs.update-script != '' }}
+        shell: bash
+        run: |
+          version="${{ steps.check.outputs.version }}"
+          application_src=$GITHUB_WORKSPACE/application-src
+          rockcraft_yaml=$GITHUB_WORKSPACE/main/$version/rockcraft.yaml
+          eval "${{ inputs.update-script }}"
 
       - name: Create a PR
         if: ${{ steps.check.outputs.release != '' }}
