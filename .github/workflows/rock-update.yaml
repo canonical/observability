@@ -22,7 +22,7 @@ on:
         required: false
         type: boolean
       update-script:
-        description: "Custom script to update external dependencies in rockcraf.yaml"
+        description: "Custom script to update external dependencies in rockcraft.yaml"
         required: false
         type: string
 
