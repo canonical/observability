@@ -1,0 +1,90 @@
+name: Build ROCK and release to GHCR
+
+on:
+  workflow_call:
+    inputs:
+      rock-name:
+        description: "Name of the application for which to build the ROCK"
+        required: true
+        type: string
+      tag-minor:
+        description: "Switch to add a tag for the minor version"
+        type: boolean
+        default: false
+    secrets:
+      OBSERVABILITY_NOCTUA_TOKEN:
+        required: true
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Determine any rockcraft.yaml changed in the PR
+      id: changed-files
+      uses: tj-actions/changed-files@v35
+      with:
+        files: "**/rockcraft.yaml"
+
+    - name: Find the *latest* rockcraft.yaml
+      id: find-latest
+      run: |
+        latest_rockcraft_file=$(find $GITHUB_WORKSPACE/main/ -name "rockcraft.yaml" | sort -V | tail -n1)
+        rockcraft_dir=$(dirname ${latest_rockcraft_file#\./})
+        echo "latest=${latest_rockcraft_file#\./}" >> $GITHUB_OUTPUT
+        echo "latest-dir=$rockcraft_dir" >> $GITHUB_OUTPUT
+
+    - name: Setup LXD
+      if: contains(steps.changed-files.outputs.modified_files, steps.find-latest.outputs.latest)
+      uses: canonical/setup-lxd@v0.1.1
+      with:
+        channel: latest/stable
+
+    - name: Install dependencies
+      if: contains(steps.changed-files.outputs.modified_files, steps.find-latest.outputs.latest)
+      run: |
+        sudo snap install yq
+        sudo snap install --classic --channel edge rockcraft
+
+    - name: Build ROCK
+      if: contains(steps.changed-files.outputs.modified_files, steps.find-latest.outputs.latest)
+      run: |
+        rockcraft_yaml="${{ steps.find-latest.outputs.latest }}"
+        rockcraft_dir="${{ steps.find-latest.outputs.latest-dir }}"
+        current_wd=$(pwd) && cd $rockcraft_dir
+        rockcraft pack --verbose
+        cd $current_wd
+        digest=$(skopeo inspect oci-archive:$(realpath $rockcraft_dir/${{ inputs.rock-name }}_*.rock) --format '{{.Digest}}')
+        echo "digest=${digest#*:}" >> "$GITHUB_OUTPUT"
+
+    - name: Upload ROCK to ghcr.io
+      if: contains(steps.changed-files.outputs.modified_files, steps.find-latest.outputs.latest)
+      run: |
+        VERSION=$(yq -r '.version' ${{ steps.find-latest.outputs.latest }})
+        rockcraft_dir="${{ steps.find-latest.outputs.latest-dir }}"
+        sudo skopeo --insecure-policy copy oci-archive:$(realpath $rockcraft_dir/${{ inputs.rock-name }}_*.rock) docker://ghcr.io/canonical/${{ inputs.rock-name }}:$VERSION --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
+        sudo skopeo --insecure-policy copy oci-archive:$(realpath $rockcraft_dir/${{ inputs.rock-name }}_*.rock) docker://ghcr.io/canonical/${{ inputs.rock-name }}:latest --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
+        if [ "${{ inputs.tag-minor }}" == "true" ]; then
+          MINOR_VERSION=${VERSION%.*}
+          sudo skopeo --insecure-policy copy oci-archive:$(realpath $rockcraft_dir/${{ inputs.rock-name }}_*.rock) docker://ghcr.io/canonical/${{ inputs.rock-name }}:$MINOR_VERSION --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
+        fi
+
+    - name: Install Syft
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+    - name: Create SBOM
+      run: syft $(realpath ./${{ inputs.rock-name }}_*.rock) -o spdx-json=${{ inputs.rock-name }}.sbom.json
+
+    - name: Upload SBOM
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.rock-name }}-sbom
+        path: "${{ inputs.rock-name}}.sbom.json"
+    - name: Upload locally built ROCK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.rock-name }}-rock
+        path: "${{ inputs.rock-name }}_*.rock"
