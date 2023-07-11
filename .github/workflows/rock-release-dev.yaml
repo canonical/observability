@@ -1,4 +1,4 @@
-name: Build ROCK and release to GHCR
+name: Build ROCK and release dev tag to GHCR
 
 on:
   workflow_call:
@@ -7,10 +7,6 @@ on:
         description: "Name of the application for which to build the ROCK"
         required: true
         type: string
-      tag-minor:
-        description: "Switch to add a tag for the minor version"
-        type: boolean
-        default: false
     secrets:
       OBSERVABILITY_NOCTUA_TOKEN:
         required: true
@@ -33,7 +29,6 @@ jobs:
       run: |
         latest_rockcraft_file=$(find $GITHUB_WORKSPACE/main/ -name "rockcraft.yaml" | sort -V | tail -n1)
         rockcraft_dir=$(dirname ${latest_rockcraft_file#\./})
-        echo "latest=${latest_rockcraft_file#\./}" >> $GITHUB_OUTPUT
         echo "latest-dir=$rockcraft_dir" >> $GITHUB_OUTPUT
 
     - name: Setup LXD
@@ -51,25 +46,18 @@ jobs:
     - name: Build ROCK
       if: contains(steps.changed-files.outputs.modified_files, steps.find-latest.outputs.latest)
       run: |
-        rockcraft_yaml="${{ steps.find-latest.outputs.latest }}"
         rockcraft_dir="${{ steps.find-latest.outputs.latest-dir }}"
         current_wd=$(pwd) && cd $rockcraft_dir
         rockcraft pack --verbose
         cd $current_wd
-        digest=$(skopeo inspect oci-archive:$(realpath $rockcraft_dir/${{ inputs.rock-name }}_*.rock) --format '{{.Digest}}')
+        cp $rockraft_dir/${{ inputs.rock-name }}_*.rock $current_wd
+        digest=$(skopeo inspect oci-archive:$(realpath ./${{ inputs.rock-name }}_*.rock) --format '{{.Digest}}')
         echo "digest=${digest#*:}" >> "$GITHUB_OUTPUT"
 
     - name: Upload ROCK to ghcr.io
       if: contains(steps.changed-files.outputs.modified_files, steps.find-latest.outputs.latest)
       run: |
-        VERSION=$(yq -r '.version' ${{ steps.find-latest.outputs.latest }})
-        rockcraft_dir="${{ steps.find-latest.outputs.latest-dir }}"
-        sudo skopeo --insecure-policy copy oci-archive:$(realpath $rockcraft_dir/${{ inputs.rock-name }}_*.rock) docker://ghcr.io/canonical/${{ inputs.rock-name }}:$VERSION --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
-        sudo skopeo --insecure-policy copy oci-archive:$(realpath $rockcraft_dir/${{ inputs.rock-name }}_*.rock) docker://ghcr.io/canonical/${{ inputs.rock-name }}:latest --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
-        if [ "${{ inputs.tag-minor }}" == "true" ]; then
-          MINOR_VERSION=${VERSION%.*}
-          sudo skopeo --insecure-policy copy oci-archive:$(realpath $rockcraft_dir/${{ inputs.rock-name }}_*.rock) docker://ghcr.io/canonical/${{ inputs.rock-name }}:$MINOR_VERSION --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
-        fi
+        sudo skopeo --insecure-policy copy oci-archive:$(realpath ./${{ inputs.rock-name }}_*.rock) docker://ghcr.io/canonical/${{ inputs.rock-name }}:dev --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
 
     - name: Install Syft
       run: |
