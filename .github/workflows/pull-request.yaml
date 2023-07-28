@@ -52,7 +52,7 @@ jobs:
     needs:
       - ci-ignore
     if: ${{ needs.ci-ignore.outputs.files != '' }}
-    uses: canonical/observability/.github/workflows/_quality-checks.yaml@main
+    uses: canonical/observability/.github/workflows/_quality-checks.yaml@feat/self-hosted
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}
