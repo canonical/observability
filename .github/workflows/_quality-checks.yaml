@@ -57,6 +57,11 @@ jobs:
     uses: canonical/observability/.github/workflows/_unit-tests.yaml@main
     with:
       charm-path: "${{ inputs.charm-path }}"
+  scenario-test:
+    name: Scenario Tests
+    uses: canonical/observability/.github/workflows/_scenario-tests.yaml@main
+    with:
+      charm-path: "${{ inputs.charm-path }}"
   integration-test:
     name: Integration Tests
     needs:
