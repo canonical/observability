@@ -63,7 +63,7 @@ jobs:
       - static-analysis
       - linting
       - unit-test
-    uses: canonical/observability/.github/workflows/_integration-tests.yaml@main
+    uses: canonical/observability/.github/workflows/_integration-tests.yaml@feat/self-hosted
     with:
       charm-path: "${{ inputs.charm-path }}"
   codeql:
