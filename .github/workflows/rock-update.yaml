@@ -107,6 +107,7 @@ jobs:
         run: |
           version="${{ steps.check.outputs.version }}"
           application_src=$GITHUB_WORKSPACE/application-src
+          chmod --recurisve +r $application_src
           rockcraft_yaml=$GITHUB_WORKSPACE/main/$version/rockcraft.yaml
           eval "${{ inputs.update-script }}"
 
