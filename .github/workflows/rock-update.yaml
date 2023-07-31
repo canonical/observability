@@ -60,9 +60,9 @@ jobs:
         name: Check if the release has already been added
         shell: bash
         run: |
-          source_tag="${{ steps.check.outputs.release }}"
+          source_tag="${{ steps.latest-release.outputs.release }}"
           version=${source_tag#"v"}
-          if [ ! -f /$version/rockcraft.yaml ]; then
+          if [ ! -f $GITHUB_WORKSPACE/main/$version/rockcraft.yaml ]; then
             echo "version=$version" >> $GITHUB_OUTPUT
             echo "release=${{steps.latest-release.outputs.release}}" >> $GITHUB_OUTPUT
             echo "New upstream release ${{steps.latest-release.outputs.release}} found"
