@@ -18,12 +18,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Determine any rockcraft.yaml changed in the PR
-      id: changed-files
-      uses: tj-actions/changed-files@v35
-      with:
-        files: "**/rockcraft.yaml"
-
     - name: Find the *latest* rockcraft.yaml
       id: find-latest
       run: |
@@ -32,19 +26,16 @@ jobs:
         echo "latest-dir=$rockcraft_dir" >> $GITHUB_OUTPUT
 
     - name: Setup LXD
-      if: contains(steps.changed-files.outputs.modified_files, steps.find-latest.outputs.latest-dir)
       uses: canonical/setup-lxd@v0.1.1
       with:
         channel: latest/stable
 
     - name: Install dependencies
-      if: contains(steps.changed-files.outputs.modified_files, steps.find-latest.outputs.latest-dir)
       run: |
         sudo snap install yq
         sudo snap install --classic --channel edge rockcraft
 
     - name: Build ROCK
-      if: contains(steps.changed-files.outputs.modified_files, steps.find-latest.outputs.latest-dir)
       run: |
         rockcraft_dir="${{ steps.find-latest.outputs.latest-dir }}"
         current_wd=$(pwd) && cd $rockcraft_dir
@@ -55,7 +46,6 @@ jobs:
         echo "digest=${digest#*:}" >> "$GITHUB_OUTPUT"
 
     - name: Upload ROCK to ghcr.io
-      if: contains(steps.changed-files.outputs.modified_files, steps.find-latest.outputs.latest-dir)
       run: |
         sudo skopeo --insecure-policy copy oci-archive:$(realpath ./${{ inputs.rock-name }}_*.rock) docker://ghcr.io/canonical/${{ inputs.rock-name }}:dev --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
 
