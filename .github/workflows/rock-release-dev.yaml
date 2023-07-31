@@ -27,7 +27,7 @@ jobs:
     - name: Find the *latest* rockcraft.yaml
       id: find-latest
       run: |
-        latest_rockcraft_file=$(find $GITHUB_WORKSPACE/main/ -name "rockcraft.yaml" | sort -V | tail -n1)
+        latest_rockcraft_file=$(find $GITHUB_WORKSPACE -name "rockcraft.yaml" | sort -V | tail -n1)
         rockcraft_dir=$(dirname ${latest_rockcraft_file#\./})
         echo "latest-dir=$rockcraft_dir" >> $GITHUB_OUTPUT
 
