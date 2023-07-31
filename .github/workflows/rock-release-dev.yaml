@@ -41,7 +41,7 @@ jobs:
         current_wd=$(pwd) && cd $rockcraft_dir
         rockcraft pack --verbose
         cd $current_wd
-        cp $rockraft_dir/${{ inputs.rock-name }}_*.rock $current_wd
+        cp $rockcraft_dir/${{ inputs.rock-name }}_*.rock $current_wd
         digest=$(skopeo inspect oci-archive:$(realpath ./${{ inputs.rock-name }}_*.rock) --format '{{.Digest}}')
         echo "digest=${digest#*:}" >> "$GITHUB_OUTPUT"
 
