@@ -109,8 +109,11 @@ jobs:
           application_src=$GITHUB_WORKSPACE/application-src
           chmod --recursive +r $application_src
           rockcraft_yaml=$GITHUB_WORKSPACE/main/$version/rockcraft.yaml
-          eval "${{ inputs.update-script }}"
-
+          cat > update-script.sh << EOF
+            ${{ inputs.update-script }}
+          EOF
+          source update-script.sh
+          
       - name: Create a PR
         if: ${{ steps.check.outputs.release != '' }}
         uses: peter-evans/create-pull-request@v4.2.3
