@@ -27,7 +27,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check libs
+      - name: Fetch charm libraries
         run: |
           sudo snap install charmcraft --classic --channel latest/stable
           cd ${{ inputs.charm-path }}

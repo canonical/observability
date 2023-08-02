@@ -1,0 +1,48 @@
+name: Release Charm
+
+on:
+  workflow_call:
+    inputs:
+      charm-path:
+        description: "Path to the charm we want to publish. Defaults to the current working directory."
+        default: '.'
+        required: false
+        type: string
+      artifact:
+        description: "Name of artifact to download before building. Must contain the file artifact.tar.gz."
+        default: ''
+        required: false
+        type: string
+    secrets:
+      CHARMHUB_TOKEN:
+        required: true
+
+concurrency:
+  group: release
+  cancel-in-progress: true
+
+jobs:
+  quality-checks:
+    name: Quality Checks
+    uses: canonical/observability/.github/workflows/_quality-checks.yaml@main
+    secrets: inherit
+    with:
+      charm-path: "${{ inputs.charm-path }}"
+  release-charm:
+    name: Release Charm and Libraries
+    runs-on: ubuntu-latest
+    needs: 
+      - quality-checks
+    steps:
+      - name: Release Charm
+        uses: ./.github/workflows/_release_charm.yaml
+        with:
+          artifact: "${{ inputs.artifact }}"
+          charm-path: "${{ inputs.charm-path }}"
+      - name: Release any bumped charm library
+        uses: canonical/charming-actions/release-libraries@main
+        with:
+          charm-path: "${{ inputs.charm-path }}"
+          credentials: "${{ secrets.CHARMHUB_TOKEN }}"
+          github-token: "${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
+
