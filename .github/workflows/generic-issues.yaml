@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Dump Github Context
         run: |
-          echo "update=false" >> $GITHUB_ENV          
+          echo "update=false" >> $GITHUB_ENV
           if [ ${{ github.event_name }} != "issues" ]; then
             echo "This action only operates on issues"
             exit 0
@@ -55,5 +55,5 @@ jobs:
             --arg component "$COMPONENT" \
             --arg type "${{ env.type }}" \
             '{data: {id: $id, action: $action, title: $title, description: $description, component: $component, type: $type}}')
-            
+
           curl -X POST -H 'Content-type: application/json' --data "${data}" "${{ secrets.JIRA_URL }}"
