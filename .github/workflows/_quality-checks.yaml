@@ -44,22 +44,22 @@ jobs:
           charm-path: "${{ inputs.charm-path }}"
   static-analysis:
     name: Static Analysis
-    uses: canonical/observability/.github/workflows/_static-analysis.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-static-analysis.yaml@main
     with:
       charm-path: "${{ inputs.charm-path }}"
   linting:
     name: Linting
-    uses: canonical/observability/.github/workflows/_linting.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-linting.yaml@main
     with:
       charm-path: "${{ inputs.charm-path }}"
   unit-test:
     name: Unit Tests
-    uses: canonical/observability/.github/workflows/_unit-tests.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-tests-unit.yaml@main
     with:
       charm-path: "${{ inputs.charm-path }}"
   scenario-test:
     name: Scenario Tests
-    uses: canonical/observability/.github/workflows/_scenario-tests.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-tests-scenario.yaml@main
     with:
       charm-path: "${{ inputs.charm-path }}"
   integration-test:
@@ -69,7 +69,7 @@ jobs:
       - linting
       - unit-test
       - scenario-test
-    uses: canonical/observability/.github/workflows/_integration-tests.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-tests-integration.yaml@main
     with:
       charm-path: "${{ inputs.charm-path }}"
   codeql:
@@ -78,6 +78,6 @@ jobs:
       - static-analysis
       - linting
       - unit-test
-    uses: canonical/observability/.github/workflows/_codeql-analysis.yml@main
+    uses: canonical/observability/.github/workflows/_charm-codeql-analysis.yml@main
     with:
       charm-path: "${{ inputs.charm-path }}"

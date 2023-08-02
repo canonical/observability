@@ -30,7 +30,7 @@ jobs:
   release-charm:
     needs: 
       - quality-checks
-    uses: ./.github/workflows/_release_charm.yaml
+    uses: ./.github/workflows/_charm-release.yaml
     secrets: inherit
     with:
       artifact: "${{ inputs.artifact }}"
