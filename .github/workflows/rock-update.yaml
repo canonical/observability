@@ -99,7 +99,7 @@ jobs:
           go_version=$(grep -Po "^go \K(\S+)" $GITHUB_WORKSPACE/application-src/go.mod) \
           # Delete the Go dependency and add the updated one
           yq -i 'del(.parts.${{ inputs.rock-name }}.build-snaps.[] | select(. == "go/*"))' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
-          go_v="$go_version" yq -i '.parts.${{ inputs.rock-name }}.build-snaps += strenv(go_v)' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
+          go_v="$go_version" yq -i '.parts.${{ inputs.rock-name }}.build-snaps += "go/"+strenv(go_v)+"/stable"' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
 
       - name: Update other build dependencies
         if: ${{ steps.check.outputs.release != '' && inputs.update-script != '' }}
@@ -107,13 +107,12 @@ jobs:
         run: |
           version="${{ steps.check.outputs.version }}"
           application_src=$GITHUB_WORKSPACE/application-src
-          chmod --recursive +r $application_src
           rockcraft_yaml=$GITHUB_WORKSPACE/main/$version/rockcraft.yaml
           cat > update-script.sh << EOF
             ${{ inputs.update-script }}
           EOF
           source update-script.sh
-          
+
       - name: Create a PR
         if: ${{ steps.check.outputs.release != '' }}
         uses: peter-evans/create-pull-request@v4.2.3
