@@ -113,12 +113,6 @@ jobs:
           EOF
           source update-script.sh
 
-      - name: Debug # TODO: Remove this
-        if: ${{ steps.check.outputs.release != '' && inputs.update-script != '' }}
-        uses: lhotari/action-upterm@v1
-        with:
-          limit-access-to-users: lucabello
-
       - name: Create a PR
         if: ${{ steps.check.outputs.release != '' }}
         uses: peter-evans/create-pull-request@v4.2.3
