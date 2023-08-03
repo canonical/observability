@@ -71,7 +71,7 @@ jobs:
           fi
 
       - name: Checkout application source for the Go version check
-        if: ${{ inputs.check-go }} && ${{ steps.check.outputs.release != '' }}
+        if: inputs.check-go && steps.check.outputs.release != ''
         uses: actions/checkout@v3
         with:
           repository: ${{ inputs.source-repo }}
@@ -79,7 +79,7 @@ jobs:
           path: application-src
       
       - name: Create a new rockcraft.yaml for the new application version
-        if: ${{ steps.check.outputs.release != '' }}
+        if: steps.check.outputs.release != ''
         shell: bash
         run: |
           source_tag="${{ steps.check.outputs.release }}"
@@ -92,7 +92,7 @@ jobs:
           yq -i '.version = strenv(version) | .parts.${{ inputs.rock-name }}["source-tag"] = strenv(source_tag)' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
 
       - name: Update the Go version
-        if: ${{ inputs.check-go }} && ${{ steps.check.outputs.release != '' }}
+        if: inputs.check-go && steps.check.outputs.release != ''
         shell: bash
         run: |
           version="${{ steps.check.outputs.version }}"
@@ -102,7 +102,7 @@ jobs:
           go_v="$go_version" yq -i '.parts.${{ inputs.rock-name }}.build-snaps += "go/"+strenv(go_v)+"/stable"' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
 
       - name: Update other build dependencies
-        if: ${{ steps.check.outputs.release != '' && inputs.update-script != '' }}
+        if: steps.check.outputs.release != '' && inputs.update-script != ''
         shell: bash
         run: |
           version="${{ steps.check.outputs.version }}"
@@ -114,7 +114,7 @@ jobs:
           source update-script.sh
 
       - name: Create a PR
-        if: ${{ steps.check.outputs.release != '' }}
+        if: steps.check.outputs.release != ''
         uses: peter-evans/create-pull-request@v4.2.3
         with:
           path: main
