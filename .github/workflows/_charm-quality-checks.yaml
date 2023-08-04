@@ -1,4 +1,4 @@
-name: Pull Request
+name: Quality Checks
 
 on:
   workflow_call:
