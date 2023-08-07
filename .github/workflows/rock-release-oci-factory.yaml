@@ -11,19 +11,6 @@ on:
         description: "Name of the application for which to build the ROCK"
         required: true
         type: string
-      source-repo:
-        description: "Repository of the source application in 'org/repo' form"
-        required: true
-        type: string
-      check-go: 
-        description: "Flag to check updates on the Go version"
-        default: false
-        required: false
-        type: boolean
-      update-script:
-        description: "Custom script to update external dependencies in rockcraft.yaml"
-        required: false
-        type: string
 
 permissions:
   contents: write
