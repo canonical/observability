@@ -1,0 +1,127 @@
+name: Open a PR to OCI Factory when a new ROCK is merged to main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_call:
+    inputs:
+      rock-name:
+        description: "Name of the application for which to build the ROCK"
+        required: true
+        type: string
+      source-repo:
+        description: "Repository of the source application in 'org/repo' form"
+        required: true
+        type: string
+      check-go: 
+        description: "Flag to check updates on the Go version"
+        default: false
+        required: false
+        type: boolean
+      update-script:
+        description: "Custom script to update external dependencies in rockcraft.yaml"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  prepare-pr: # TODO: change this name
+    name: Add the new ROCK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the ROCK source
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+          path: rock
+
+      - name: Check for a new rockcraft.yaml from the latest commit
+        id: changed-files
+        uses: tj-actions/changed-files@v37
+        with:
+          files: '**/rockcraft.yaml'
+
+      - name: Get the latest commit SHA
+        id: commit-sha
+        if: steps.changed-files.outputs.added_files != ''
+        run: |
+          cd $GITHUB_WORKSPACE/rock
+          commit_sha=$(git rev-parse HEAD)
+          cd $GITHUB_WORKSPACE
+          echo "commit_sha=$commit_sha" >> $GITHUB_OUTPUT
+
+      - name: Sync the OCI Factory fork
+        id: fork-sync
+        if: steps.changed-files.outputs.added_files != ''
+        run: gh repo sync observability-noctua-bot/oci-factory
+
+      - name: Clone the fork
+        id: fork-clone
+        if: steps.changed-files.outputs.added_files != ''
+        uses: actions/checkout@v3
+        with:
+          repository: observability-noctua-bot/oci-factory
+
+      - name: Update releases in image.yaml
+        id: update-releases
+        if: steps.changed-files.outputs.added_files != ''
+        run: |
+          all_tags="$(jq -r 'to_entries[] | .key' oci-factory/oci/${{ inputs.rock-name }}/_releases.json)"
+          today="$(date)"
+          echo "now_epoch=$(date -d now +%s)" >> $GITHUB_OUTPUT  # to create a unique branch name on the fork
+          end_of_life="$(date -d "$today+1 year" +%Y-%m-%d)"
+          for file in ${{ steps.changed-files.outputs.added_files }}; do
+            # For each ROCK version, build the `upload:` element for image.yaml as a json
+            # Example: {"source": "canonical/prometheus-rock", "commit": "...", ...}
+            patch_tag=""; minor_tag=""; major_tag=""
+            # Parse the ROCK version from the rockcraft.yaml
+            rock_version=$(yq -r '.version' $file)
+            # Always tag with patch
+            patch_tag="{\"${rock_version}-22.04\": {\"end-of-life\": \"${end_of_life}T00:00:00Z\", \"risks\": [\"stable\"]}}"
+            # If rock_version is the latest tag among the ones with equal major.minor, apply major.minor
+            rock_major_minor=$(sed -E "s/([0-9]+\.[0-9]+).*/\1/" <<< $rock_version)
+            if [[ $(echo "$all_tags\n$rock_version" | grep "$rock_major_minor") | sort -V | tail -n1) == "$rock_version" ]]; then
+              minor_tag=",{\"${rock_major_minor}-22.04\": {\"end-of-life\": \"${end_of_life}T00:00:00Z\", \"risks\": [\"stable\"]}}"
+            fi
+            # If rock_version is the latest among the ones with equal major, apply major
+            rock_major=$(sed -E "s/([0-9]+).*/\1/" <<< $rock_version)
+            if [[ $(echo "$all_tags\n$rock_version" | grep "$rock_major") | sort -V | tail -n1) == "$rock_version" ]]; then
+              major_tag=",{\"${rock_major}-22.04\": {\"end-of-life\": \"${end_of_life}T00:00:00Z\", \"risks\": [\"stable\"]}}"
+            fi
+            rock_tags="[${patch_tag}${minor_tag}${major_tag}]"
+            upload_item="{\
+              \"source\": \"canonical/${{ inputs.rock-name }}-rock\", \
+              \"commit\": \"${{ steps.commit-sha.outputs.commit_sha }}\", \
+              \"directory\": \"${rock_version}\", \
+              \"release\": \"${rock_tags}\"\
+            }"
+            yq -i ".upload += \"$upload_item\"" oci-factory/oci/${{ inputs.rock-name }}/image.yaml
+          done
+
+      - name: Commit to the fork
+        id: fork-commit
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'oci/${{ inputs.rock-name }}/image.yaml'
+          cwd: './oci-factory'
+          message: 'chore: Add new ${{ inputs.rock-name }} releases'
+          new_branch: 'update-${{ steps.update-releases.outputs.now_epoch }}'
+
+      - name: Debug # TODO: Remove this step
+        id: debug
+        uses: lhotari/action-upterm@v1
+        with:
+          limit-access-to-users: lucabello
+
+      - name: Open a PR from the fork to upstream
+        id: upstream-pr
+        run: |
+          cd $GITHUB_WORKSPACE/oci-factory
+          gh pr create --repo canonical/oci-factory \
+            --head update-${{ steps.update-releases.outputs.now_epoch }} \
+            --title "chore: Add new ${{ inputs.rock-name }} releases"
