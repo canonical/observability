@@ -46,6 +46,8 @@ jobs:
       - name: Sync the OCI Factory fork
         id: fork-sync
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: gh repo sync observability-noctua-bot/oci-factory
 
       - name: Clone the fork
@@ -111,6 +113,8 @@ jobs:
       - name: Open a PR from the fork to upstream
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         id: upstream-pr
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           cd $GITHUB_WORKSPACE/oci-factory
           gh pr create --repo canonical/oci-factory \
