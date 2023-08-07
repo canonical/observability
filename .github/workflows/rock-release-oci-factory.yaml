@@ -36,7 +36,7 @@ jobs:
 
       - name: Get the latest commit SHA
         id: commit-sha
-        if: steps.changed-files.outputs.all_modified_files != ''
+        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: |
           cd $GITHUB_WORKSPACE/rock
           commit_sha=$(git rev-parse HEAD)
@@ -45,25 +45,25 @@ jobs:
 
       - name: Sync the OCI Factory fork
         id: fork-sync
-        if: steps.changed-files.outputs.all_modified_files != ''
+        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: gh repo sync observability-noctua-bot/oci-factory
 
       - name: Clone the fork
         id: fork-clone
-        if: steps.changed-files.outputs.all_modified_files != ''
+        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         uses: actions/checkout@v3
         with:
           repository: observability-noctua-bot/oci-factory
 
       - name: Update releases in image.yaml
         id: update-releases
-        if: steps.changed-files.outputs.all_modified_files != ''
+        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: |
           all_tags="$(jq -r 'to_entries[] | .key' oci-factory/oci/${{ inputs.rock-name }}/_releases.json)"
           today="$(date)"
           echo "now_epoch=$(date -d now +%s)" >> $GITHUB_OUTPUT  # to create a unique branch name on the fork
           end_of_life="$(date -d "$today+1 year" +%Y-%m-%d)"
-          for file in ${{ steps.changed-files.outputs.all_modified_files }}; do
+          for file in ${{ steps.changed-files.outputs.all_changed_and_modified_files }}; do
             # For each ROCK version, build the `upload:` element for image.yaml as a json
             # Example: {"source": "canonical/prometheus-rock", "commit": "...", ...}
             patch_tag=""; minor_tag=""; major_tag=""
@@ -93,7 +93,7 @@ jobs:
 
       - name: Commit to the fork
         id: fork-commit
-        if: steps.changed-files.outputs.all_modified_files != ''
+        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         uses: EndBug/add-and-commit@v9
         with:
           add: 'oci/${{ inputs.rock-name }}/image.yaml'
@@ -103,13 +103,13 @@ jobs:
 
       - name: Debug # TODO: Remove this step
         id: debug
-        if: steps.changed-files.outputs.all_modified_files != ''
+        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         uses: lhotari/action-upterm@v1
         with:
           limit-access-to-users: lucabello
 
       - name: Open a PR from the fork to upstream
-        if: steps.changed-files.outputs.all_modified_files != ''
+        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         id: upstream-pr
         run: |
           cd $GITHUB_WORKSPACE/oci-factory
