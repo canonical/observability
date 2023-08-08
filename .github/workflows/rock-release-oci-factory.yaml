@@ -11,6 +11,9 @@ on:
         description: "Name of the application for which to build the ROCK"
         required: true
         type: string
+    secrets:
+      OBSERVABILITY_NOCTUA_TOKEN:
+        required: true
 
 permissions:
   contents: write
@@ -47,7 +50,7 @@ jobs:
         id: fork-sync
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
         run: gh repo sync observability-noctua-bot/oci-factory
 
       - name: Clone the fork
@@ -114,7 +117,7 @@ jobs:
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         id: upstream-pr
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
         run: |
           cd $GITHUB_WORKSPACE/oci-factory
           gh pr create --repo canonical/oci-factory \
