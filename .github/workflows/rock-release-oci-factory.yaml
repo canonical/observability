@@ -46,13 +46,6 @@ jobs:
           cd $GITHUB_WORKSPACE
           echo "commit_sha=$commit_sha" >> $GITHUB_OUTPUT
 
-      - name: Debug # TODO: Remove this step
-        id: debug
-        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
-        uses: lhotari/action-upterm@v1
-        with:
-          limit-access-to-users: lucabello
-
       - name: Sync the OCI Factory fork
         id: fork-sync
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
