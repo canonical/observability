@@ -70,6 +70,7 @@ jobs:
 
       - name: Update releases in image.yaml
         id: update-releases
+        shell: bash
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: |
           all_tags="$(jq -r 'to_entries[] | .key' $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/_releases.json)"
