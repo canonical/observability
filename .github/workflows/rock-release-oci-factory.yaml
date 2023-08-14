@@ -81,14 +81,14 @@ jobs:
             patch_tag=$(printf "$tag_json_format" "$rock_version" "$end_of_life")
             # If rock_version is the latest tag among the ones with equal major.minor, apply major.minor
             rock_major_minor=$(echo $rock_version | sed -E "s/([0-9]+\.[0-9]+).*/\1/")
-            same_major_minor=$(echo "$all_tags\n$rock_version" | grep "$rock_major_minor")
-            if [[ $(echo "$same_major_minor" | sort -V | tail -n1) == "$rock_version"* ]]; then
+            same_major_minor=$(printf "%s\n%s" "$all_tags" "$rock_version" | grep "$rock_major_minor")
+            if [[ $(echo "$same_major_minor" | sort -V | tail -n1) == "$rock_version" ]]; then
               minor_tag=$(printf ",$tag_json_format" "$rock_major_minor" "$end_of_life")
             fi
             # If rock_version is the latest among the ones with equal major, apply major
             rock_major=$(echo $rock_version | sed -E "s/([0-9]+).*/\1/")
-            same_major_=$(echo "$all_tags\n$rock_version" | grep "$rock_major")
-            if [[ $(echo "$same_major" | sort -V | tail -n1) == "$rock_version"* ]]; then
+            same_major_=$(printf "%s\n%s" "$all_tags" "$rock_version" | grep "$rock_major")
+            if [[ $(echo "$same_major" | sort -V | tail -n1) == "$rock_version" ]]; then
               major_tag=$(printf ",$tag_json_format" "$rock_major" "$end_of_life")
             fi
             # Build the final JSON object to update image.yaml
