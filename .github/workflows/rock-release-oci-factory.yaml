@@ -79,12 +79,12 @@ jobs:
             patch_tag="{\"${rock_version}-22.04\": {\"end-of-life\": \"${end_of_life}T00:00:00Z\", \"risks\": [\"stable\"]}}"
             # If rock_version is the latest tag among the ones with equal major.minor, apply major.minor
             rock_major_minor=$(sed -E "s/([0-9]+\.[0-9]+).*/\1/" <<< $rock_version)
-            if [[ $(echo "$all_tags\n$rock_version" | grep "$rock_major_minor") | sort -V | tail -n1 == "$rock_version" ]]; then
+            if [[ $(echo "$all_tags\n$rock_version" | grep "$rock_major_minor" | sort -V | tail -n1) == "$rock_version" ]]; then
               minor_tag=",{\"${rock_major_minor}-22.04\": {\"end-of-life\": \"${end_of_life}T00:00:00Z\", \"risks\": [\"stable\"]}}"
             fi
             # If rock_version is the latest among the ones with equal major, apply major
             rock_major=$(sed -E "s/([0-9]+).*/\1/" <<< $rock_version)
-            if [[ $(echo "$all_tags\n$rock_version" | grep "$rock_major") | sort -V | tail -n1 == "$rock_version" ]]; then
+            if [[ $(echo "$all_tags\n$rock_version" | grep "$rock_major" | sort -V | tail -n1) == "$rock_version" ]]; then
               major_tag=",{\"${rock_major}-22.04\": {\"end-of-life\": \"${end_of_life}T00:00:00Z\", \"risks\": [\"stable\"]}}"
             fi
             rock_tags="[${patch_tag}${minor_tag}${major_tag}]"
