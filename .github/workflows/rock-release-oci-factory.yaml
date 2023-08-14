@@ -123,4 +123,5 @@ jobs:
           cd $GITHUB_WORKSPACE/oci-factory
           gh pr create --repo canonical/oci-factory \
             --head update-${{ steps.update-releases.outputs.now_epoch }} \
-            --title "chore: Add new ${{ inputs.rock-name }} releases"
+            --title "chore: Add new ${{ inputs.rock-name }} releases" \
+            --body "This is an automatic PR opened by the Observability Noctua bot."
