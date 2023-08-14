@@ -20,7 +20,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  prepare-pr: # TODO: change this name
+  release-oci-factory:
     name: Add the new ROCK
     runs-on: ubuntu-latest
     steps:
@@ -100,15 +100,8 @@ jobs:
               "$rock_version" \
               "$rock_tags" \
             )
-            yq -i ".upload += $upload_item" $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/image.yaml
+            yq -i ".upload = $upload_item" $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/image.yaml
           done
-
-      - name: Debug # TODO: Remove this step
-        id: debug-second
-        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
-        uses: lhotari/action-upterm@v1
-        with:
-          limit-access-to-users: lucabello
 
       - name: Commit to the fork
         id: fork-commit
