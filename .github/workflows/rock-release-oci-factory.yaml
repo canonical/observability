@@ -46,13 +46,6 @@ jobs:
           cd $GITHUB_WORKSPACE
           echo "commit_sha=$commit_sha" >> $GITHUB_OUTPUT
 
-      - name: Debug # TODO: Remove this step
-        id: debug-first
-        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
-        uses: lhotari/action-upterm@v1
-        with:
-          limit-access-to-users: lucabello
-
       - name: Sync the OCI Factory fork
         id: fork-sync
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
@@ -65,13 +58,14 @@ jobs:
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         uses: actions/checkout@v3
         with:
+          path: oci-factory
           repository: observability-noctua-bot/oci-factory
 
       - name: Update releases in image.yaml
         id: update-releases
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: |
-          all_tags="$(jq -r 'to_entries[] | .key' oci-factory/oci/${{ inputs.rock-name }}/_releases.json)"
+          all_tags="$(jq -r 'to_entries[] | .key' $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/_releases.json)"
           today="$(date)"
           echo "now_epoch=$(date -d now +%s)" >> $GITHUB_OUTPUT  # to create a unique branch name on the fork
           end_of_life="$(date -d "$today+1 year" +%Y-%m-%d)"
@@ -100,8 +94,15 @@ jobs:
               \"directory\": \"${rock_version}\", \
               \"release\": \"${rock_tags}\"\
             }"
-            yq -i ".upload += \"$upload_item\"" oci-factory/oci/${{ inputs.rock-name }}/image.yaml
+            yq -i ".upload += \"$upload_item\"" $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/image.yaml
           done
+
+      - name: Debug # TODO: Remove this step
+        id: debug-second
+        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
+        uses: lhotari/action-upterm@v1
+        with:
+          limit-access-to-users: lucabello
 
       - name: Commit to the fork
         id: fork-commit
@@ -112,13 +113,6 @@ jobs:
           cwd: './oci-factory'
           message: 'chore: Add new ${{ inputs.rock-name }} releases'
           new_branch: 'update-${{ steps.update-releases.outputs.now_epoch }}'
-
-      - name: Debug # TODO: Remove this step
-        id: debug-second
-        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
-        uses: lhotari/action-upterm@v1
-        with:
-          limit-access-to-users: lucabello
 
       - name: Open a PR from the fork to upstream
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
