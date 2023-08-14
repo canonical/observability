@@ -110,6 +110,8 @@ jobs:
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: |
           cd $GITHUB_WORKSPACE/oci-factory
+          git config user.email "github-actions@github.com"
+          git config user.name "Observability Noctua Bot"
           git checkout -b update/${{ steps.update-releases.outputs.now_epoch }}
           git add oci/${{ inputs.rock-name }}/image.yaml
           git commit -m "chore: Add new ${{ inputs.rock-name }} releases"
