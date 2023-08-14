@@ -61,6 +61,13 @@ jobs:
           path: oci-factory
           repository: observability-noctua-bot/oci-factory
 
+      - name: Debug # TODO: Remove this step
+        id: debug-second
+        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
+        uses: lhotari/action-upterm@v1
+        with:
+          limit-access-to-users: lucabello
+
       - name: Update releases in image.yaml
         id: update-releases
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
@@ -96,13 +103,6 @@ jobs:
             }"
             yq -i ".upload += \"$upload_item\"" $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/image.yaml
           done
-
-      - name: Debug # TODO: Remove this step
-        id: debug-second
-        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
-        uses: lhotari/action-upterm@v1
-        with:
-          limit-access-to-users: lucabello
 
       - name: Commit to the fork
         id: fork-commit
