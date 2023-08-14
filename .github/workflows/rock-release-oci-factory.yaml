@@ -74,7 +74,7 @@ jobs:
             # Example: {"source": "canonical/prometheus-rock", "commit": "...", ...}
             patch_tag=""; minor_tag=""; major_tag=""
             # Parse the ROCK version from the rockcraft.yaml
-            rock_version=$(yq -r '.version' $file)
+            rock_version=$(yq -r '.version' $GITHUB_WORKSPACE/rock/$file)
             # Always tag with patch
             patch_tag="{\"${rock_version}-22.04\": {\"end-of-life\": \"${end_of_life}T00:00:00Z\", \"risks\": [\"stable\"]}}"
             # If rock_version is the latest tag among the ones with equal major.minor, apply major.minor
