@@ -112,7 +112,7 @@ jobs:
           cd $GITHUB_WORKSPACE/oci-factory
           git config user.email "github-actions@github.com"
           git config user.name "Observability Noctua Bot"
-          git remote add origin https://${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}@github.com/observability-noctua-bot/oci-factory
+          git remote set-url origin https://${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}@github.com/observability-noctua-bot/oci-factory.git
           git checkout -b update/${{ steps.update-releases.outputs.now_epoch }}
           git add oci/${{ inputs.rock-name }}/image.yaml
           git commit -m "chore: Add new ${{ inputs.rock-name }} releases"
