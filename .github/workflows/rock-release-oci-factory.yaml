@@ -90,10 +90,10 @@ jobs:
             fi
             rock_tags="[${patch_tag}${minor_tag}${major_tag}]"
             upload_item="{\
-              \"source\": \"canonical/${{ inputs.rock-name }}-rock\", \
-              \"commit\": \"${{ steps.commit-sha.outputs.commit_sha }}\", \
-              \"directory\": \"${rock_version}\", \
-              \"release\": \"${rock_tags}\"\
+              \\\"source\\\": \\\"canonical/${{ inputs.rock-name }}-rock\\\", \
+              \\\"commit\\\": \\\"${{ steps.commit-sha.outputs.commit_sha }}\\\", \
+              \\\"directory\\\": \\\"${rock_version}\\\", \
+              \\\"release\\\": \\\"${rock_tags}\\\"\
             }"
             yq -i ".upload += \"$upload_item\"" $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/image.yaml
           done
