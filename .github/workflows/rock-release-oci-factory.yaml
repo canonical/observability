@@ -65,7 +65,7 @@ jobs:
         id: update-releases
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: |
-          all_tags="$(jq -r 'to_entries[] \| .key' $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/_releases.json)"
+          all_tags=$(jq -r 'to_entries[] | .key' $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/_releases.json)
           today="$(date)"
           echo "now_epoch=$(date -d now +%s)" >> $GITHUB_OUTPUT  # to create a unique branch name on the fork
           end_of_life="$(date -d "$today+1 year" +%Y-%m-%d)"
