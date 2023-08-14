@@ -60,11 +60,13 @@ jobs:
         with:
           path: oci-factory
           repository: observability-noctua-bot/oci-factory
+          token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
 
       - name: Update releases in image.yaml
         id: update-releases
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: |
+          set -x
           all_tags="$(jq -r 'to_entries[] | .key' $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/_releases.json)"
           today="$(date)"
           echo "now_epoch=$(date -d now +%s)" >> $GITHUB_OUTPUT  # to create a unique branch name on the fork
@@ -92,7 +94,6 @@ jobs:
             fi
             # Build the final JSON object to update image.yaml
             rock_tags=$(printf '[%s%s%s]' "$patch_tag" "$minor_tag" "$major_tag")
-            echo "Releasing the following tags: $rock_tags"
             upload_item_format='{"source":"%s","commit":"%s","directory":"%s","release":%s}'
             upload_item=$(printf "$upload_item_format" \
               "canonical/${{ inputs.rock-name }}-rock" \
@@ -105,18 +106,13 @@ jobs:
 
       - name: Commit to the fork
         id: fork-commit
-        env:
-          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
-        run: |
-          cd $GITHUB_WORKSPACE/oci-factory
-          git config user.email "github-actions@github.com"
-          git config user.name "Observability Noctua Bot"
-          git remote set-url origin https://${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}@github.com/observability-noctua-bot/oci-factory.git
-          git checkout -b update/${{ steps.update-releases.outputs.now_epoch }}
-          git add oci/${{ inputs.rock-name }}/image.yaml
-          git commit -m "chore: Add new ${{ inputs.rock-name }} releases"
-          git push -u origin update/${{ steps.update-releases.outputs.now_epoch }}
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'oci/${{ inputs.rock-name }}/image.yaml'
+          cwd: './oci-factory'
+          message: 'chore: Add new ${{ inputs.rock-name }} releases'
+          new_branch: 'update-${{ steps.update-releases.outputs.now_epoch }}'
 
       - name: Open a PR from the fork to upstream
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
@@ -126,5 +122,5 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/oci-factory
           gh pr create --repo canonical/oci-factory \
-            --head update/${{ steps.update-releases.outputs.now_epoch }} \
+            --head update-${{ steps.update-releases.outputs.now_epoch }} \
             --title "chore: Add new ${{ inputs.rock-name }} releases"
