@@ -75,7 +75,7 @@ jobs:
             # For each ROCK version, build the `upload:` element for image.yaml as a json
             # Example: {"source": "canonical/prometheus-rock", "commit": "...", ...}
             patch_tag=""; minor_tag=""; major_tag=""
-            tag_json_format='{"%s": {"end-of-life": "%sT00:00:00Z", "risks":["stable"]}}'
+            tag_json_format='"%s": {"end-of-life": "%sT00:00:00Z", "risks":["stable"]}'
             # Parse the ROCK version from the rockcraft.yaml
             rock_version=$(yq -r '.version' $GITHUB_WORKSPACE/rock/$file)
             # Always tag with patch
@@ -93,7 +93,7 @@ jobs:
               major_tag=$(printf ",$tag_json_format" "$rock_major" "$end_of_life")
             fi
             # Build the final JSON object to update image.yaml
-            rock_tags=$(printf '[%s%s%s]' "$patch_tag" "$minor_tag" "$major_tag")
+            rock_tags=$(printf '{%s%s%s}' "$patch_tag" "$minor_tag" "$major_tag")
             upload_item_format='{"source":"%s","commit":"%s","directory":"%s","release":%s}'
             upload_item=$(printf "$upload_item_format" \
               "canonical/${{ inputs.rock-name }}-rock" \
@@ -103,6 +103,13 @@ jobs:
             )
             yq -i ".upload += $upload_item" $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/image.yaml
           done
+
+      - name: Debug # TODO: Remove this step
+        id: debug-second
+        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
+        uses: lhotari/action-upterm@v1
+        with:
+          limit-access-to-users: lucabello
 
       - name: Commit to the fork
         id: fork-commit
