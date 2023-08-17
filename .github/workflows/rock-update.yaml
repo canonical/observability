@@ -63,7 +63,7 @@ jobs:
           source_tag="${{ steps.latest-release.outputs.release }}"
           version=${source_tag#"v"}
           # Explicitly filter for specific ROCKs because we'd rather notice if a new ROCK has a different release schema
-          version=${source_tag#"mimir-"}
+          version=${version#"mimir-"}
           if [ ! -f $GITHUB_WORKSPACE/main/$version/rockcraft.yaml ]; then
             echo "version=$version" >> $GITHUB_OUTPUT
             echo "release=${{steps.latest-release.outputs.release}}" >> $GITHUB_OUTPUT
