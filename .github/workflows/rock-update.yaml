@@ -58,7 +58,7 @@ jobs:
 
       - id: check
         name: Check if the release has already been added
-        if: steps.latest.release.outputs.release != ""
+        if: steps.latest-release.outputs.release != ''
         shell: bash
         run: |
           source_tag="${{ steps.latest-release.outputs.release }}"
