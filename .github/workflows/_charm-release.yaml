@@ -43,3 +43,6 @@ jobs:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           channel: "${{ steps.channel.outputs.name }}"
           charm-path: "${{ inputs.charm-path }}"
+          # We set destructive mode to false, otherwise runner's OS would have to match
+          # charm's 'build-on' OS.
+          destructive-mode: false
