@@ -87,7 +87,6 @@ jobs:
         run: |
           source_tag="${{ steps.check.outputs.release }}"
           version="${{ steps.check.outputs.version }}"
-          mkdir $GITHUB_WORKSPACE/main/$version
           latest_rockcraft_file=$(find $GITHUB_WORKSPACE/main/ -name "rockcraft.yaml" | sort -V | tail -n1)
           cp -r "$(dirname $latest_rockcraft_file)" "$GITHUB_WORKSPACE/main/$version"
           source_tag="$source_tag" \
