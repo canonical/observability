@@ -26,7 +26,7 @@ jobs:
 
       - name: Determine changed files in the PR
         id: changed-files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v38
         with:
           files_ignore_yaml: |
             docs:
