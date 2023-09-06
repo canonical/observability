@@ -55,12 +55,6 @@ jobs:
                       --tail=100; \
                done
           exit 0
-      - name: Dump charmcraft logs
-        if: failure()
-        uses: actions/upload-artifact@v3
-        with:
-          name: charmcraft-logs
-          path: ~/.local/state/charmcraft/log/*.log
       - name: Dump deployments
         if: failure()
         run: |
@@ -71,3 +65,9 @@ jobs:
         run: |
           kubectl describe replicasets -A
           exit 0
+      - name: Dump charmcraft logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: charmcraft-logs
+          path: ~/.local/state/charmcraft/log/*.log
