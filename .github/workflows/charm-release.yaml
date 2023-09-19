@@ -35,7 +35,7 @@ jobs:
       - quality-checks
     steps:
       - name: Release Charm
-        uses: ./.github/workflows/_charm-release.yaml
+        uses: canonical/observability/.github/workflows/_charm-release.yaml@main
         with:
           artifact: "${{ inputs.artifact }}"
           charm-path: "${{ inputs.charm-path }}"
