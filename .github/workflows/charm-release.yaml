@@ -30,19 +30,22 @@ jobs:
       charm-path: "${{ inputs.charm-path }}"
   release-charm:
     name: Release Charm and Libraries
-    runs-on: ubuntu-latest
     needs:
       - quality-checks
+    uses: canonical/observability/.github/workflows/_charm-release.yaml@main
+    secrets: inherit
+    with:
+      artifact: "${{ inputs.artifact }}"
+      charm-path: "${{ inputs.charm-path }}"
+  release-libs:
+    name: Release any bumped charm library
+    needs:
+      - quality-checks
+    runs-on: ubuntu-latest
     steps:
-      - name: Release Charm
-        uses: canonical/observability/.github/workflows/_charm-release.yaml@main
-        with:
-          artifact: "${{ inputs.artifact }}"
-          charm-path: "${{ inputs.charm-path }}"
       - name: Release any bumped charm library
         uses: canonical/charming-actions/release-libraries@main
         with:
           charm-path: "${{ inputs.charm-path }}"
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
           github-token: "${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
-
