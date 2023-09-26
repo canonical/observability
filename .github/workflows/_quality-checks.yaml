@@ -6,6 +6,9 @@ on:
       charm-path:
         type: string
         required: false
+      provider:
+        type: string
+        required: true 
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -72,6 +75,7 @@ jobs:
     uses: canonical/observability/.github/workflows/_charm-tests-integration.yaml@main
     with:
       charm-path: "${{ inputs.charm-path }}"
+      provider: "${{ inputs.provider }}"
   codeql:
     name: CodeQL analysis
     needs:
