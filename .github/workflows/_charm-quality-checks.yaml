@@ -6,6 +6,10 @@ on:
       charm-path:
         type: string
         required: false
+      provider:
+        type: string
+        description: "The provider to choose for either machine or k8s tests ('lxd' or 'microk8s')"
+        required: true
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -74,6 +78,7 @@ jobs:
     uses: canonical/observability/.github/workflows/_charm-tests-integration.yaml@main
     with:
       charm-path: "${{ inputs.charm-path }}"
+      provider: "${{ inputs.provider }}"
   codeql:
     name: CodeQL analysis
     needs:

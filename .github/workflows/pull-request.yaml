@@ -8,6 +8,11 @@ on:
         default: '.'
         required: false
         type: string
+      provider:
+        description: "The provider to choose for either machine or k8s tests ('lxd' or 'microk8s')"
+        default: 'microk8s'
+        required: false
+        type: string
     secrets:
        CHARMHUB_TOKEN:
          required: false
@@ -56,3 +61,4 @@ jobs:
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}
+      provider: ${{ inputs.provider }}
