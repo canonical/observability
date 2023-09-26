@@ -6,6 +6,10 @@ on:
       charm-path:
         type: string
         required: false
+      provider:
+        type: string
+        description: "The provider to choose for either machine or k8s tests ('lxd' or 'microk8s')"
+        default: microk8s
 
 # Default to bash
 defaults:
@@ -24,7 +28,14 @@ jobs:
       - name: Get prefsrc
         run: |
           echo "IPADDR=$(ip -4 -j route get 2.2.2.2 | jq -r '.[] | .prefsrc')" >> $GITHUB_ENV
-      - name: Setup operator environment
+      - name: Setup operator enviroment (machine)
+        if: inputs.provider == "lxd"
+        uses: charmed-kubernetes/actions-operator@main
+        with:
+          juju-channel: 3.1/edge
+          provider: lxd
+      - name: Setup operator environment (k8s)
+        if: inputs.provider == "microk8s"
         uses: charmed-kubernetes/actions-operator@main
         with:
           juju-channel: 3.1/edge
