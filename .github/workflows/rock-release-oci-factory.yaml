@@ -66,7 +66,7 @@ jobs:
         id: update-releases
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: |
-          all_tags="$(jq -r 'to_entries[] | .key' $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/_releases.json)"
+          all_tags="$(jq -r 'to_entries[] | .key' $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/_releases.json | sed 's/-22.04//')"
           today="$(date)"
           echo "now_epoch=$(date -d now +%s)" >> $GITHUB_OUTPUT  # to create a unique branch name on the fork
           end_of_life="$(date -d "$today+1 year" +%Y-%m-%d)"
@@ -88,7 +88,7 @@ jobs:
             fi
             # If rock_version is the latest among the ones with equal major, apply major
             rock_major=$(echo $rock_version | sed -E "s/([0-9]+).*/\1/")
-            same_major_=$(printf "%s\n%s" "$all_tags" "$rock_version" | grep "$rock_major")
+            same_major=$(printf "%s\n%s" "$all_tags" "$rock_version" | grep "$rock_major")
             if [[ $(echo "$same_major" | sort -V | tail -n1) == "$rock_version" ]]; then
               major_tag=$(printf ",$tag_json_format" "$rock_major" "$end_of_life")
             fi
