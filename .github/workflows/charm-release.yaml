@@ -51,9 +51,16 @@ jobs:
       - quality-checks
     runs-on: ubuntu-latest
     steps:
-      - name: Release any bumped charm library
-        uses: canonical/charming-actions/release-libraries@main
-        with:
-          charm-path: "${{ inputs.charm-path }}"
-          credentials: "${{ secrets.CHARMHUB_TOKEN }}"
-          github-token: "${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
+      - name: Release libraries
+        run: |
+          # Install Charmcraft
+          sudo snap install charmcraft --classic --channel latest/stable
+          cd ${{ inputs.charm-path }}
+          # Get the libs folder name
+          libraries_folder=$(yq .name metadata.yaml | tr - _)
+          # For each library belonging to the charm, publish it
+          for lib in $(find lib/charms/$libs_folder -type f | sed 's|lib/||' | sed 's/.py//' | sed 's|/|.|g'); do
+            charmcraft publish-lib $lib
+          done
+        env:
+          CHARMCRAFT_AUTH: "${{ secrets.CHARMHUB_TOKEN }}"
