@@ -51,11 +51,17 @@ jobs:
       - quality-checks
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout the source
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          path: charm
+
       - name: Release libraries
         run: |
           # Install Charmcraft
           sudo snap install charmcraft --classic --channel latest/stable
-          cd ${{ inputs.charm-path }}
+          cd $GITHUB_WORKSPACE/charm/${{ inputs.charm-path }}
           # Get the libs folder name
           libraries_folder=$(yq .name metadata.yaml | tr - _)
           # For each library belonging to the charm, publish it
