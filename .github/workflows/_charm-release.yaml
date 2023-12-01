@@ -41,7 +41,7 @@ jobs:
       - name: Build charm(s)
         run: |
           sudo snap install charmcraft --classic
-          charmcraft pack --project-dir ${{ inputs.charm_path }}
+          charmcraft pack --project-dir ${{ inputs.charm-path }}
           CHARMS=$(ls ./*.charm | jq -R -s -c 'split("\n")[:-1]') echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
       - name: Store charms
         uses: actions/upload-artifact@v3
