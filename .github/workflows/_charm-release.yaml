@@ -20,6 +20,8 @@ jobs:
   build:
     name: Build the charms
     runs-on: ubuntu-22.04
+    outputs:
+      charms: ${{ steps.build-charms.outputs.charms }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -39,6 +41,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install tar && tar xf artifact.tar.gz
         if: ${{ inputs.artifact != '' }}
       - name: Build charm(s)
+        id: build-charms
         run: |
           sudo snap install charmcraft --classic
           charmcraft pack --project-dir ${{ inputs.charm-path }}
