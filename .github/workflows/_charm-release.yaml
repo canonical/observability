@@ -45,25 +45,25 @@ jobs:
         run: |
           sudo snap install charmcraft --classic
           charmcraft pack --project-dir ${{ inputs.charm-path }}
-          CHARMS=$(ls ./*.charm | jq -R -s -c 'split("\n")[:-1]') echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
+          CHARMS=$(ls ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]') echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
 
       - name: Store charms
         uses: actions/upload-artifact@v3
         with:
           name: charms
           path: ./*.charm
+      - name: Step output
+        run: |
+          echo "${{ fromjson(steps.builder.outputs.charms) }} "
   charm-output:
     name: Charm List
     runs-on: ubuntu-22.04
     needs:
       - build
     steps:
-      - name: Step output
-        run: |
-          echo "${{ fromjson(steps.builder.outputs.charms) }} "
       - name: Job output
         run: |
-          echo job output: ${{ fromjson(jobs.build.outputs.charms) }}
+          echo job output: ${{ fromjson(needs.build.outputs.charms) }}
   release-to-charmhub:
     name: Release to CharmHub
     runs-on: ubuntu-22.04
