@@ -45,7 +45,7 @@ jobs:
         uses: actions/upload-artifacts@v3
         with:
           name: charms
-          path: *.charm
+          path: ./*.charm
 
   release-to-charmhub:
     name: Release to CharmHub
