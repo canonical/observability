@@ -21,7 +21,7 @@ jobs:
     name: Build the charms
     runs-on: ubuntu-22.04
     outputs:
-      charms: ${{ steps.build-charms.outputs.charms }}
+      charms: ${{ steps.builder.outputs.charms }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -41,17 +41,29 @@ jobs:
         run: sudo apt-get update && sudo apt-get install tar && tar xf artifact.tar.gz
         if: ${{ inputs.artifact != '' }}
       - name: Build charm(s)
-        id: build-charms
+        id: builder
         run: |
           sudo snap install charmcraft --classic
           charmcraft pack --project-dir ${{ inputs.charm-path }}
           CHARMS=$(ls ./*.charm | jq -R -s -c 'split("\n")[:-1]') echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
+
       - name: Store charms
         uses: actions/upload-artifact@v3
         with:
           name: charms
           path: ./*.charm
-
+  charm-output:
+    name: Charm List
+    runs-on: ubuntu-22.04
+    needs:
+      - build
+    steps:
+      - name: Step output
+        run: |
+          echo "${{ fromjson(steps.builder.outputs.charms) }} "
+      - name: Job output
+        run: |
+          echo job output: ${{ fromjson(jobs.build.outputs.charms) }}
   release-to-charmhub:
     name: Release to CharmHub
     runs-on: ubuntu-22.04
