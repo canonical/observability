@@ -16,8 +16,8 @@ on:
         required: true
 
 jobs:
-  release-to-charmhub:
-    name: Release to CharmHub
+  build:
+    name: Build the artifacts
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
@@ -40,13 +40,28 @@ jobs:
         run: |
           charmcraft pack ${{ inputs.charm_path }}
           CHARMS=$(ls ./*.charm | jq -R -s -c 'split("\n")[:-1]') echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
+      - name: Store artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: charms
+          path: *.charm
+
+  release-to-charmhub:
+    name: Release to CharmHub
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        path: ${{ fromjson(needs.build.outputs.charms) }}
+    needs:
+      - build
+    steps:
+      - name: Download charm artifact
+        with:
+          name: charms
       - name: Upload charm to charmhub
         uses: canonical/charming-actions/upload-charm@2.1.1
-        strategy:
-          matrix:
-            path: ${{ fromjson(outputs.charms) }}
         with:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
-          channel: "${{ steps.channel.outputs.name }}"
+          channel: "${{ needs.build.outputs.name }}"
           built-charm-path: "${{ matrix.path }}"
