@@ -36,10 +36,17 @@ jobs:
       - name: Select charmhub channel
         uses: canonical/charming-actions/channel@2.1.1
         id: channel
+      - name: Build charm(s)
+        run: |
+          charmcraft pack ${{ inputs.charm_path }}
+          CHARMS=$(ls ./*.charm | jq -R -s -c 'split("\n")[:-1]') echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
       - name: Upload charm to charmhub
         uses: canonical/charming-actions/upload-charm@2.1.1
+        strategy:
+          matrix:
+            path: ${{ fromjson(outputs.charms) }}
         with:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           channel: "${{ steps.channel.outputs.name }}"
-          charm-path: "${{ inputs.charm-path }}"
+          built-charm-path: "${{ matrix.path }}"
