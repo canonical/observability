@@ -51,7 +51,7 @@ jobs:
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         env:
           GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
-        run: gh repo sync observability-noctua-bot/oci-factory
+        run: gh repo sync --force observability-noctua-bot/oci-factory
 
       - name: Clone the fork
         id: fork-clone
