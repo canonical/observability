@@ -16,8 +16,8 @@ on:
         required: true
 
 jobs:
-  release-to-charmhub:
-    name: Release to CharmHub
+  build:
+    name: Build the charms
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -37,16 +37,39 @@ jobs:
       - name: Unpack Artifact
         run: sudo apt-get update && sudo apt-get install tar && tar xf artifact.tar.gz
         if: ${{ inputs.artifact != '' }}
+      - name: Build charm(s)
+        run: |
+          charmcraft pack --project-dir ${{ inputs.charm_path }}
+          CHARMS=$(ls ./*.charm | jq -R -s -c 'split("\n")[:-1]') echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
+      - name: Store charms
+        uses: actions/upload-artifacts@v3
+        with:
+          name: charms
+          path: *.charm
+
+  release-to-charmhub:
+    name: Release to CharmHub
+    runs-on: ubuntu-22.04
+    needs:
+      - build
+    strategy:
+      matrix:
+        path: ${{ fromjson(needs.build.outputs.charms) }}
+    steps:
       - name: Select charmhub channel
         uses: canonical/charming-actions/channel@2.1.1
         id: channel
+      - name: Fetch charm artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: charms
       - name: Upload charm to charmhub
         uses: canonical/charming-actions/upload-charm@2.4.0
         with:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           channel: "${{ steps.channel.outputs.name }}"
-          charm-path: "${{ inputs.charm-path }}"
+          built-charm-path: "${{ matrix.path }}"
           # We set destructive mode to false, otherwise runner's OS would have to match
           # charm's 'build-on' OS.
           destructive-mode: false
