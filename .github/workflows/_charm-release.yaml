@@ -6,6 +6,7 @@ on:
       charm-path:
         type: string
         required: false
+        default: .
       artifact:
         description: "Name of artifact to download before building. Must contain the file artifact.tar.gz."
         default: ''
@@ -39,10 +40,11 @@ jobs:
         if: ${{ inputs.artifact != '' }}
       - name: Build charm(s)
         run: |
+          sudo snap install charmcraft --classic
           charmcraft pack --project-dir ${{ inputs.charm_path }}
           CHARMS=$(ls ./*.charm | jq -R -s -c 'split("\n")[:-1]') echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
       - name: Store charms
-        uses: actions/upload-artifacts@v3
+        uses: actions/upload-artifact@v3
         with:
           name: charms
           path: ./*.charm
