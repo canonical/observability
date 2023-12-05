@@ -26,7 +26,6 @@ The **`issues.yaml`** workflow is used in all of our repositories to propagate G
 | `....├── _charm-codeql-analysis.yaml`   | `....├── _charm-codeql-analysis.yaml`   |                              |                            |
 | `....├── _charm-static-analysis.yaml`   | `....├── _charm-static-analysis.yaml`   |                              |                            |
 | `....├── _charm-linting.yaml`           | `....├── _charm-linting.yaml`           |                              |                            |
-| `....├── _charm-linting.yaml`           | `....├── _charm-linting.yaml`           |                              |                            |
 | `....├── _charm-unit-tests.yaml`        | `....├── _charm-unit-tests.yaml`        |                              |                            |
 | `....├── _charm-scenario-tests.yaml`    | `....├── _charm-scenario-tests.yaml`    |                              |                            |
 | `....└── _charm-integration-tests.yaml` | `....└── _charm-integration-tests.yaml` |                              |                            |
