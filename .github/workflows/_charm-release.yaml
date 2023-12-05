@@ -6,6 +6,7 @@ on:
       charm-path:
         type: string
         required: false
+        default: .
       artifact:
         description: "Name of artifact to download before building. Must contain the file artifact.tar.gz."
         default: ''
@@ -16,9 +17,11 @@ on:
         required: true
 
 jobs:
-  release-to-charmhub:
-    name: Release to CharmHub
+  build:
+    name: Build the charms
     runs-on: ubuntu-22.04
+    outputs:
+      charms: ${{ steps.builder.outputs.charms }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -37,16 +40,58 @@ jobs:
       - name: Unpack Artifact
         run: sudo apt-get update && sudo apt-get install tar && tar xf artifact.tar.gz
         if: ${{ inputs.artifact != '' }}
+      - name: Build charm(s)
+        id: builder
+        run: |
+          sudo snap install jq
+          sudo snap install charmcraft --classic
+          charmcraft pack --project-dir ${{ inputs.charm-path }}
+          export CHARMS=$(ls ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
+          echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
+      - name: Store charms
+        uses: actions/upload-artifact@v3
+        with:
+          name: charms
+          path: ${{ inputs.charm-path }}/*.charm
+      - name: Step output
+        run: |
+          echo "${{ fromjson(steps.builder.outputs.charms) }} "
+  charm-output:
+    name: Charm List
+    runs-on: ubuntu-22.04
+    needs:
+      - build
+    steps:
+      - name: Job output
+        run: |
+          echo job output: ${{ fromjson(needs.build.outputs.charms) }}
+  release-to-charmhub:
+    name: Release to CharmHub
+    runs-on: ubuntu-22.04
+    needs:
+      - build
+    strategy:
+      matrix:
+        path: ${{ fromjson(needs.build.outputs.charms) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
       - name: Select charmhub channel
         uses: canonical/charming-actions/channel@2.1.1
         id: channel
+      - name: Fetch charm artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: charms
       - name: Upload charm to charmhub
         uses: canonical/charming-actions/upload-charm@2.4.0
         with:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           channel: "${{ steps.channel.outputs.name }}"
-          charm-path: "${{ inputs.charm-path }}"
+          built-charm-path: "${{ matrix.path }}"
           # We set destructive mode to false, otherwise runner's OS would have to match
           # charm's 'build-on' OS.
           destructive-mode: false
