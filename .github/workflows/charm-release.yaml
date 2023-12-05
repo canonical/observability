@@ -31,7 +31,7 @@ concurrency:
 jobs:
   quality-checks:
     name: Quality Checks
-    uses: canonical/observability/.github/workflows/_quality-checks.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@main
     secrets: inherit
     with:
       charm-path: "${{ inputs.charm-path }}"
