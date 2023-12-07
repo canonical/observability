@@ -18,6 +18,14 @@ on:
         default: 'microk8s'
         required: false
         type: string
+      ip-range-start:
+        type: string
+        description: "The first IP address in the address pool for the load balancer to use"
+        required: false
+      ip-range-end:
+        type: string
+        description: "The last IP address in the address pool for the load balancer to use"
+        required: false
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -36,6 +44,8 @@ jobs:
     with:
       charm-path: "${{ inputs.charm-path }}"
       provider: "${{ inputs.provider }}"
+      ip-range-start: ${{ inputs.ip-range-start }}
+      ip-range-end: ${{ inputs.ip-range-end }}
   release-charm:
     name: Release Charm and Libraries
     needs:
