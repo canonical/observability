@@ -101,7 +101,9 @@ jobs:
           go_version=$(grep -Po "^go \K(\S+)" $GITHUB_WORKSPACE/application-src/go.mod) \
           # Delete the Go dependency and add the updated one
           yq -i 'del(.parts.${{ inputs.rock-name }}.build-snaps.[] | select(. == "go/*"))' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
-          go_v="$go_version" yq -i '.parts.${{ inputs.rock-name }}.build-snaps += "go/"+strenv(go_v)+"/stable"' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
+          # Snap channels are named after major.minor only, so cut the go version to that format
+          go_major_minor=$(echo $go_version | sed -E "s/([0-9]+\.[0-9]+).*/\1/"))
+          go_v="$go_major_minor" yq -i '.parts.${{ inputs.rock-name }}.build-snaps += "go/"+strenv(go_v)+"/stable"' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
 
       - name: Update other build dependencies
         if: steps.check.outputs.release != '' && inputs.update-script != ''
