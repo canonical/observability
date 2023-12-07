@@ -42,7 +42,7 @@ jobs:
           provider: microk8s
           channel: 1.26-strict/stable
           microk8s-group: snap_microk8s
-          microk8s-addons: "hostpath-storage dns metallb:${{ env.IPADDR }}-${{ env.IPADDR }}"
+          microk8s-addons: "hostpath-storage dns metallb:${{ env.IPADDR }}-${{ env.IPADDR }},10.64.140.43-10.64.140.49"
       - name: Run integration tests
         run: cd ${{ inputs.charm-path }} && tox -vve integration
       - name: Dump debug log
