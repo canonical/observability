@@ -10,6 +10,16 @@ on:
         type: string
         description: "The provider to choose for either machine or k8s tests ('lxd' or 'microk8s')"
         required: true
+      ip-range-start:
+        type: string
+        description: "The first IP address in the address pool for the load balancer to use"
+        required: false
+        default: "{{ env.IPADDR }}"
+      ip-range-end:
+        type: string
+        description: "The last IP address in the address pool for the load balancer to use"
+        required: false
+        default: "{{ env.IPADDR }}"
 
 # Default to bash
 defaults:
@@ -35,14 +45,15 @@ jobs:
           juju-channel: 3.1/edge
           provider: lxd
       - name: Setup operator environment (k8s)
-        if: inputs.provider == 'microk8s'
+        if: |
+          inputs.provider == 'microk8s'
         uses: charmed-kubernetes/actions-operator@main
         with:
           juju-channel: 3.1/edge
           provider: microk8s
           channel: 1.26-strict/stable
           microk8s-group: snap_microk8s
-          microk8s-addons: "hostpath-storage dns metallb:${{ env.IPADDR }}-${{ env.IPADDR }}"
+          microk8s-addons: "hostpath-storage dns metallb:${{ inputs.ip-range-start }}-${{ inputs.ip-range-end }}"
       - name: Run integration tests
         run: cd ${{ inputs.charm-path }} && tox -vve integration
       - name: Dump debug log
