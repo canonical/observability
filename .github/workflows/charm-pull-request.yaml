@@ -70,5 +70,5 @@ jobs:
     with:
       charm-path: ${{ inputs.charm-path }}
       provider: ${{ inputs.provider }}
-      ip-range-start: ${{ inputs.ip-range-start }}
-      ip-range-end: ${{ inputs.ip-range-end }}
+      ip-range-start: "${{ inputs.ip-range-start }}"
+      ip-range-end: "${{ inputs.ip-range-end }}"
