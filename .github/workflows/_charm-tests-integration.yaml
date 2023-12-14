@@ -66,6 +66,11 @@ jobs:
                       --tail=100; \
                done
           exit 0
+      - name: Dump node information
+        if: failure()
+        run: |
+          kubectl get nodes -v=10
+          exit 0
       - name: Dump deployments
         if: failure()
         run: |
