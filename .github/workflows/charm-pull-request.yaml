@@ -13,6 +13,13 @@ on:
         default: 'microk8s'
         required: false
         type: string
+      ip-range:
+        type: string
+        description: |
+          The IP range in the address pool for the load balancer to use.
+          It can be either a subnet(IP/mask) or a range (<IP1>-<IP2>)
+        required: false
+        default: ""
     secrets:
        CHARMHUB_TOKEN:
          required: false
@@ -60,3 +67,4 @@ jobs:
     with:
       charm-path: ${{ inputs.charm-path }}
       provider: ${{ inputs.provider }}
+      ip-range: ${{ inputs.ip-range }}

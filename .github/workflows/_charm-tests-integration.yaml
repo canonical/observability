@@ -10,6 +10,13 @@ on:
         type: string
         description: "The provider to choose for either machine or k8s tests ('lxd' or 'microk8s')"
         required: true
+      ip-range:
+        type: string
+        description: |
+          The IP range in the address pool for the load balancer to use.
+          It can be either a subnet(IP/mask) or a range (<IP1>-<IP2>)
+        required: false
+        default: ""
 
 # Default to bash
 defaults:
@@ -25,9 +32,11 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - name: Get prefsrc
+      - name: Get IP range
+        id: ip_range
+        if: ${{ inputs.ip-range == '' }}
         run: |
-          echo "IPADDR=$(ip -4 -j route get 2.2.2.2 | jq -r '.[] | .prefsrc')" >> $GITHUB_ENV
+          echo "ip_range=$(ip -4 -j route get 2.2.2.2 | jq -r '.[] | .prefsrc')/32" >> $GITHUB_OUTPUT
       - name: Setup operator enviroment (machine)
         if: inputs.provider == 'lxd'
         uses: charmed-kubernetes/actions-operator@main
@@ -42,7 +51,7 @@ jobs:
           provider: microk8s
           channel: 1.26-strict/stable
           microk8s-group: snap_microk8s
-          microk8s-addons: "hostpath-storage dns metallb:${{ env.IPADDR }}-${{ env.IPADDR }}"
+          microk8s-addons: "hostpath-storage dns metallb:${{ inputs.ip-range || steps.ip_range.outputs.ip_range }}"
       - name: Run integration tests
         run: cd ${{ inputs.charm-path }} && tox -vve integration
       - name: Dump debug log
