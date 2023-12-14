@@ -16,7 +16,7 @@ on:
           The IP range in the address pool for the load balancer to use.
           It can be either a subnet(IP/mask) or a range (<IP1>-<IP2>)
         required: false
-        default: ""
+        default: null
 
 # Default to bash
 defaults:
