@@ -10,6 +10,13 @@ on:
         type: string
         description: "The provider to choose for either machine or k8s tests ('lxd' or 'microk8s')"
         required: true
+      ip-range:
+        type: string
+        description: |
+          The IP range in the address pool for the load balancer to use.
+          It can be either a subnet(IP/mask) or a range (<IP1>-<IP2>)
+        required: false
+        default: null
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -79,6 +86,7 @@ jobs:
     with:
       charm-path: "${{ inputs.charm-path }}"
       provider: "${{ inputs.provider }}"
+      ip-range: ${{ inputs.ip-range }}
   codeql:
     name: CodeQL analysis
     needs:
