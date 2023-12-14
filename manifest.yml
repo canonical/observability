@@ -37,6 +37,10 @@ repos:
     track: main
     url: git@github.com:canonical/grafana-k8s-operator.git
 
+  - path: ../juju-introspect-operator
+    track: main
+    url: git@github.com:canonical/juju-introspect-operator.git
+
   - path: ../karma-alertmanager-proxy-k8s-operator
     track: main
     url: git@github.com:canonical/karma-alertmanager-proxy-k8s-operator.git
@@ -52,6 +56,26 @@ repos:
   - path: ../mimir-k8s-operator
     track: main
     url: git@github.com:canonical/mimir-k8s-operator.git
+
+  - path: ../parca-agent-operator
+    track: main
+    url: git@github.com:canonical/parca-agent-operator.git
+
+  - path: ../parca-k8s-operator
+    track: main
+    url: git@github.com:canonical/parca-k8s-operator.git
+
+  - path: ../parca-operator
+    track: main
+    url: git@github.com:canonical/parca-operator.git
+
+  - path: ../parca-scrape-target-operator
+    track: main
+    url: git@github.com:canonical/parca-scrape-target-operator.git
+
+  - path: ../polar-signals-cloud-integrator-operator
+    track: main
+    url: git@github.com:canonical/polar-signals-cloud-integrator-operator.git
 
   - path: ../prometheus-k8s-operator
     track: main
