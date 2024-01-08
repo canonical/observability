@@ -36,10 +36,14 @@ jobs:
         sudo snap install --classic --channel edge rockcraft
 
     - name: Build ROCK
+      id: builder
       run: |
         rockcraft_dir="${{ steps.find-latest.outputs.latest-dir }}"
         current_wd=$(pwd) && cd $rockcraft_dir
         rockcraft pack --verbose
+        version=$(yq -r .version rockcraft.yaml)
+        echo "version=${version}" >> "$GITHUB_OUTPUT"
+        
         cd $current_wd
         cp $rockcraft_dir/${{ inputs.rock-name }}_*.rock $current_wd
         digest=$(skopeo inspect oci-archive:$(realpath ./${{ inputs.rock-name }}_*.rock) --format '{{.Digest}}')
@@ -47,7 +51,10 @@ jobs:
 
     - name: Upload ROCK to ghcr.io
       run: |
+        # dev tag
         sudo skopeo --insecure-policy copy oci-archive:$(realpath ./${{ inputs.rock-name }}_*.rock) docker://ghcr.io/canonical/${{ inputs.rock-name }}:dev --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
+        # version tag
+        sudo skopeo --insecure-policy copy oci-archive:$(realpath ./${{ inputs.rock-name }}_*.rock) docker://ghcr.io/canonical/${{ inputs.rock-name }}:${{ steps.builder.outputs.version }} --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
 
     - name: Install Syft
       run: |
