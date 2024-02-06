@@ -35,7 +35,7 @@ jobs:
   call-inclusive-naming-check:
     # Issues with this workflow can be addressed by adding a .wokeignore in the repository root
     name: Inclusive naming
-    uses: canonical-web-and-design/Inclusive-naming/.github/workflows/woke.yaml@main
+    uses: canonical/Inclusive-naming/.github/workflows/woke.yaml@main
     with:
       fail-on-error: "true"
   lib-check:
