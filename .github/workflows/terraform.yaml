@@ -1,30 +1,50 @@
-name: Check the Terraform Module
+# Copyright 2024 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+name: Check Terraform Module
 
 on:
-  pull_request:
-    paths:
-      - '**.tf'
+  workflow_call:
 
 jobs:
-  build:
-    name: Terraform Checks and Plans
+  check-terraform:
+    name: Check Terraform
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./terraform
     steps:
-      - name: Checkout the repository to the runner
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: HashiCorp - Setup Terraform
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform Format
-        id: fmt
-        run: terraform fmt -recursive -check
-        continue-on-error: true
-
-      - name: Terraform Init
+      - name: Initialize Terraform Module
         id: init
         run: terraform init
 
-      - name: Terraform Validate
+      - name: Validate Terraform Module
         id: validate
         run: terraform validate -no-color
+
+      - name: Validate terraform fmt
+        run: |
+          set +e 
+
+          echo "CHECK_STATUS=0" >> $GITHUB_ENV
+
+          for changed_file in ${{ steps.pr_files.outputs.added_modified }}; do 
+            echo "Checking terraform fmt on ${changed_file}..."
+
+            if [[ $changed_file == *.tf ]]; then 
+              terraform fmt -recursive -check $changed_file
+              if [[ $? -ne 0 ]]; then
+                echo "❌ terraform fmt failed - ${changed_file}" >> $GITHUB_STEP_SUMMARY
+                echo "CHECK_STATUS=1" >> $GITHUB_ENV
+              fi 
+            fi
+          done
+      - name: Process check
+        if: always()
+        run: exit $CHECK_STATUS
