@@ -13,6 +13,9 @@ jobs:
     defaults:
       run:
         working-directory: ./terraform
+    outputs:
+      CHECK_STATUS: "${{ env.CHECK_STATUS }}"
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -31,20 +34,13 @@ jobs:
       - name: Validate terraform fmt
         run: |
           set +e 
-
-          echo "CHECK_STATUS=0" >> $GITHUB_ENV
-
-          for changed_file in ${{ steps.pr_files.outputs.added_modified }}; do 
-            echo "Checking terraform fmt on ${changed_file}..."
-
-            if [[ $changed_file == *.tf ]]; then 
-              terraform fmt -recursive -check $changed_file
-              if [[ $? -ne 0 ]]; then
-                echo "❌ terraform fmt failed - ${changed_file}" >> $GITHUB_STEP_SUMMARY
-                echo "CHECK_STATUS=1" >> $GITHUB_ENV
-              fi 
-            fi
-          done
+          echo "CHECK_STATUS=0" >> "$GITHUB_ENV"
+          terraform fmt -recursive -check
+          FMT_STATUS="$?"
+          if [[ "$FMT_STATUS" -ne 0 ]]; then
+            echo "❌ terraform fmt failed" >> "$GITHUB_STEP_SUMMARY"
+            echo "CHECK_STATUS=1" >> "$GITHUB_ENV"
+          fi
       - name: Process check
         if: always()
-        run: exit $CHECK_STATUS
+        run: exit "$CHECK_STATUS"
