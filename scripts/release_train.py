@@ -1,13 +1,61 @@
 #!/usr/bin/env python3
 
 """
-### Release train script
+# Release train script
 
+This module contains a CLI script for unleashing the charm release bump train.
+For all input charms, the script will:
+- grab whatever revision is on edge and release it to beta
+- grab whatever revision is on beta and release it to candidate
+- grab whatever revision is on candidate and release it to stable
+
+(this includes any resources linked to that revision)
+
+Special cases:
+- if there is nothing released on stable, candidate will remain on candidate (unless the script is run with the --stable flag).
+- if the revisions are the same, nothing will be bumped
+
+For example, suppose the starting situation is:
 ```
-python3 release_train.py "grafana-k8s" "alertmanager-k8s" "tempo-k8s" "avalanche-k8s" "cos-configuration-k8s" "loki-k8s" "prometheus-pushgateway-k8s" "prometheus-scrape-target-k8s" "traefik-k8s" "traefik-route-k8s" "mimir-coordinator-k8s" "prometheus-scrape-config-k8s" "prometheus-k8s" "mimir-worker-k8s" "blackbox-exporter-k8s" "catalogue-k8s" "cos-proxy" "tls-truststore-operator"
+$ charmcraft status foo
+Track    Base                  Channel    Version    Revision    Resources
+latest   ubuntu 20.04 (amd64)  stable     -          -           agent-image (r30)
+                               candidate  45         45          agent-image (r30)
+                               beta       47         47          agent-image (r30)
+                               edge       47         47          agent-image (r31)
+1.0      ubuntu 20.04 (amd64)  stable     50         50          agent-image (r30)
+                               candidate  50         50          agent-image (r30)
+                               beta       56         56          agent-image (r31)
+                               edge       56         56          agent-image (r31)
+```
 
-"grafana-agent" "grafana-agent-k8s"
-"karma-alertmanager-proxy-k8s" "karma-k8s"
+Then run `release_train.py foo`; now you should see (note the changes ` <<!>>`):
+```
+$ charmcraft status foo
+Track    Base                  Channel    Version    Revision    Resources
+latest   ubuntu 20.04 (amd64)  stable     -          -           agent-image (r30)
+                               candidate  47         47          agent-image (r30) <<!>>
+                               beta       47         47          agent-image (r30)
+                               edge       47         47          agent-image (r31)
+1.0      ubuntu 20.04 (amd64)  stable     50         50          agent-image (r30)
+                               candidate  56         56          agent-image (r31) <<!>>
+                               beta       56         56          agent-image (r31)
+                               edge       56         56          agent-image (r31)
+```
+
+Suppose you now release a new `edge` version on 1.0 and then run `release_train.py foo --stable`;
+now you should see (note the changes ` <<!>>`):
+```
+$ charmcraft status foo
+Track    Base                  Channel    Version    Revision    Resources
+latest   ubuntu 20.04 (amd64)  stable     47         47          agent-image (r30) <<!>>
+                               candidate  47         47          agent-image (r30)
+                               beta       47         47          agent-image (r30)
+                               edge       47         47          agent-image (r31)
+1.0      ubuntu 20.04 (amd64)  stable     56         56          agent-image (r31) <<!>>
+                               candidate  56         56          agent-image (r31)
+                               beta       57         57          agent-image (r32) <<!>>
+                               edge       57         57          agent-image (r32) <<!>>
 ```
 """
 
@@ -165,11 +213,12 @@ def main(
         skip_confirmation: bool = typer.Option(False, "--yolo", is_flag=True),
         allow_stable_releases: bool = typer.Option(False, "--stable", is_flag=True),
 ):
-    release_train(charms,
-                  ask_for_confirmation=not skip_confirmation,
-                  allow_stable_releases=allow_stable_releases)
+    release_train(
+        charms,
+        ask_for_confirmation=not skip_confirmation,
+        allow_stable_releases=allow_stable_releases
+    )
 
 
 if __name__ == '__main__':
     typer.run(main)
-    # release_train(['karma-k8s'])
