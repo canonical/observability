@@ -64,6 +64,7 @@ jobs:
         run: |
           echo "${{ fromjson(steps.builder.outputs.charms) }} "
   build-arm:
+    name: Build the charms for ARM
     if: ${{ inputs.build-for-arm }}
     runs-on: Ubuntu_ARM64_4C_16G_01
     outputs:
