@@ -162,7 +162,7 @@ jobs:
       - name: Fetch charm artifacts
         uses: actions/download-artifact@v3
         with:
-          name: charms
+          name: charms-arm
       - name: Upload charm to charmhub
         uses: canonical/charming-actions/upload-charm@2.4.0
         with:
