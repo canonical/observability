@@ -54,7 +54,7 @@ jobs:
     name: Release Charm and Libraries
     needs:
       - quality-checks
-    uses: canonical/observability/.github/workflows/_charm-release.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-release.yaml@fix/build-for-arm
     secrets: inherit
     with:
       artifact: "${{ inputs.artifact }}"
