@@ -33,6 +33,10 @@ repos:
     track: main
     url: git@github.com:canonical/grafana-agent-k8s-operator.git
 
+  - path: ../grafana-agent-operator
+    track: main
+    url: git@github.com:canonical/grafana-agent-operator.git
+
   - path: ../grafana-k8s-operator
     track: main
     url: git@github.com:canonical/grafana-k8s-operator.git
