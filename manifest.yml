@@ -57,6 +57,10 @@ repos:
     track: main
     url: git@github.com:canonical/loki-k8s-operator.git
 
+  - path: ../mimir-bundle
+    track: main
+    url: git@github.com:canonical/mimir-bundle.git
+
   - path: ../mimir-k8s-operator
     track: main
     url: git@github.com:canonical/mimir-k8s-operator.git
