@@ -96,3 +96,26 @@ jobs:
     uses: canonical/observability/.github/workflows/_charm-codeql-analysis.yml@main
     with:
       charm-path: "${{ inputs.charm-path }}"
+  validate-github-workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: yaml-lint-workflows
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: .github
+          config_data: |
+            extends: default
+            rules:
+              new-line-at-end-of-file:
+                level: warning
+              trailing-spaces:
+                level: warning
+              document-start:
+                level: warning
+              line-length:
+                level: warning
+              indentation:
+                level: warning
+              empty-lines:
+                level: warning
