@@ -127,7 +127,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Select charmhub channel
-        uses: canonical/charming-actions/channel@2.1.1
+        uses: canonical/charming-actions/channel@2.4.0
         id: channel
       - name: Fetch charm artifacts
         uses: actions/download-artifact@v3
@@ -157,7 +157,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Select charmhub channel
-        uses: canonical/charming-actions/channel@2.1.1
+        uses: canonical/charming-actions/channel@2.4.0
         id: channel
       - name: Fetch charm artifacts
         uses: actions/download-artifact@v3
