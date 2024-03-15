@@ -83,11 +83,9 @@ jobs:
           else
             libraries_folder=$(yq .name charmcraft.yaml | tr - _)
           fi
-          if [ -e lib/charms/$libraries_folder ]; then
-            # For each library belonging to the charm, publish it
-            for lib in $(find lib/charms/$libraries_folder -type f | sed 's|lib/||' | sed 's/.py//' | sed 's|/|.|g'); do
-              charmcraft publish-lib $lib
-            done
-          fi
+          # For each library belonging to the charm, publish it
+          for lib in $(find lib/charms/$libraries_folder -type f | sed 's|lib/||' | sed 's/.py//' | sed 's|/|.|g'); do
+            charmcraft publish-lib $lib
+          done
         env:
           CHARMCRAFT_AUTH: "${{ secrets.CHARMHUB_TOKEN }}"
