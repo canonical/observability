@@ -50,7 +50,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Check charm libraries # Make sure our charm libraries are updated
-        uses: canonical/charming-actions/check-libraries@2.4.0
+        uses: canonical/charming-actions/check-libraries@2.5.0-rc
         with:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
