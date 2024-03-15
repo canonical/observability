@@ -78,7 +78,7 @@ jobs:
           sudo snap install charmcraft --classic --channel latest/stable
           cd $GITHUB_WORKSPACE/charm/${{ inputs.charm-path }}
           # Get the libs folder name
-          if [ -e metadata.yaml ]; then
+          if [ -f metadata.yaml ]; then
             libraries_folder=$(yq .name metadata.yaml | tr - _)
           else
             libraries_folder=$(yq .name charmcraft.yaml | tr - _)
