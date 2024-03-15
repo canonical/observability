@@ -31,7 +31,7 @@ jobs:
       any_modified: ${{ steps.echo-changes.outputs.any_modified }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }} # To be compatible with PRs from forks
           fetch-depth: 0

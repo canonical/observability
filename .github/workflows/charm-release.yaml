@@ -25,6 +25,12 @@ on:
           It can be either a subnet(IP/mask) or a range (<IP1>-<IP2>)
         required: false
         default: null
+      build-for-arm:
+        type: boolean
+        default: false
+        required: false
+        description: |
+          Whether or not to also build the charm for arm64. Defaults to false. 
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -53,6 +59,7 @@ jobs:
     with:
       artifact: "${{ inputs.artifact }}"
       charm-path: "${{ inputs.charm-path }}"
+      build-for-arm: ${{ inputs.build-for-arm }}
   release-libs:
     name: Release any bumped charm library
     needs:
@@ -60,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
           path: charm
