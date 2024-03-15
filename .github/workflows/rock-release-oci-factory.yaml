@@ -32,7 +32,7 @@ jobs:
 
       - name: Check for a new rockcraft.yaml from the latest commit
         id: changed-files
-        uses: tj-actions/changed-files@v37
+        uses: tj-actions/changed-files@v43
         with:
           files: '**/rockcraft.yaml'
           path: rock
@@ -66,7 +66,9 @@ jobs:
         id: update-releases
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: |
-          all_tags="$(jq -r 'to_entries[] | .key' $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/_releases.json | sed 's/-22.04//')"
+          existing_tags="$(jq -r 'to_entries[] | .key' $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/_releases.json | sed 's/-22.04//')"
+          modified_tags="$(echo ${{ steps.changed-files.outputs.all_changed_and_modified_files }} | tr ' ' '\n' | sed s@/rockcraft.yaml@@)"
+          all_tags="$existing_tags\n$modified_tags"
           today="$(date)"
           echo "now_epoch=$(date -d now +%s)" >> $GITHUB_OUTPUT  # to create a unique branch name on the fork
           end_of_life="$(date -d "$today+1 year" +%Y-%m-%d)"
