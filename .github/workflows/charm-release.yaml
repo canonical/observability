@@ -77,15 +77,14 @@ jobs:
           # Install Charmcraft
           sudo snap install charmcraft --classic --channel latest/stable
           cd $GITHUB_WORKSPACE/charm/${{ inputs.charm-path }}
-          # Get the libs folder name
-          if [ -f metadata.yaml ]; then
-            libraries_folder=$(yq .name metadata.yaml | tr - _)
-          else
-            libraries_folder=$(yq .name charmcraft.yaml | tr - _)
-          fi
+          # Get the charm name
+          charm_name=$((yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
+          if [[ "$charm_name = "" ]]; then echo "Error: can't extract the charm name." && exit 1; fi
           # For each library belonging to the charm, publish it
-          for lib in $(find lib/charms/$libraries_folder -type f | sed 's|lib/||' | sed 's/.py//' | sed 's|/|.|g'); do
-            charmcraft publish-lib $lib
-          done
+          if [ -d lib/charms/$charm_name ]; then
+            for lib in $(find lib/charms/$charm_name -type f | sed 's|lib/||' | sed 's/.py//' | sed 's|/|.|g'); do
+              charmcraft publish-lib $lib
+            done
+          fi
         env:
           CHARMCRAFT_AUTH: "${{ secrets.CHARMHUB_TOKEN }}"
