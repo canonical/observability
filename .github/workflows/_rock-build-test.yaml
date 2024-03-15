@@ -12,7 +12,7 @@ jobs:
 
     - name: Determine any rockcraft.yaml changed in the PR
       id: changed-files
-      uses: tj-actions/changed-files@v35
+      uses: tj-actions/changed-files@v43
       with:
         files: "**/rockcraft.yaml"
 
@@ -32,6 +32,6 @@ jobs:
       run: |
         for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
           current_wd=$(pwd) && cd ${file%/*}
-          rockcraft pack
+          rockcraft pack && rockcraft clean && rm *.rock
           cd $current_wd
         done
