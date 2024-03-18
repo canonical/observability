@@ -30,7 +30,7 @@ on:
         default: false
         required: false
         description: |
-          Whether or not to also build the charm for arm64. Defaults to false. 
+          Whether or not to also build the charm for arm64. Defaults to false.
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -79,7 +79,7 @@ jobs:
           cd $GITHUB_WORKSPACE/charm/${{ inputs.charm-path }}
           # Get the charm name
           charm_name=$((yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
-          if [[ "$charm_name = "" ]]; then echo "Error: can't extract the charm name." && exit 1; fi
+          if [[ $charm_name = "" ]]; then echo "Error: can't extract the charm name." && exit 1; fi
           # For each library belonging to the charm, publish it
           if [ -d lib/charms/$charm_name ]; then
             for lib in $(find lib/charms/$charm_name -type f | sed 's|lib/||' | sed 's/.py//' | sed 's|/|.|g'); do
