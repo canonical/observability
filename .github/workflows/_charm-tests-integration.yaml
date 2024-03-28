@@ -54,11 +54,6 @@ jobs:
           microk8s-addons: "hostpath-storage dns metallb:${{ inputs.ip-range || steps.ip_range.outputs.ip_range }}"
       - name: Run integration tests
         run: cd ${{ inputs.charm-path }} && tox -vve integration
-      - name: Dump debug log
-        if: failure()
-        run: |
-          for m in $(juju models --format json | jq -r '.models[].name' | grep -v "admin/controller"); do juju debug-log -m $m --replay --ms --no-tail; done
-          exit 0
       - name: Dump logs
         if: failure()
-        uses: canonical/observability/.github/workflows/_dump-logs.yaml@main
+        uses: sed-i/charming-actions/dump-logs@feature/dump_logs
