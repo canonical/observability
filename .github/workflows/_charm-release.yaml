@@ -52,7 +52,7 @@ jobs:
         run: |
           sudo snap install jq
           sudo snap install charmcraft --classic
-          charmcraft pack --project-dir ${{ inputs.charm-path }}
+          (cd ${{ inputs.charm-path }}; charmcraft pack)
           export CHARMS=$(ls ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
           echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
       - name: Store charms
@@ -93,7 +93,7 @@ jobs:
       - name: Build charm(s)
         id: builder
         run: |    
-          charmcraft pack --project-dir ${{ inputs.charm-path }}
+          (cd ${{ inputs.charm-path }}; charmcraft pack)
           export CHARMS=$(ls ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
           echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
       - name: Store charms
