@@ -31,6 +31,11 @@ on:
         required: false
         description: |
           Whether or not to also build the charm for arm64. Defaults to false.
+      concurrency-group:
+        required: false
+        default: 'release'
+        type: string
+        description: "Concurrency group to set"
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -38,7 +43,7 @@ on:
         required: true
 
 concurrency:
-  group: release
+  group: ${{ inputs.concurrency-group }}
   cancel-in-progress: true
 
 jobs:
