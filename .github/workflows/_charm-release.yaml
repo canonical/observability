@@ -53,7 +53,7 @@ jobs:
           sudo snap install jq
           sudo snap install charmcraft --classic
           (cd ${{ inputs.charm-path }}; charmcraft pack)
-          export CHARMS=$(ls ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
+          export CHARMS=$(basename -a ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
           echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
       - name: Store charms
         uses: actions/upload-artifact@v3
@@ -94,7 +94,7 @@ jobs:
         id: builder
         run: |    
           (cd ${{ inputs.charm-path }}; charmcraft pack)
-          export CHARMS=$(ls ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
+          export CHARMS=$(basename -a ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
           echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
       - name: Store charms
         uses: actions/upload-artifact@v3
@@ -140,7 +140,7 @@ jobs:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           channel: "${{ steps.channel.outputs.name }}"
-          built-charm-path: "../${{ matrix.path }}"
+          built-charm-path: "${{ matrix.path }}"
           charm-path: "${{ inputs.charm-path }}"
           # We set destructive mode to false, otherwise runner's OS would have to match
           # charm's 'build-on' OS.
@@ -172,7 +172,7 @@ jobs:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           channel: "${{ steps.channel.outputs.name }}"
-          built-charm-path: "../${{ matrix.path }}"
+          built-charm-path: "${{ matrix.path }}"
           charm-path: "${{ inputs.charm-path }}"
           # We set destructive mode to false, otherwise runner's OS would have to match
           # charm's 'build-on' OS.
