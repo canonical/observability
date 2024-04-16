@@ -52,8 +52,8 @@ jobs:
         run: |
           sudo snap install jq
           sudo snap install charmcraft --classic
-          charmcraft pack --project-dir ${{ inputs.charm-path }}
-          export CHARMS=$(ls ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
+          (cd ${{ inputs.charm-path }}; charmcraft pack)
+          export CHARMS=$(basename -a ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
           echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
       - name: Store charms
         uses: actions/upload-artifact@v3
@@ -93,8 +93,8 @@ jobs:
       - name: Build charm(s)
         id: builder
         run: |    
-          charmcraft pack --project-dir ${{ inputs.charm-path }}
-          export CHARMS=$(ls ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
+          (cd ${{ inputs.charm-path }}; charmcraft pack)
+          export CHARMS=$(basename -a ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
           echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
       - name: Store charms
         uses: actions/upload-artifact@v3
@@ -133,13 +133,15 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: charms
+          path: "${{ github.workspace }}/${{ inputs.charm-path }}"
       - name: Upload charm to charmhub
-        uses: canonical/charming-actions/upload-charm@2.4.0
+        uses: canonical/charming-actions/upload-charm@2.5.0-rc
         with:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           channel: "${{ steps.channel.outputs.name }}"
           built-charm-path: "${{ matrix.path }}"
+          charm-path: "${{ inputs.charm-path }}"
           # We set destructive mode to false, otherwise runner's OS would have to match
           # charm's 'build-on' OS.
           destructive-mode: false
@@ -163,13 +165,15 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: charms-arm
+          path: "${{ github.workspace }}/${{ inputs.charm-path }}"
       - name: Upload charm to charmhub
-        uses: canonical/charming-actions/upload-charm@2.4.0
+        uses: canonical/charming-actions/upload-charm@2.5.0-rc
         with:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           channel: "${{ steps.channel.outputs.name }}"
           built-charm-path: "${{ matrix.path }}"
+          charm-path: "${{ inputs.charm-path }}"
           # We set destructive mode to false, otherwise runner's OS would have to match
           # charm's 'build-on' OS.
           destructive-mode: false

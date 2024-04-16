@@ -101,6 +101,10 @@ repos:
     track: main
     url: git@github.com:canonical/prometheus-scrape-target-k8s-operator.git
 
+  - path: ../script-exporter-operator
+    track: main
+    url: git@github.com:canonical/script-exporter-operator.git
+
   - path: ../traefik-k8s-operator
     track: main
     url: git@github.com:canonical/traefik-k8s-operator.git
