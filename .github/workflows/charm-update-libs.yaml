@@ -42,7 +42,6 @@ jobs:
         run: |
           sudo snap install charmcraft --classic --channel latest/stable
           cd ${{ inputs.charm-path }}
-          pr_title="chore: update charm libraries"; pr_branch="chore/auto-libs"
           # Get the charm name
           charm_name=$((yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
           if [[ $charm_name = "" ]]; then echo "Error: can't extract the charm name." && exit 1; fi
@@ -55,16 +54,15 @@ jobs:
             lib_owner=$(cut -d. -f2 <<< "$lib" | tr _ -)
             # Get the latest major version of the library from Charmhub
             latest_major=$(charmcraft list-lib $lib_owner --format=json | jq -r --arg LIBNAME "$lib_name" '.[] | select(.library_name == $LIBNAME) | .api')
-            # If there is a new major version of the library, remove the old one and fetch the new one
+            # If there is a new major version of the library, open a new issue
             if [[ $(echo "$lib_major\n$latest_major$" | sort -V | tail -n1 ) != "$lib_major" ]]; then
-              rm "$lib" && charmcraft fetch-lib charms.$(cut -d. -f2 <<< "$lib").$latest_major.$lib_name
-              pr_title="chore: update charm libraries (major)"; pr_branch="chore/auto-libs-major"
+              gh issue create \
+                --title "chore: update $lib to $latest_major" \
+                --body "This issue was created automatically because a new major version was detected for a charm library." 
             fi
           done
           # Fetch the libraries that have minor version updates
           charmcraft fetch-lib
-          echo "pr_title=$pr_title" >> $GITHUB_OUTPUT
-          echo "pr_branch=$pr_branch" >> $GITHUB_OUTPUT
         env:
           CHARMCRAFT_AUTH: "${{ secrets.CHARMHUB_TOKEN }}"
 
@@ -82,10 +80,10 @@ jobs:
         id: cpr
         with:
           token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
-          commit-message: "${{ steps.fetch-libraries.outputs.pr_title }}"
+          commit-message: "chore: update charm libraries"
           committer: "Github Actions <github-actions@github.com>"
           author: "Github Actions <github-actions@github.com>"
-          title: "${{ steps.fetch-libraries.outputs.pr_title }}"
+          title: "chore: update charm libraries"
           body: |
             Automated action to fetch latest version of charm libraries. The branch of this PR 
             will be wiped during the next check. Unless you really know what you're doing, you 
