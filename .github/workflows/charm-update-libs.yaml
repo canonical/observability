@@ -27,11 +27,44 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Merge update-libs PRs with green CI
+        run: |
+          # If CI is passing on PRs from "chore/auto-libs", merge it
+          if gh pr checks chore/auto-libs; then
+            gh pr merge chore/auto-libs 
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
+
+
       - name: Fetch charm libraries
+        id: fetch-libraries
         run: |
           sudo snap install charmcraft --classic --channel latest/stable
           cd ${{ inputs.charm-path }}
+          pr_title="chore: update charm libraries"; pr_branch="chore/auto-libs"
+          # Get the charm name
+          charm_name=$((yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
+          if [[ $charm_name = "" ]]; then echo "Error: can't extract the charm name." && exit 1; fi
+          # For each library not belonging to the charm, check for a major version update
+          #   "lib" would be of the form `charms.prometheus_k8s.v0.prometheus_scrape`
+          for lib in $(find lib/charms/ -type f | grep '.py$' | grep -v "$charm_name" | sed 's|lib/||' | sed 's/.py//' | sed 's|/|.|g'); do
+            # Extract the name of the library, the current major version, and the charm that owns it
+            lib_name=$(cut -d. -f4 <<< "$lib")
+            lib_major=$(cut -d. -f3 <<< "$lib")
+            lib_owner=$(cut -d. -f2 <<< "$lib" | tr _ -)
+            # Get the latest major version of the library from Charmhub
+            latest_major=$(charmcraft list-lib $lib_owner --format=json | jq -r --arg LIBNAME "$lib_name" '.[] | select(.library_name == $LIBNAME) | .api')
+            # If there is a new major version of the library, remove the old one and fetch the new one
+            if [[ $(echo "$lib_major\n$latest_major$" | sort -V | tail -n1 ) != "$lib_major" ]]; then
+              rm "$lib" && charmcraft fetch-lib charms.$(cut -d. -f2 <<< "$lib").$latest_major.$lib_name
+              pr_title="chore: update charm libraries (major)"; pr_branch="chore/auto-libs-major"
+            fi
+          done
+          # Fetch the libraries that have minor version updates
           charmcraft fetch-lib
+          echo "pr_title=$pr_title" >> $GITHUB_OUTPUT
+          echo "pr_branch=$pr_branch" >> $GITHUB_OUTPUT
         env:
           CHARMCRAFT_AUTH: "${{ secrets.CHARMHUB_TOKEN }}"
 
@@ -49,13 +82,16 @@ jobs:
         id: cpr
         with:
           token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
-          commit-message: "chore: update charm libraries"
+          commit-message: "${{ steps.fetch-libraries.outputs.pr_title }}"
           committer: "Github Actions <github-actions@github.com>"
           author: "Github Actions <github-actions@github.com>"
-          title: "Update charm libraries"
+          title: "${{ steps.fetch-libraries.outputs.pr_title }}"
           body: |
             Automated action to fetch latest version of charm libraries. The branch of this PR 
             will be wiped during the next check. Unless you really know what you're doing, you 
             most likely don't want to push any commits to this branch.
-          branch: "chore/auto-libs"
+
+            The PR will be auto-merged if the CI is green, unless it includes a major library
+            version bump; in that case, manual changes are most likely required.
+          branch: "${{ steps.fetch-libraries.outputs.pr_branch }}"
           delete-branch: true
