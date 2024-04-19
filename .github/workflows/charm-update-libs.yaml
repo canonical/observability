@@ -96,5 +96,5 @@ jobs:
 
             The PR will be auto-merged if the CI is green, unless it includes a major library
             version bump; in that case, manual changes are most likely required.
-          branch: "${{ steps.fetch-libraries.outputs.pr_branch }}"
+          branch: chore/auto-libs
           delete-branch: true
