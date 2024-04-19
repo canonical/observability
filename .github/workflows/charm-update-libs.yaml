@@ -53,12 +53,12 @@ jobs:
             lib_major=$(cut -d. -f3 <<< "$lib")
             lib_owner=$(cut -d. -f2 <<< "$lib" | tr _ -)
             # Get the latest major version of the library from Charmhub
-            latest_major=$(charmcraft list-lib $lib_owner --format=json | jq -r --arg LIBNAME "$lib_name" '.[] | select(.library_name == $LIBNAME) | .api')
+            latest_major="v$(charmcraft list-lib $lib_owner --format=json | jq -r --arg LIBNAME $lib_name '.[] | select(.library_name == $LIBNAME) | .api')"
             echo "[debug] + lib_major = $lib_major, latest_major = $latest_major"
-            echo "[debug] $(echo $lib_major\nv$latest_major | sort -V | tail -n1)"
+            echo [debug] $(echo "$lib_major\n$latest_major" | sort -V | tail -n1)
             # If there is a new major version of the library, open a new issue
-            if [[ $(echo "$lib_major\nv$latest_major" | sort -V | tail -n1 ) != "$lib_major" ]]; then
-              issue_body="${issue_body}- update $lib to v$latest_major\n"
+            if [[ $(echo "$lib_major\n$latest_major" | sort -V | tail -n1 ) != "$lib_major" ]]; then
+              issue_body="${issue_body}- update $lib to $latest_major\n"
             fi
           done
           # Check if there are already open issues for major library upgrades
