@@ -29,10 +29,13 @@ jobs:
 
       - name: Merge update-libs PRs with green CI
         run: |
-          # If CI checks are passing on a PR from "chore/auto-libs", merge it
-          if gh pr checks chore/auto-libs; then
-            echo "CI checks are passing, merging the chore/auto-libs PR"
-            gh pr merge chore/auto-libs --admin --squash
+          # If a PR from "chore/auto-libs" is open and CI checks are passing, merge it
+          is_pr_open="$(gh pr list --head chore/auto-libs --state open --json id --jq 'length')"
+          if [[ "$is_pr_open" == "1" ]]; then
+            if gh pr checks chore/auto-libs; then
+              echo "CI checks are passing, merging the chore/auto-libs PR"
+              gh pr merge chore/auto-libs --admin --squash
+            fi
           fi
         env:
           GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
