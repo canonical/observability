@@ -43,6 +43,8 @@ jobs:
           # Get the charm name
           charm_name=$((yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
           if [[ $charm_name = "" ]]; then echo "Error: can't extract the charm name." && exit 1; fi
+          # Initalize the issue body content to empty string, and fill it up in the for loop
+          issue_body=""
           # For each library not belonging to the charm, check for a major version update
           #   "lib" would be of the form `charms.prometheus_k8s.v0.prometheus_scrape`
           for lib in $(find lib/charms/ -type f | grep '.py$' | grep -v "$charm_name" | sed 's|lib/||' | sed 's/.py//' | sed 's|/|.|g'); do
@@ -53,12 +55,20 @@ jobs:
             # Get the latest major version of the library from Charmhub
             latest_major=$(charmcraft list-lib $lib_owner --format=json | jq -r --arg LIBNAME "$lib_name" '.[] | select(.library_name == $LIBNAME) | .api')
             # If there is a new major version of the library, open a new issue
-            if [[ $(echo "$lib_major\n$latest_major$" | sort -V | tail -n1 ) != "$lib_major" ]]; then
-              gh issue create \
-                --title "chore: update $lib to $latest_major" \
-                --body "This issue was created automatically because a new major version was detected for a charm library." 
+            if [[ $(echo "$lib_major\nv$latest_major$" | sort -V | tail -n1 ) != "$lib_major" ]]; then
+              issue_body="${issue_body}- update $lib to v$latest_major\n"
             fi
           done
+          # Check if there are already open issues for major library upgrades
+          open_issues_count="$(gh issue list --search 'chore: update libraries to new major versions' --state open --json id --jq 'length')"
+          echo "open_issues_count = $open_issues_count , issue_body = $issue_body"
+          if [[ "$open_issues_count" == "0" ]] && [[ "$issue_body" != "" ]]; then
+            # gh issue create \
+            #   --title "chore: update libraries to new major versions" \
+            #   --body "This issue was created automatically because a new major version was detected for a charm library.\n\nYou should update the following libraries:\n${issue_body}"            
+            echo "--- dry run ---"
+            echo "New GitHub Issue created!"
+            echo " body - This issue was created automatically because a new major version was detected for a charm library.\n\nYou should update the following libraries:\n${issue_body}"
           cd "$GITHUB_WORKSPACE"
         env:
           CHARMCRAFT_AUTH: "${{ secrets.CHARMHUB_TOKEN }}"
