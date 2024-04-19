@@ -31,7 +31,7 @@ jobs:
         run: |
           # If CI checks are passing on a PR from "chore/auto-libs", merge it
           if gh pr checks chore/auto-libs; then
-            gh pr merge chore/auto-libs --merge --admin
+            gh pr merge chore/auto-libs --admin
           fi
         env:
           GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
