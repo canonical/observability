@@ -31,6 +31,7 @@ jobs:
         run: |
           # If CI checks are passing on a PR from "chore/auto-libs", merge it
           if gh pr checks chore/auto-libs; then
+            echo "CI checks are passing, merging the chore/auto-libs PR"
             gh pr merge chore/auto-libs --admin --squash
           fi
         env:
@@ -62,6 +63,7 @@ jobs:
           # Check if there are already open issues for major library upgrades
           open_issues_count="$(gh issue list --search 'chore: update libraries to new major versions' --state open --json id --jq 'length')"
           if [[ "$open_issues_count" == "0" && "$issue_body" != "" ]]; then
+            echo "Creating a GitHub issue for the major library version update"
             issue_body="$(printf "%s\n\n%s\n%s" "This issue was created automatically because a new major version was detected for a charm library." "You should update the following libraries:" "${issue_body}")"
             gh issue create \
               --title "chore: update libraries to new major versions" \
