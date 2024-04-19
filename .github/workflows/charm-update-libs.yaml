@@ -56,7 +56,7 @@ jobs:
             latest_major="v$(charmcraft list-lib $lib_owner --format=json | jq -r --arg LIBNAME $lib_name '.[] | select(.library_name == $LIBNAME) | .api')"
             # If there is a new major version of the library, open a new issue
             if [[ $(printf "%s\n%s" "$lib_major" "$latest_major" | sort -V | tail -n1 ) != "$lib_major" ]]; then
-              issue_body=$(printf "%s\n%s" "$issue_body" "- update $lib to $latest_major")
+              issue_body=$(printf "%s\n%s" "$issue_body" "- update <b>$lib</b> to <b>$latest_major</b>")
             fi
           done
           # Check if there are already open issues for major library upgrades
