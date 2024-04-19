@@ -54,11 +54,9 @@ jobs:
             lib_owner=$(cut -d. -f2 <<< "$lib" | tr _ -)
             # Get the latest major version of the library from Charmhub
             latest_major="v$(charmcraft list-lib $lib_owner --format=json | jq -r --arg LIBNAME $lib_name '.[] | select(.library_name == $LIBNAME) | .api')"
-            echo "[debug] + lib_major = $lib_major, latest_major = $latest_major"
-            echo [debug] $(echo "$lib_major\n$latest_major" | sort -V | tail -n1)
             # If there is a new major version of the library, open a new issue
-            if [[ $(echo "$lib_major\n$latest_major" | sort -V | tail -n1 ) != "$lib_major" ]]; then
-              issue_body="${issue_body}- update $lib to $latest_major\n"
+            if [[ $(printf "%s\n%s" "$lib_major" "$latest_major" | sort -V | tail -n1 ) != "$lib_major" ]]; then
+              issue_body=$(printf "%s\n%s" "$issue_body" "- update $lib to $latest_major")
             fi
           done
           # Check if there are already open issues for major library upgrades
@@ -70,7 +68,7 @@ jobs:
             #   --body "This issue was created automatically because a new major version was detected for a charm library.\n\nYou should update the following libraries:\n${issue_body}"            
             echo "--- dry run ---"
             echo "New GitHub Issue created!"
-            echo " body - This issue was created automatically because a new major version was detected for a charm library.\n\nYou should update the following libraries:\n${issue_body}"
+            printf "%s\n%s" "body - This issue was created automatically because a new major version was detected for a charm library.\n\nYou should update the following libraries:" "${issue_body}"
           fi
           cd "$GITHUB_WORKSPACE"
         env:
