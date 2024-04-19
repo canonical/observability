@@ -62,7 +62,7 @@ jobs:
           # Check if there are already open issues for major library upgrades
           open_issues_count="$(gh issue list --search 'chore: update libraries to new major versions' --state open --json id --jq 'length')"
           echo "open_issues_count = $open_issues_count , issue_body = $issue_body"
-          if [[ "$open_issues_count" == "0" ]] && [[ "$issue_body" != "" ]]; then
+          if [[ "$open_issues_count" == "0" && "$issue_body" != "" ]]; then
             # gh issue create \
             #   --title "chore: update libraries to new major versions" \
             #   --body "This issue was created automatically because a new major version was detected for a charm library.\n\nYou should update the following libraries:\n${issue_body}"            
