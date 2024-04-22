@@ -107,7 +107,6 @@ jobs:
             will be overwritten during the next check. Unless you really know what you're doing, you 
             most likely don't want to push any commits to this branch.
 
-            The PR will be auto-merged if the CI is green, unless it includes a major library
-            version bump; in that case, manual changes are most likely required.
+            The PR will be auto-merged if the CI is green, on the next iteration of the workflow.
           branch: chore/auto-libs
           delete-branch: true
