@@ -99,8 +99,8 @@ jobs:
         with:
           token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
           commit-message: "chore: update charm libraries"
-          committer: "Github Actions <github-actions@github.com>"
-          author: "Github Actions <github-actions@github.com>"
+          committer: "Noctua <webops+observability-noctua-bot@canonical.com>"
+          author: "Noctua <webops+observability-noctua-bot@canonical.com>"
           title: "chore: update charm libraries"
           body: |
             Automated action to fetch latest version of charm libraries. The branch of this PR 
