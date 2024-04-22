@@ -27,7 +27,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Merge any PRs from the automatically generated "chore/auto-libs" branch if the CI is green
+      - name: Merge any pre-existing PRs from the automatically generated "chore/auto-libs" branch if the CI is green
         run: |
           # If a PR from "chore/auto-libs" is open and CI checks are passing, merge it
           is_pr_open="$(gh pr list --head chore/auto-libs --state open --json id --jq 'length')"
