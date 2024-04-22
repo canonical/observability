@@ -36,6 +36,10 @@ jobs:
               echo "CI checks are passing, merging the chore/auto-libs PR"
               gh pr merge chore/auto-libs --admin --squash
             fi
+          elif [[ "$is_pr_open" != "0" ]]; then
+            # The number of open PRs should always be either 0 or 1
+            echo "There's two PRs from the same branch; this should never happen!"
+            exit 1
           fi
         env:
           GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
