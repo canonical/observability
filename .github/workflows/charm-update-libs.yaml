@@ -104,7 +104,7 @@ jobs:
           title: "chore: update charm libraries"
           body: |
             Automated action to fetch the latest minor and major versions of all charm libraries used by this charm. The branch of this PR 
-            will be wiped during the next check. Unless you really know what you're doing, you 
+            will be overwritten during the next check. Unless you really know what you're doing, you 
             most likely don't want to push any commits to this branch.
 
             The PR will be auto-merged if the CI is green, unless it includes a major library
