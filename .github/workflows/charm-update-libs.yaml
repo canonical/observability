@@ -55,7 +55,7 @@ jobs:
           issue_body=""
           # For each library not belonging to the charm, check for a major version update
           #   "lib" would be of the form `charms.prometheus_k8s.v0.prometheus_scrape`
-          for lib in $(find "lib/charms/$charm_name" -type f -name "*.py" | sed 's|lib/||' | sed 's/.py//' | sed 's|/|.|g'); do
+          for lib in $(find "lib/charms/" -type f -name "*.py" | grep -v "$charm_name" | sed 's|lib/||' | sed 's/.py//' | sed 's|/|.|g'); do
             # Extract the name of the library, the current major version, and the charm that owns it
             lib_name=$(cut -d. -f4 <<< "$lib")
             lib_major=$(cut -d. -f3 <<< "$lib")
