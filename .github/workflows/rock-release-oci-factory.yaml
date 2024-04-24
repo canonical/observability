@@ -62,6 +62,9 @@ jobs:
           repository: observability-noctua-bot/oci-factory
           token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
 
+      # Install the same yq version that is used in oci-factory
+      - run: sudo snap install yq --channel=v4/stable
+
       - name: Update releases in image.yaml
         id: update-releases
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
@@ -100,7 +103,7 @@ jobs:
             fi
             # Build the final JSON object to update image.yaml
             rock_tags=$(printf '{%s%s%s}' "$patch_tag" "$minor_tag" "$major_tag")
-            upload_item_format='{"source":"%s","commit":"%s","directory":"!!str %s","release":%s}'
+            upload_item_format='{"source":"%s","commit":"%s","directory":"%s","release":%s}'
             upload_item=$(printf "$upload_item_format" \
               "canonical/${{ inputs.rock-name }}-rock" \
               "${{ steps.commit-sha.outputs.commit_sha }}" \
