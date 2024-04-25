@@ -69,9 +69,23 @@ jobs:
           done
           # Check if there are already open issues for major library upgrades
           open_issues_count="$(gh issue list --search 'chore: update libraries to new major versions' --state open --json id --jq 'length')"
-          if [[ "$open_issues_count" == "0" && "$issue_body" != "" ]]; then
-            echo "Creating a GitHub issue for the major library version update"
+          # Complete $issue_body if it's not empty
+          if [[ "$issue_body" != "" ]]; then
             issue_body="$(printf "%s\n\n%s\n%s" "This issue was created automatically because a new major version was detected for a charm library." "You should update the following libraries:" "${issue_body}")"
+          fi
+          # If an issue already exists, update it or close it
+          if [[ "$open_issues_count" == "1" ]]; then
+            issue_number="$(gh issue list --search 'chore: update libraries to new major versions' --state open --json number --jq '.[].number')"
+            issue_url="$(gh issue list --search 'chore: update libraries to new major versions' --state open --json url --jq '.[].url')"
+            if [[ "$issue_body" == "" ]]; then
+              echo "Closing issue #${issue_number}: $issue_url"
+              gh issue close "$issue_number"
+            else
+              echo "Updating GitHub issue #${issue_number}: $issue_url"
+              gh issue edit "$issue_number" --body "$issue_body"
+            fi
+          elif [[ "$open_issues_count" == "0" && "$issue_body" != "" ]]; then
+            echo "Creating a GitHub issue for the major library version update"
             gh issue create \
               --title "chore: update libraries to new major versions" \
               --body "$issue_body"
