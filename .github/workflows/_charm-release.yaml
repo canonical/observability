@@ -153,7 +153,8 @@ jobs:
           destructive-mode: false
   release-arm-to-charmhub:
     name: Release arm64 to CharmHub
-    runs-on: ubuntu-22.04
+    # needs to be run on arm or the oci image will resolve to the amd64 one.
+    runs-on: Ubuntu_ARM64_4C_16G_01
     needs:
       - build-arm
     strategy:
