@@ -1,0 +1,42 @@
+name: Promote Charm across all risk tracks
+
+on:
+  workflow_call:
+    inputs:
+      charm-path:
+        description: "Path to the charm we want to promote. Defaults to the current working directory."
+        type: string
+        default: '.'
+        required: false
+    secrets:
+      CHARMHUB_TOKEN:
+        required: true
+
+jobs:
+  promote:
+    name: Promote Charm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Promote Charm from candidate to stable
+        uses: canonical/charming-actions/promote-charm@feature/promote-charm
+        with:
+          charm-path: ${{ inputs.charm-path }}
+          credentials: ${{ secrets.CHARMHUB_TOKEN }}
+          destination-channel: latest/stable
+          origin-channel: latest/candidate
+      - name: Promote Charm from beta to candidate
+        uses: canonical/charming-actions/promote-charm@feature/promote-charm
+        with:
+          charm-path: ${{ inputs.charm-path }}
+          credentials: ${{ secrets.CHARMHUB_TOKEN }}
+          destination-channel: latest/candidate
+          origin-channel: latest/beta
+      - name: Promote Charm from edge to beta
+        uses: canonical/charming-actions/promote-charm@feature/promote-charm
+        with:
+          charm-path: ${{ inputs.charm-path }}
+          credentials: ${{ secrets.CHARMHUB_TOKEN }}
+          destination:channel: latest/beta
+          origin-channel: latest/edge
