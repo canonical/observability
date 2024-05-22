@@ -1,4 +1,4 @@
-name: Build ROCKs
+name: Build rocks
 
 on:
   workflow_call:
@@ -27,7 +27,7 @@ jobs:
       run: |
         sudo snap install --classic --channel edge rockcraft
 
-    - name: Build ROCK
+    - name: Build rock
       if: steps.changed-files.outputs.any_changed
       run: |
         for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
