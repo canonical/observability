@@ -43,21 +43,21 @@ Periodically, CI checks whether the charm libraries are up-to-date; if not (i.e.
 
 There's also a manual action to promote the charm (i.e., from `latest/edge` to `latest/beta`), making the process more user-friendly.
 
-### ROCK Workflows
+### Rock Workflows
 
 | On PRs                          | On main                             | Periodically           | Manually                  |
 | ------------------------------- | ----------------------------------- | ---------------------- | ------------------------- |
 | **`_rock-pull-request.yaml`**   | **`rock-release-dev.yaml`**         | **`rock-update.yaml`** | `(rock-release-dev.yaml)` |
 | **`└── _rock-build-test.yaml`** | **`rock-release-oci-factory.yaml`** |                        | `(rock-update.yaml)`      |
 
-Our ROCKs are built in [oci-factory](https://github.com/canonical/oci-factory/), which covers:
-* building and publishing the ROCKS to [DockerHub](https://hub.docker.com/u/ubuntu);
+Our rocks are built in [oci-factory](https://github.com/canonical/oci-factory/), which covers:
+* building and publishing the rocks to [DockerHub](https://hub.docker.com/u/ubuntu);
 * tagging with semantic versions (e.g., `prometheus:{major}` pointing to the latest `prometheus:{major}.{minor}.{patch}`)
-* periodically rebuilding ROCKs to pull any security fix.
+* periodically rebuilding rocks to pull any security fix.
 
-These workflows make the repositories holding our ROCKs almost fully automated: whenever the upstream project releases a new version, a PR is opened automatically to add a ROCK for that specific version. Consequently, a workflow is run to make a quality check by trying to build the ROCK locally.
+These workflows make the repositories holding our rocks almost fully automated: whenever the upstream project releases a new version, a PR is opened automatically to add a rock for that specific version. Consequently, a workflow is run to make a quality check by trying to build the rock locally.
 
-When the PR is merged, the ROCK is published to the GitHub Container Registry (GHCR) with a `:dev` tag. At the same time, a PR is opened to the **oci-factory** repo for the ROCKs team to approve and merge, triggering the actual build process.
+When the PR is merged, the rock is published to the GitHub Container Registry (GHCR) with a `:dev` tag. At the same time, a PR is opened to the **oci-factory** repo for the ROCKS Team to approve and merge, triggering the actual build process.
 
 
 ## Meta Repo

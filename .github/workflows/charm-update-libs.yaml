@@ -27,13 +27,75 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Fetch charm libraries
+      - name: Merge any pre-existing PRs from the automatically generated "chore/auto-libs" branch if the CI is green
+        run: |
+          # If a PR from "chore/auto-libs" is open and CI checks are passing, merge it
+          is_pr_open="$(gh pr list --head chore/auto-libs --state open --json id --jq 'length')"
+          if [[ "$is_pr_open" == "1" ]]; then
+            if gh pr checks chore/auto-libs; then
+              echo "CI checks are passing, merging the chore/auto-libs PR"
+              gh pr merge chore/auto-libs --admin --squash
+            fi
+          elif [[ "$is_pr_open" != "0" ]]; then
+            # The number of open PRs should always be either 0 or 1
+            echo "There's two PRs from the same branch; this should never happen!"
+            exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
+
+      - name: Check for major library updates
         run: |
           sudo snap install charmcraft --classic --channel latest/stable
-          cd ${{ inputs.charm-path }}
+          cd "$GITHUB_WORKSPACE/${{ inputs.charm-path }}"
+          # Get the charm name
+          charm_name=$((yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
+          if [[ $charm_name = "" ]]; then echo "Error: can't extract the charm name." && exit 1; fi
+          # Initalize the issue body content to empty string, and fill it up in the for loop
+          issue_body=""
+          # For each library not belonging to the charm, check for a major version update
+          #   "lib" would be of the form `charms.prometheus_k8s.v0.prometheus_scrape`
+          for lib in $(find "lib/charms/" -type f -name "*.py" | grep -v "$charm_name" | sed 's|lib/||' | sed 's/.py//' | sed 's|/|.|g'); do
+            # Extract the name of the library, the current major version, and the charm that owns it
+            lib_name=$(cut -d. -f4 <<< "$lib")
+            lib_major=$(cut -d. -f3 <<< "$lib")
+            lib_owner=$(cut -d. -f2 <<< "$lib" | tr _ -)
+            # Get the latest major version of the library from Charmhub
+            latest_major="v$(charmcraft list-lib $lib_owner --format=json | jq -r --arg LIBNAME $lib_name '.[] | select(.library_name == $LIBNAME) | .api')"
+            # If there is a new major version of the library, open a new issue
+            if [[ $(printf "%s\n%s" "$lib_major" "$latest_major" | sort -V | tail -n1 ) != "$lib_major" ]]; then
+              issue_body=$(printf "%s\n%s" "$issue_body" "- update <b>$lib</b> to <b>$latest_major</b>")
+            fi
+          done
+          # Check if there are already open issues for major library upgrades
+          open_issues_count="$(gh issue list --search 'chore: update libraries to new major versions' --state open --json id --jq 'length')"
+          if [[ "$open_issues_count" == "0" && "$issue_body" != "" ]]; then
+            echo "Creating a GitHub issue for the major library version update"
+            issue_body="$(printf "%s\n\n%s\n%s" "This issue was created automatically because a new major version was detected for a charm library." "You should update the following libraries:" "${issue_body}")"
+            gh issue create \
+              --title "chore: update libraries to new major versions" \
+              --body "$issue_body"
+          fi
+          cd "$GITHUB_WORKSPACE"
+        env:
+          CHARMCRAFT_AUTH: "${{ secrets.CHARMHUB_TOKEN }}"
+          GH_TOKEN: "${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
+
+      - name: Fetch charm libraries
+        run: |
+          cd "$GITHUB_WORKSPACE/${{ inputs.charm-path }}"
           charmcraft fetch-lib
         env:
           CHARMCRAFT_AUTH: "${{ secrets.CHARMHUB_TOKEN }}"
+
+      - name: Import and configure the GPG key for Noctua
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.NOCTUA_GPG_PRIVATE }}
+          passphrase: ${{ secrets.NOCTUA_GPG_PASSPHRASE }}
+          git_config_global: true
+          git_user_signingkey: true
+          git_commit_gpgsign: true
 
       - name: Create a PR for local changes
         uses: peter-evans/create-pull-request@v6
@@ -41,12 +103,14 @@ jobs:
         with:
           token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
           commit-message: "chore: update charm libraries"
-          committer: "Github Actions <github-actions@github.com>"
-          author: "Github Actions <github-actions@github.com>"
-          title: "Update charm libraries"
+          committer: "Noctua <webops+observability-noctua-bot@canonical.com>"
+          author: "Noctua <webops+observability-noctua-bot@canonical.com>"
+          title: "chore: update charm libraries"
           body: |
-            Automated action to fetch latest version of charm libraries. The branch of this PR 
-            will be wiped during the next check. Unless you really know what you're doing, you 
+            Automated action to fetch the latest minor and major versions of all charm libraries used by this charm. The branch of this PR 
+            will be overwritten during the next check. Unless you really know what you're doing, you 
             most likely don't want to push any commits to this branch.
-          branch: "chore/auto-libs"
+
+            The PR will be auto-merged if the CI is green, on the next iteration of the workflow.
+          branch: chore/auto-libs
           delete-branch: true
