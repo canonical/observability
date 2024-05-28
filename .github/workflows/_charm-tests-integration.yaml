@@ -32,6 +32,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+      - name: Setup Charmcraft's pip cache
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/snap/charmcraft/common/cache/charmcraft/
+          key: charmcraft-cache-${{ github.job }}-${{ strategy.job-index }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: charmcraft-cache
       - name: Get IP range
         id: ip_range
         if: ${{ inputs.ip-range == '' }}
