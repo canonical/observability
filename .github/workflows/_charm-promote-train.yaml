@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       charm-repo:
-        description: "Repository of the charm to promote. Defaults  to the caller repository."
+        description: "Repository of the charm to promote. Defaults to the caller repository."
         type: string
         default: ${{ github.repository }}
         required: false
