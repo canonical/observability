@@ -73,7 +73,7 @@ jobs:
         run: |
           echo "Promote train for ${{ matrix.charm-repo }}; woohoo!"
           echo "-- wd $(pwd)"
-          echo "-- charm-path ${{ steps.read-charm-path.outputs.charm-path }}"
+          echo "-- charm-path ${{ steps.read-charm-path.outputs.charm_path }}"
           echo "-- latest/stable ${{ steps.check-tracks.outputs.to_stable }}"
           echo "-- latest/candidate ${{ steps.check-tracks.outputs.to_candidate }}"
           echo "-- latest/beta ${{ steps.check-tracks.outputs.to_beta }}"
@@ -83,7 +83,7 @@ jobs:
         run: |
           echo "Promoting ${{ matrix.charm-repo }} from latest/candidate to latest/stable"
           echo "-- wd $(pwd)"
-          echo "-- charm-path ${{ steps.read-charm-path.outputs.charm-path }}"
+          echo "-- charm-path ${{ steps.read-charm-path.outputs.charm_path }}"
           echo "-- to_stable ${{ steps.check-tracks.outputs.to_stable }}"
         # uses: canonical/charming-actions/promote-charm@2.6.0
         # with:
@@ -96,7 +96,7 @@ jobs:
         run: |
           echo "Promoting ${{ matrix.charm-repo }} from latest/beta to latest/candidate"
           echo "-- wd $(pwd)"
-          echo "-- charm-path ${{ steps.read-charm-path.outputs.charm-path }}"
+          echo "-- charm-path ${{ steps.read-charm-path.outputs.charm_path }}"
           echo "-- to_candidate ${{ steps.check-tracks.outputs.to_candidate }}"
         # with:
         #   charm-path: ${{ inputs.charm-path }}
@@ -108,7 +108,7 @@ jobs:
         run: |
           echo "Promoting ${{ matrix.charm-repo }} from latest/edge to latest/beta"
           echo "-- wd $(pwd)"
-          echo "-- charm-path ${{ steps.read-charm-path.outputs.charm-path }}"
+          echo "-- charm-path ${{ steps.read-charm-path.outputs.charm_path }}"
           echo "-- to_beta ${{ steps.check-tracks.outputs.to_beta }}"
         # uses: canonical/charming-actions/promote-charm@2.6.0
         # with:
