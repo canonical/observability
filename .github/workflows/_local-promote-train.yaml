@@ -6,7 +6,7 @@ on:
       dry-run:
         description: "Don't actually promote the charms, but print the promotions."
         type: boolean
-        default: true
+        default: false
         required: true
     secrets:
       CHARMHUB_TOKEN:
