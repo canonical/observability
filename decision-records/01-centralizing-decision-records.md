@@ -1,3 +1,6 @@
+date: 2024-06-03
+author: Simon Aronsson (@simskij)
+---
 
 ## Decision 
 
