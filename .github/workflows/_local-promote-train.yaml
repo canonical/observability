@@ -55,17 +55,64 @@ jobs:
             echo "charm_path='$CHARM_PATH'" >> $GITHUB_OUTPUT;
           fi
 
+      - name: Check which tracks already have a release
+        id: check-tracks
+        run: |
+          cd ${{ steps.read-charm-path.outputs.charm-path }}
+          charm_name=$((yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
+          status=$(charmcraft status "$charm_name" --format=json)
+          to_stable=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/stable") | .status')
+          to_candidate=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/candidate") | .status')
+          to_beta=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/beta") | .status')
+          echo "to_stable=$to_stable" >> $GITHUB_OUTPUT
+          echo "to_candidate=$to_candidate" >> $GITHUB_OUTPUT
+          echo "to_beta=$to_beta" >> $GITHUB_OUTPUT
+
       - name: (dry run) Promote train
         if: ${{ inputs.dry-run }}
         run: |
           echo "Promote train for ${{ matrix.charm-repo }}; woohoo!"
           echo "-- wd $(pwd)"
           echo "-- charm-path ${{ steps.read-charm-path.outputs.charm-path }}"
+          echo "-- latest/stable ${{ steps.check-tracks.outputs.to_stable }}"
+          echo "-- latest/candidate ${{ steps.check-tracks.outputs.to_candidate }}"
+          echo "-- latest/beta ${{ steps.check-tracks.outputs.to_beta }}"
 
-      - name: Promote train
-        if: ${{ ! inputs.dry-run }}
-        uses: canonical/observability/.github/workflows/_charm-promote-train.yaml@main
-        secrets: inherit
-        with:
-          charm-repo: ${{ matrix.charm-repo }}
-          charm-path: ${{ steps.read-charm-path.outputs.charm-path }}
+      - name: Promote Charm from candidate to stable
+        if: ${{ ! inputs.dry-run && steps.check-tracks.outputs.to_stable == "open" }}
+        run: |
+          echo "Promoting ${{ matrix.charm-repo }} from latest/candidate to latest/stable"
+          echo "-- wd $(pwd)"
+          echo "-- charm-path ${{ steps.read-charm-path.outputs.charm-path }}"
+          echo "-- to_stable ${{ steps.check-tracks.outputs.to_stable }}"
+        # uses: canonical/charming-actions/promote-charm@2.6.0
+        # with:
+        #   charm-path: ${{ inputs.charm-path }}
+        #   credentials: ${{ secrets.CHARMHUB_TOKEN }}
+        #   origin-channel: latest/candidate
+        #   destination-channel: latest/stable
+      - name: Promote Charm from beta to candidate
+        if: ${{ ! inputs.dry-run && steps.check-tracks.outputs.to_candidate == "open" }}
+        run: |
+          echo "Promoting ${{ matrix.charm-repo }} from latest/beta to latest/candidate"
+          echo "-- wd $(pwd)"
+          echo "-- charm-path ${{ steps.read-charm-path.outputs.charm-path }}"       # uses: canonical/charming-actions/promote-charm@2.6.0
+          echo "-- to_candidate ${{ steps.check-tracks.outputs.to_candidate }}"
+        # with:
+        #   charm-path: ${{ inputs.charm-path }}
+        #   credentials: ${{ secrets.CHARMHUB_TOKEN }}
+        #   origin-channel: latest/beta
+        #   destination-channel: latest/candidate
+      - name: Promote Charm from edge to beta
+        if: {{ ! inputs.dry-run && steps.check-tracks.outputs.to_beta == "open" }}
+        run: |
+          echo "Promoting ${{ matrix.charm-repo }} from latest/edge to latest/beta"
+          echo "-- wd $(pwd)"
+          echo "-- charm-path ${{ steps.read-charm-path.outputs.charm-path }}"       # uses: canonical/charming-actions/promote-charm@2.6.0
+          echo "-- to_beta ${{ steps.check-tracks.outputs.to_beta }}"
+        # uses: canonical/charming-actions/promote-charm@2.6.0
+        # with:
+        #   charm-path: ${{ inputs.charm-path }}
+        #   credentials: ${{ secrets.CHARMHUB_TOKEN }}
+        #   origin-channel: latest/edge
+        #   destination:channel: latest/beta
