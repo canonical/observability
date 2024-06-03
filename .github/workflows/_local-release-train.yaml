@@ -1,4 +1,4 @@
-name: Promote Charm
+name: Release Train
 
 on:
   workflow_dispatch:
