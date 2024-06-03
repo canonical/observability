@@ -55,24 +55,17 @@ jobs:
             echo "charm_path='$CHARM_PATH'" >> $GITHUB_OUTPUT;
           fi
 
-      - name: (dry run) Promote latest/candidate to latest/stable
+      - name: (dry run) Promote train
         if: ${{ inputs.dry-run }}
         run: |
-          echo "Promoting ${{ matrix.charm-repo }} from latest/candidate to latest/stable"
-          echo "-- charm-path ${{ steps.read-charm-path.outputs.charm-path }}"
-
-      - name: Promote latest/candidate to latest/stable
-        if: ${{ ! inputs.dry-run }}
-        # uses: canonical/charming-actions/promote-charm@2.6.0
-        # with:
-        #   charm-path: ${{ inputs.charm-path }}
-        #   credentials: ${{ secrets.CHARMHUB_TOKEN }}
-        #   destination-channel: latest/${{ env.promote-to }}
-        #   origin-channel: latest/${{ env.promote-from }}
-        #   charmcraft-channel: latest/stable
-        run: |
-          # For testing, only pretend to promote the charm
-          # instead of calling the charming-action
-          echo "Promoting ${{ matrix.charm-repo }} from latest/candidate to latest/stable"
+          echo "Promote train for ${{ matrix.charm-repo }}; woohoo!"
           echo "-- wd $(pwd)"
           echo "-- charm-path ${{ steps.read-charm-path.outputs.charm-path }}"
+
+      - name: Promote train
+        if: ${{ ! inputs.dry-run }}
+        uses: canonical/observability/.github/workflows/_charm-promote-train.yaml@main
+        secrets: inherit
+        with:
+          charm-repo: ${{ matrix.charm-repo }}
+          charm-path: ${{ steps.read-charm-path.outputs.charm-path }}
