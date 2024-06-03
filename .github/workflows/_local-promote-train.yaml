@@ -48,9 +48,9 @@ jobs:
           CHARM_PATH=$(yq -r .jobs.promote.with.charm-path .github/workflows/promote.yaml)
           echo "charm-path is $CHARM_PATH"
           if [[ "$CHARM_PATH" == "null" ]]; then
-            echo "charm_path='.'" >> $GITHUB_OUTPUT;
+            echo "charm_path=." >> $GITHUB_OUTPUT;
           else
-            echo "charm_path='$CHARM_PATH'" >> $GITHUB_OUTPUT;
+            echo "charm_path=$CHARM_PATH" >> $GITHUB_OUTPUT;
           fi
 
       - name: Check which tracks already have a release
