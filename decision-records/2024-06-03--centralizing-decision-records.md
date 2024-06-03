@@ -5,8 +5,8 @@
 ## Decision 
 
 Starting today, 2024-06-03, we will start documenting decisions that are too small for a proper spec, using ADRs. The
-decision records will go into this repository, using an incrementally increasing-index-number, followed by a dash-separated
-title, like `01-a-dash-separated-title.md`.
+decision records will go into this repository, using an date, followed by a dash-separated
+title, like `2024-06-03--a-dash-separated-title.md`.
 
 ## Benefits
 
