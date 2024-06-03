@@ -1,6 +1,6 @@
-date: 2024-06-03
-author: Simon Aronsson (@simskij)
----
+**Date:** 2024-06-03<br/>
+**Author:** Simon Aronsson (@simskij)  
+
 
 ## Decision 
 
