@@ -1,0 +1,71 @@
+name: Release Train
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Don't actually promote the charms, but print the promotions."
+        type: boolean
+        default: false
+        required: true
+    secrets:
+      CHARMHUB_TOKEN:
+        required: true
+
+jobs:
+  promote:
+    name: Promote Charm
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        charm-repo:
+          - alertmanager-k8s-operator
+          - avalanche-k8s-operator
+          - blackbox-exporter-k8s-operator
+          - catalogue-k8s-operator
+          # - cos-configuration-k8s-operator
+          # - cos-proxy-operator
+          # - grafana-agent-k8s-operator
+          # - grafana-agent-operator
+          # - grafana-k8s-operator
+          # - karma-alertmanager-proxy-k8s-operator
+          # - karma-k8s-operator
+          # - loki-k8s-operator
+          # - mimir-coordinator-k8s-operator
+          # - mimir-worker-k8s-operator
+          # - prometheus-k8s-operator
+          # - prometheus-pushgateway-k8s-operator
+          # - prometheus-scrape-config-k8s-operator
+          # - prometheus-scrape-target-k8s-operator
+          # - tempo-k8s-operator
+          # - traefik-k8s-operator
+          # - traefik-route-k8s-operator
+    steps:
+      - name: Checkout the charm repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.charm-repo }}
+      - name: Read the charm path from the Promote workflow
+        id: read-charm-path
+        run: |
+          CHARM_PATH=$(yq -r .jobs.promote.with.charm-path .github/workflows/promote.yaml)
+          if [[ "$CHARM_PATH" == "null" ]]; then
+            echo "charm_path='.'" >> $GITHUB_OUTPUT;
+          else
+            echo "charm_path='$CHARM_PATH'" >> $GITHUB_OUTPUT;
+          fi
+
+      - name: (dry run) Promote train
+        if: ${{ inputs.dry-run }}
+        run: |
+          echo "Promote train for ${{ matrix.charm-repo }}; woohoo!"
+          echo "-- wd $(pwd)"
+          echo "-- charm-path ${{ steps.read-charm-path.outputs.charm-path }}"
+
+      - name: Promote train
+        if: ${{ ! inputs.dry-run }}
+        uses: canonical/observability/.github/workflows/_charm-promote-train.yaml@main
+        secrets: inherit
+        with:
+          charm-repo: ${{ matrix.charm-repo }}
+          charm-path: ${{ steps.read-charm-path.outputs.charm-path }}
