@@ -55,6 +55,7 @@ jobs:
       - name: Check which tracks already have a release
         id: check-tracks
         run: |
+          sudo snap install charmcraft --classic
           cd ${{ steps.read-charm-path.outputs.charm_path }}
           charm_name=$((yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
           status=$(charmcraft status "$charm_name" --format=json)
