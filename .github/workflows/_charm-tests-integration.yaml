@@ -96,3 +96,8 @@ jobs:
         with:
           name: charmcraft-logs
           path: ~/.local/state/charmcraft/log/*.log
+      - name: Dump scenario snapshots
+        if: failure()
+        run: |
+          sudo snap install jhack --channel latest/edge
+          jhack scenario snapshot --format json
