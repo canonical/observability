@@ -76,7 +76,7 @@ jobs:
           echo "-- latest/beta ${{ steps.check-tracks.outputs.to_beta }}"
 
       - name: Promote Charm from candidate to stable
-        if: ${{ ! inputs.dry-run && steps.check-tracks.outputs.to_stable == "open" }}
+        if: ${{ !inputs.dry-run && steps.check-tracks.outputs.to_stable == 'open' }}
         run: |
           echo "Promoting ${{ matrix.charm-repo }} from latest/candidate to latest/stable"
           echo "-- wd $(pwd)"
@@ -89,7 +89,7 @@ jobs:
         #   origin-channel: latest/candidate
         #   destination-channel: latest/stable
       - name: Promote Charm from beta to candidate
-        if: ${{ ! inputs.dry-run && steps.check-tracks.outputs.to_candidate == "open" }}
+        if: ${{ !inputs.dry-run && steps.check-tracks.outputs.to_candidate == 'open' }}
         run: |
           echo "Promoting ${{ matrix.charm-repo }} from latest/beta to latest/candidate"
           echo "-- wd $(pwd)"
@@ -101,7 +101,7 @@ jobs:
         #   origin-channel: latest/beta
         #   destination-channel: latest/candidate
       - name: Promote Charm from edge to beta
-        if: ${{ ! inputs.dry-run && steps.check-tracks.outputs.to_beta == "open" }}
+        if: ${{ !inputs.dry-run && steps.check-tracks.outputs.to_beta == 'open' }}
         run: |
           echo "Promoting ${{ matrix.charm-repo }} from latest/edge to latest/beta"
           echo "-- wd $(pwd)"
