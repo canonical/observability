@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set target channel
         env:
           PROMOTE_FROM: ${{ github.event.inputs.promotion }}
@@ -37,11 +37,10 @@ jobs:
             echo "promote-to=stable" >> ${GITHUB_ENV}
           fi
       - name: Promote Charm
-        uses: canonical/charming-actions/release-charm@2.4.0
+        uses: canonical/charming-actions/promote-charm@2.6.0
         with:
           charm-path: ${{ inputs.charm-path }}
           credentials: ${{ secrets.CHARMHUB_TOKEN }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           destination-channel: latest/${{ env.promote-to }}
           origin-channel: latest/${{ env.promote-from }}
           charmcraft-channel: latest/stable

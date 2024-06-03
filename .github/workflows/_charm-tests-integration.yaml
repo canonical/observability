@@ -29,9 +29,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
+      - name: Setup Charmcraft's pip cache
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/snap/charmcraft/common/cache/charmcraft/
+          key: charmcraft-cache-${{ github.job }}-${{ strategy.job-index }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: charmcraft-cache
       - name: Get IP range
         id: ip_range
         if: ${{ inputs.ip-range == '' }}
@@ -41,61 +47,22 @@ jobs:
         if: inputs.provider == 'lxd'
         uses: charmed-kubernetes/actions-operator@main
         with:
-          juju-channel: 3.3/stable
+          juju-channel: 3.4/stable
           provider: lxd
       - name: Setup operator environment (k8s)
         if: inputs.provider == 'microk8s'
         uses: charmed-kubernetes/actions-operator@main
         with:
-          juju-channel: 3.3/stable
+          juju-channel: 3.4/stable
           provider: microk8s
           channel: 1.26-strict/stable
           microk8s-group: snap_microk8s
           microk8s-addons: "hostpath-storage dns metallb:${{ inputs.ip-range || steps.ip_range.outputs.ip_range }}"
       - name: Run integration tests
         run: cd ${{ inputs.charm-path }} && tox -vve integration
-      - name: Dump debug log
+      - name: Dump logs
         if: failure()
-        run: |
-          for m in $(juju models --format json | jq -r '.models[].name' | grep -v "admin/controller"); do juju debug-log -m $m --replay --ms --no-tail; done
-          exit 0
-      - name: Dump pods and their logs
-        if: failure()
-        run: |
-          juju status --relations --storage
-          kubectl get pods \
-              -A \
-              -o=jsonpath='{range.items[*]}{.metadata.namespace} {.metadata.name}{"\n"}' \
-              --sort-by=.metadata.namespace \
-              | grep -v "^\s*$" \
-              | while read namespace pod; do \
-                   kubectl -n $namespace describe pod $pod; \
-                   kubectl -n $namespace logs $pod \
-                      --all-containers=true \
-                      --tail=100; \
-               done
-          exit 0
-      - name: Dump node information
-        if: failure()
-        run: |
-          kubectl get nodes -v=10
-          exit 0
-      - name: Dump deployments
-        if: failure()
-        run: |
-          kubectl describe deployments -A
-          exit 0
-      - name: Dump replicasets
-        if: failure()
-        run: |
-          kubectl describe replicasets -A
-          exit 0
-      - name: Dump charmcraft logs
-        if: failure()
-        uses: actions/upload-artifact@v3
-        with:
-          name: charmcraft-logs
-          path: ~/.local/state/charmcraft/log/*.log
+        uses: canonical/charming-actions/dump-logs@main
       - name: Dump scenario snapshots
         if: failure()
         run: |

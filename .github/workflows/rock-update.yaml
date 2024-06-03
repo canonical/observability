@@ -1,5 +1,5 @@
 # This action automatically creates a folder with the same name as the upstream version
-name: Update ROCK on new releases of its source
+name: Update rock on new releases of its source
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -9,7 +9,7 @@ on:
   workflow_call:
     inputs:
       rock-name:
-        description: "Name of the application for which to build the ROCK"
+        description: "Name of the application for which to build the rock"
         required: true
         type: string
       source-repo:
@@ -51,8 +51,8 @@ jobs:
             | jq -r 'select(.prerelease == false) | .tag_name')
           echo "release=$TAG" >> $GITHUB_OUTPUT
 
-      - name: Checkout the ROCK source
-        uses: actions/checkout@v3
+      - name: Checkout the rock source
+        uses: actions/checkout@v4
         with:
           path: main
 
@@ -63,7 +63,7 @@ jobs:
         run: |
           source_tag="${{ steps.latest-release.outputs.release }}"
           version=${source_tag#"v"}
-          # Explicitly filter for specific ROCKs because we'd rather notice if a new ROCK has a different release schema
+          # Explicitly filter for specific rocks because we'd rather notice if a new rock has a different release schema
           version=${version#"mimir-"}
           if [ ! -f $GITHUB_WORKSPACE/main/$version/rockcraft.yaml ]; then
             echo "version=$version" >> $GITHUB_OUTPUT
@@ -75,7 +75,7 @@ jobs:
 
       - name: Checkout application source for the Go version check
         if: inputs.check-go && steps.check.outputs.release != ''
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: ${{ inputs.source-repo }}
           ref: ${{ steps.check.outputs.release }}
@@ -119,14 +119,14 @@ jobs:
 
       - name: Create a PR
         if: steps.check.outputs.release != ''
-        uses: peter-evans/create-pull-request@v4.2.3
+        uses: peter-evans/create-pull-request@v6
         with:
           path: main
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore(deps): bump ${{ inputs.rock-name }} version to ${{ steps.check.outputs.release }}"
           committer: "Github Actions <github-actions@github.com>"
           author: "Github Actions <github-actions@github.com>"
-          title: "chore: add ROCK for ${{ inputs.rock-name }} ${{ steps.check.outputs.release }}"
+          title: "chore: add rock for ${{ inputs.rock-name }} ${{ steps.check.outputs.release }}"
           body: Automated update to follow upstream [release](https://github.com/${{ inputs.source-repo }}/releases/tag/${{ steps.check.outputs.release }}) of ${{ inputs.rock-name }}.
           branch: "chore/bump-version-to-${{ steps.check.outputs.release }}"
           delete-branch: true
