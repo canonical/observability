@@ -59,7 +59,7 @@ jobs:
         run: |
           sudo snap install charmcraft --classic
           cd ${{ steps.read-charm-path.outputs.charm_path }}
-          charm_name=$((yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml))
+          charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
           status=$(charmcraft status "$charm_name" --format=json)
           to_stable=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/stable") | .status')
           to_candidate=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/candidate") | .status')
