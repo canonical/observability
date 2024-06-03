@@ -17,9 +17,9 @@ jobs:
       matrix:
         charm-repo:
           - alertmanager-k8s-operator
-          - avalanche-k8s-operator
-          - blackbox-exporter-k8s-operator
-          - catalogue-k8s-operator
+          # - avalanche-k8s-operator
+          # - blackbox-exporter-k8s-operator
+          # - catalogue-k8s-operator
           # - cos-configuration-k8s-operator
           # - cos-proxy-operator
           # - grafana-agent-k8s-operator
@@ -46,6 +46,7 @@ jobs:
         id: read-charm-path
         run: |
           CHARM_PATH=$(yq -r .jobs.promote.with.charm-path .github/workflows/promote.yaml)
+          echo "charm-path is $CHARM_PATH"
           if [[ "$CHARM_PATH" == "null" ]]; then
             echo "charm_path='.'" >> $GITHUB_OUTPUT;
           else
