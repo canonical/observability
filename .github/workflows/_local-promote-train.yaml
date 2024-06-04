@@ -100,4 +100,4 @@ jobs:
           charm-path: ${{ steps.read-charm-path.outputs.charm_path }}
           credentials: ${{ secrets.CHARMHUB_TOKEN }}
           origin-channel: latest/edge
-          destination:channel: latest/beta
+          destination-channel: latest/beta
