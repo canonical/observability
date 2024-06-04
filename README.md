@@ -59,6 +59,18 @@ These workflows make the repositories holding our rocks almost fully automated: 
 
 When the PR is merged, the rock is published to the GitHub Container Registry (GHCR) with a `:dev` tag. At the same time, a PR is opened to the **oci-factory** repo for the ROCKS Team to approve and merge, triggering the actual build process.
 
+### Manual Workflows
+
+| Manually                        |
+| --------------------------------| 
+| **`_local-promote-train.yaml`** |
+
+The [**Promote Train**](https://github.com/canonical/observability/actions/workflows/_local-promote-train.yaml) workflow allows to promote all the charms revisions to their next risk track. Specifically, if the tracks are open, the following promotions will be executed:
+- `latest/candidate` --> `latest/stable`
+- `latest/beta` --> `latest/candidate`
+- `latest/edge` --> `latest/beta`
+
+If the *dry-run* flag is selected, the promotion will simply be printed instead of being carried out.
 
 ## Meta Repo
 
