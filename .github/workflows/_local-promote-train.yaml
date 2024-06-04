@@ -78,7 +78,7 @@ jobs:
 
       - name: Promote charm - latest/candidate --> latest/stable
         if: ${{ !inputs.dry-run && steps.check-tracks.outputs.to_stable == 'open' }}
-        uses: canonical/charming-actions/promote-charm@v2.6.0
+        uses: canonical/charming-actions/promote-charm@2.6.0
         with:
           charm-path: ${{ matrix.charm-repo }}/${{ inputs.charm-path }}
           credentials: ${{ secrets.CHARMHUB_TOKEN }}
@@ -87,7 +87,7 @@ jobs:
 
       - name: Promote charm - latest/beta --> latest/candidate
         if: ${{ !inputs.dry-run && steps.check-tracks.outputs.to_candidate == 'open' }}
-        uses: canonical/charming-actions/promote-charm@v2.6.0
+        uses: canonical/charming-actions/promote-charm@2.6.0
         with:
           charm-path: ${{ matrix.charm-repo }}/${{ inputs.charm-path }}
           credentials: ${{ secrets.CHARMHUB_TOKEN }}
@@ -95,7 +95,7 @@ jobs:
           destination-channel: latest/candidate
       - name: Promote charm - latest/edge --> latest/beta
         if: ${{ !inputs.dry-run && steps.check-tracks.outputs.to_beta == 'open' }}
-        uses: canonical/charming-actions/promote-charm@v2.6.0
+        uses: canonical/charming-actions/promote-charm@2.6.0
         with:
           charm-path: ${{ matrix.charm-repo }}/${{ inputs.charm-path }}
           credentials: ${{ secrets.CHARMHUB_TOKEN }}
