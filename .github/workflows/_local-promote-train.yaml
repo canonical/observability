@@ -71,7 +71,7 @@ jobs:
       - name: (dry run) Print promotions
         if: ${{ inputs.dry-run }}
         run: |
-          echo "${{ matrix.charm-repo }} would be promoted:"
+          echo "${{ matrix.charm-repo }} would promote the following channels:"
           if [[ "${{ steps.check-tracks.outputs.to_stable }}" == "open" ]]; then echo "- latest/candidate --> latest/stable"; fi
           if [[ "${{ steps.check-tracks.outputs.to_candidate }}" == "open" ]]; then echo "- latest/beta --> latest/candidate"; fi
           if [[ "${{ steps.check-tracks.outputs.to_beta }}" == "open" ]]; then echo "- latest/edge --> latest/beta"; fi
