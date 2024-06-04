@@ -62,9 +62,9 @@ jobs:
           cd ${{ steps.read-charm-path.outputs.charm_path }}
           charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
           status=$(charmcraft status "$charm_name" --format=json)
-          to_stable=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/stable") | .status')
-          to_candidate=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/candidate") | .status')
-          to_beta=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/beta") | .status')
+          to_stable=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/stable") | .status' | head -n1)
+          to_candidate=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/candidate") | .status' | head -n1)
+          to_beta=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/beta") | .status' | head -n1)
           echo "to_stable=$to_stable" >> $GITHUB_OUTPUT
           echo "to_candidate=$to_candidate" >> $GITHUB_OUTPUT
           echo "to_beta=$to_beta" >> $GITHUB_OUTPUT
