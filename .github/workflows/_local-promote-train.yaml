@@ -80,7 +80,7 @@ jobs:
         if: ${{ !inputs.dry-run && steps.check-tracks.outputs.to_stable == 'open' }}
         uses: canonical/charming-actions/promote-charm@2.6.0
         with:
-          charm-path: ${{ matrix.charm-repo }}/${{ inputs.charm-path }}
+          charm-path: ../${{ matrix.charm-repo }}/${{ inputs.charm-path }}
           credentials: ${{ secrets.CHARMHUB_TOKEN }}
           origin-channel: latest/candidate
           destination-channel: latest/stable
@@ -89,7 +89,7 @@ jobs:
         if: ${{ !inputs.dry-run && steps.check-tracks.outputs.to_candidate == 'open' }}
         uses: canonical/charming-actions/promote-charm@2.6.0
         with:
-          charm-path: ${{ matrix.charm-repo }}/${{ inputs.charm-path }}
+          charm-path: ../${{ matrix.charm-repo }}/${{ inputs.charm-path }}
           credentials: ${{ secrets.CHARMHUB_TOKEN }}
           origin-channel: latest/beta
           destination-channel: latest/candidate
@@ -97,7 +97,7 @@ jobs:
         if: ${{ !inputs.dry-run && steps.check-tracks.outputs.to_beta == 'open' }}
         uses: canonical/charming-actions/promote-charm@2.6.0
         with:
-          charm-path: ${{ matrix.charm-repo }}/${{ inputs.charm-path }}
+          charm-path: ../${{ matrix.charm-repo }}/${{ inputs.charm-path }}
           credentials: ${{ secrets.CHARMHUB_TOKEN }}
           origin-channel: latest/edge
           destination:channel: latest/beta
