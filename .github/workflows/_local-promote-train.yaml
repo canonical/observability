@@ -57,6 +57,7 @@ jobs:
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
         run: |
+          set -euxo
           sudo snap install charmcraft --classic
           cd ${{ steps.read-charm-path.outputs.charm_path }}
           charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
