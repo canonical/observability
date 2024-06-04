@@ -68,7 +68,7 @@ jobs:
           echo "to_candidate=$to_candidate" >> $GITHUB_OUTPUT
           echo "to_beta=$to_beta" >> $GITHUB_OUTPUT
 
-      - name: (dry run) Promote train
+      - name: (dry run) Print promotions
         if: ${{ inputs.dry-run }}
         run: |
           echo "${{ matrix.charm-repo }} would be promoted:"
