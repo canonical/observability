@@ -21,7 +21,7 @@ A server shall keep using plain http while waiting for cert. The charm shall
 have a "Waiting" status during that period (subject to other status
 priorities).
 
-We also distinguish between to substates:
+We also distinguish between two substates:
 - TLS enabled: we have a cert in relation data
 - TLS active: the cert that is in relation data was written to disk and app
   config has a corresponding tls section.
