@@ -9,7 +9,7 @@ The Loki HA deployment can be carried out in two different modes, according to t
 
 Microservices mode is closer to what we currently do for the Mimir HA solution. However, there's a few issues with replicating that for Loki HA:
 1. some components that are [listed](https://grafana.com/docs/loki/latest/get-started/deployment-modes/#microservices-mode) are not [documented](https://grafana.com/docs/loki/latest/get-started/components/);
-2. there's apparently no *Nginx* configuration in the official Helm charts;
+2. there's no *Nginx* configuration in the official Helm charts;
 3. the [Loki HTTP API documentation](https://grafana.com/docs/loki/latest/reference/loki-http-api/) might not be complete (because some roles are missing entirely).
 
 Choosing to use only the documented components could cause us to stumble into undocumented issues (e.g., a required undocumented role missing from our deployment). **Simple Scalable** is documented to use *read*, *write* and *backend* instead of explicitly deploying components (such as *querier*, *distributor*, etc.).
