@@ -22,7 +22,7 @@ We will follow the recommended deployment mode for **Simple Scalable**, and star
 
 ## Benefits
 
-* Simpler Nginx configuration, that also matches the one in the official Helm chart
+* Readily available Nginx configuration, from the official Helm chart
 * Relatively easy to add new roles with finer granularity in the future
 
 ## Disadvantages
