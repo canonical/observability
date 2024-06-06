@@ -27,7 +27,7 @@ We will follow the recommended deployment mode for **Simple Scalable**, and star
 
 ## Disadvantages
 
-* The user cannot scale individual components independently *if they are in the same meta-role* (e.g, distributor and ingester)
+* The user cannot scale individual components within the same meta-role independently (e.g, distributor and ingester)
 
 ## Alternatives considered
 
