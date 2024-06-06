@@ -59,3 +59,26 @@ stateDiagram-v2
 ## Alternatives considered
 - Stop operating in plain http mode as soon as a tls-certificates relation is
   formed.
+
+```mermaid
+stateDiagram-v2
+    [*] --> NoTLS : install
+
+    state HTTP {
+
+        NoTLS: No TLS relation, no certs on disk
+        NoTLS --> Waiting : tls-relation-joined
+    }
+
+    OUT: Service outage
+    state OUT {
+        Waiting: CSR sent, waiting for cert
+        Waiting --> TLSEnabled : tls-relation-changed
+    }
+
+    state HTTPS {
+        TLSEnabled: Cert written, app restarted, TLS enabled
+        TLSEnabled --> TLSEnabled : cert update
+    }
+    TLSEnabled --> NoTLS : cert revoked (e.g. relation-removed)
+```
