@@ -10,15 +10,18 @@ When an admin forms a tls relation, there is a time window in which:
 As a result we had some code ordering issues (e.g. #414):
 - Should we update the config file with the tls config, which includes path to
   the cert, before we got the cert, only to perfectly reflect the juju model?
+  (Loki will fail to start this way.)
 - Should we wait with the tls config and allow the workload to continue to
-  operate in plain http, in contradiction to the juju model?
+  operate in plain http, in contradiction to the juju model? (Cert may take a
+  long time to arrive, so we may be compromising sensitive data.)
 - How should we determine within the charm if "TLS is enabled"?
 
 This problem is common to many charms.
 
 ## Decision
 A server shall NOT keep using plain http while waiting for a cert. The service
-must be stopped until the cert is in place.
+must be stopped until the cert is in place (in the workload container(s), and
+often in the charm container as well) and the tls config is updated.
 The charm shall have a "Waiting" status during that period (subject to other
 status priorities).
 
@@ -76,7 +79,7 @@ stateDiagram-v2
 
 ## Benefits
 - No need to worry if it takes the cert a long time to arrive.
-- We stick to the juju model (no model departure): if admin says HTTPS, then no
+- We stick to the juju model: if admin says HTTPS, then no
   more plain HTTP.
 
 ## Disadvantages
