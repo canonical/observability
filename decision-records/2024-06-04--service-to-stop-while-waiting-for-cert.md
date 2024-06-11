@@ -4,8 +4,8 @@
 ## Context and Problem Statement
 When an admin forms a tls relation, there is a time window in which:
 
-1. the juju model tells us we must operate with TLS enabled; however
-2. we haven't received the server cert yet.
+1. the juju model tells us we must operate with TLS enabled (the desired/planned state); however
+2. we haven't received the server cert yet (actual, transient state).
 
 As a result we had some code ordering issues (e.g. #414):
 - Should we update the config file with the tls config, which includes path to
