@@ -1,6 +1,6 @@
 # Observability
 
-A repository to collect all of the initiatives around Observability currently being 
+A repository to collect all the initiatives around Observability currently being
 worked on at Canonical.
 
 A list of all the active repositories maintained by the Observability team can be found using the [observability topic](https://github.com/search?q=topic%3Aobservability+org%3Acanonical+fork%3Atrue+archived%3Afalse&type=repositories).
@@ -62,7 +62,7 @@ When the PR is merged, the rock is published to the GitHub Container Registry (G
 ### Manual Workflows
 
 | Manually                        |
-| --------------------------------| 
+| --------------------------------|
 | **`_local-promote-train.yaml`** |
 
 The [**Promote Train**](https://github.com/canonical/observability/actions/workflows/_local-promote-train.yaml) workflow allows to promote all the charms revisions to their next risk track. Specifically, if the tracks are open, the following promotions will be executed:
