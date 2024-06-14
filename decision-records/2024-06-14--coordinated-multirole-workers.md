@@ -57,6 +57,7 @@ TODO: Pick one of marxist/bourgeois below
 **pro:**
 - better user story: you don't have to choose which charm to deploy, as there's only one working in two modes
 - less charms to maintain
+- easy migration path between a single-node and scaled setup
 **con:**
 - implementation complexity: the coordinator has to be able to decide when to run the worker as a monolith and when not to
 
