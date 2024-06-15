@@ -40,6 +40,11 @@ The presence of a coordinator charm achieves several goals:
   deployed. Without a coordinator, that'd have to be implemented as a distributed decision by 
   cross-relating all workers.
 
+Derived decisions:
+- The entire pattern is made up of two charms: worker and coordinator.
+- The coordinator runs a reverse proxy to the workers. It also load balances across workers of the same role. 
+- The coordinator, not the worker, owns all rule files, dashboards.
+- Worker's role is set via a worker's config option.
 
 TODO: Pick one of marxist/bourgeois below
 
