@@ -36,6 +36,31 @@ Derived decisions:
 - The coordinator runs a reverse proxy to the workers. It also load-balances across workers of the same role.
 - The coordinator, not the worker, owns all rule files, dashboards.
 - Worker's role is set via a worker's config option.
+- We cannot have panels that filter metrics by role (and thus **we shouldn't add a `roles` label**), because
+  even if we added a label for it, they would be showing inaccurate data unless each worker had exactly one role.
+- Self-monitoring metrics should be scraped by the coordinator through a grafana-agent in a sidecar container
+  in the coordinator charm.
+
+```mermaid
+graph LR
+
+subgraph mimir
+coordinator["coordinator + nginx + gagent"]
+worker1 ---|mimir-cluster| coordinator
+worker2 ---|mimir-cluster| coordinator
+worker3 ---|mimir-cluster| coordinator
+
+
+end
+
+subgraph cos-lite
+coordinator ---|logging| loki
+coordinator ---|remote-write| prometheus
+coordinator ---|dashboards| grafana
+coordinator ---|trace| tempo
+
+end
+```
 
 ## Benefits
 The presence of a coordinator charm achieves several goals:
@@ -74,3 +99,16 @@ The presence of a coordinator charm achieves several goals:
 
 #### Disadvantages
 - Cannot readily switch a deployment from monolithic to microservices mode.
+
+## Misc. rejected ideas
+### Determine worker roles using multiple relation endpoints (one per each role)
+Impractical and a poor UX for the user. When elaborating on the `juju config` proposal, we came up with two alternatives:
+* having a `role` config variable, to set to a comma-separated list of roles (e.g., `ingester,querier,distributor`);
+  while being simpler to set, it's less resilient to typos in the configuration. If a user sets the role to `quorier`,
+  then we'll get *Model departure* (the model configuration will drift from the application state).
+* having one boolean config variable per each Mimir role (e.g., `role-querier`, `role-ingester`, etc.) to act as toggles
+  for each role. This solves the "typo issue", as the variable type is validated as a boolean by Juju.
+
+We asked stakeholders for a UX opinion, and it aligned with our personal conclusions: having boolean config variables
+makes for a better and more resilient approach.
+
