@@ -1,8 +1,7 @@
 # Coordinated multirole workers
 **Date:** 2024-06-13<br/>
-**Authors:**
+**Authors:** @PietroPasotti, @mmkay, @sed-i
 
-TODO: Pick one of marxist/bourgeois below
 
 ## Context and Problem Statement
 We have charms for several grafana products, loki, mimir, and tempo, that all share the same design
@@ -76,7 +75,8 @@ The presence of a coordinator charm achieves several goals:
   cross-relating all workers.
 
 ## Disadvantages
-
+- We end up with 3 charms: monolithic, worker and coordinator. We'd need to deprecate the monolithic
+  and potentially have a bundle to deploy the equivalent of a monolithic.
 
 
 ## Alternatives considered
