@@ -156,7 +156,7 @@ repos:
 
   - path: ../tempo-rock
     track: main
-    url: git@github.com:canonical/s3proxy-rock.git
+    url: git@github.com:canonical/tempo-rock.git
 
   - path: ../traefik-rock
     track: main
