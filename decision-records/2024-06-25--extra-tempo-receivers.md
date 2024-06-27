@@ -16,9 +16,9 @@ Thus for each supported protocol `X` there will be an `always_enable_X:bool` con
 #### Semantics:
 The coordinator charm will collect all protocols that are configured to "always_enable" and add those to the set of protocols that are requested through active tracing relations from charmed workloads.
 ```
-juju config tempo enable_zipkin=True
-juju config tempo enable_otlp_grpc=True
-juju config tempo enable_otlp_http=True
+juju config tempo always_enable_zipkin=True
+juju config tempo always_enable_otlp_grpc=True
+juju config tempo always_enable_otlp_http=True
 ```
 ### Benefits
 - Minimizes the chances of user errors as Juju handles all input parsing (which means we don't have to worry about typos, user asking for unsupported/nonexistent protocols, duplicates...).
