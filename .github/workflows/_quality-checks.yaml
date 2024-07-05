@@ -63,24 +63,24 @@ jobs:
           charm-path: "${{ inputs.resource-path }}"
   static-analysis:
     name: Static Analysis
-    uses: canonical/observability/.github/workflows/_charm-static-analysis.yaml@o11y-bundles
+    uses: canonical/observability/.github/workflows/_charm-static-analysis.yaml@main
     if: inputs.resource-type == 'charm'
     with:
       charm-path: "${{ inputs.resource-path }}"
   linting:
     name: Linting
-    uses: canonical/observability/.github/workflows/_linting.yaml@o11y-bundles
+    uses: canonical/observability/.github/workflows/_linting.yaml@main
     with:
       resource-path: "${{ inputs.resource-path }}"
   unit-test:
     name: Unit Tests
-    uses: canonical/observability/.github/workflows/_charm-tests-unit.yaml@o11y-bundles
+    uses: canonical/observability/.github/workflows/_charm-tests-unit.yaml@main
     if: inputs.resource-type == 'charm'
     with:
       charm-path: "${{ inputs.resource-path }}"
   scenario-test:
     name: Scenario Tests
-    uses: canonical/observability/.github/workflows/_charm-tests-scenario.yaml@o11y-bundles
+    uses: canonical/observability/.github/workflows/_charm-tests-scenario.yaml@main
     if: inputs.resource-type == 'charm'
     with:
       charm-path: "${{ inputs.resource-path }}"
@@ -94,7 +94,7 @@ jobs:
     # run even if some jobs are skipped in case of bundles
     # https://github.com/actions/runner/issues/2205
     if: ${{ !failure() && !cancelled() }}
-    uses: canonical/observability/.github/workflows/_tests-integration.yaml@o11y-bundles
+    uses: canonical/observability/.github/workflows/_tests-integration.yaml@main
     with:
       resource-path: "${{ inputs.resource-path }}"
       provider: "${{ inputs.provider }}"
@@ -108,6 +108,6 @@ jobs:
     # run even if some jobs are skipped in case of bundles
     # https://github.com/actions/runner/issues/2205
     if: ${{ !failure() && !cancelled() }}
-    uses: canonical/observability/.github/workflows/_codeql-analysis.yml@o11y-bundles
+    uses: canonical/observability/.github/workflows/_codeql-analysis.yml@main
     with:
       resource-path: "${{ inputs.resource-path }}"
