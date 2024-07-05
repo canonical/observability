@@ -63,24 +63,24 @@ jobs:
           charm-path: "${{ inputs.resource-path }}"
   static-analysis:
     name: Static Analysis
-    uses: canonical/observability/.github/workflows/_charm-static-analysis.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-static-analysis.yaml@o11y-bundles
     if: inputs.resource-type == 'charm'
     with:
       charm-path: "${{ inputs.resource-path }}"
   linting:
     name: Linting
-    uses: canonical/observability/.github/workflows/_linting.yaml@main
+    uses: canonical/observability/.github/workflows/_linting.yaml@o11y-bundles
     with:
       resource-path: "${{ inputs.resource-path }}"
   unit-test:
     name: Unit Tests
-    uses: canonical/observability/.github/workflows/_charm-tests-unit.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-tests-unit.yaml@o11y-bundles
     if: inputs.resource-type == 'charm'
     with:
       charm-path: "${{ inputs.resource-path }}"
   scenario-test:
     name: Scenario Tests
-    uses: canonical/observability/.github/workflows/_charm-tests-scenario.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-tests-scenario.yaml@o11y-bundles
     if: inputs.resource-type == 'charm'
     with:
       charm-path: "${{ inputs.resource-path }}"
@@ -91,7 +91,7 @@ jobs:
       - linting
       - unit-test
       - scenario-test
-    uses: canonical/observability/.github/workflows/_tests-integration.yaml@main
+    uses: canonical/observability/.github/workflows/_tests-integration.yaml@o11y-bundles
     with:
       resource-path: "${{ inputs.resource-path }}"
       provider: "${{ inputs.provider }}"
@@ -102,6 +102,6 @@ jobs:
       - static-analysis
       - linting
       - unit-test
-    uses: canonical/observability/.github/workflows/_codeql-analysis.yml@main
+    uses: canonical/observability/.github/workflows/_codeql-analysis.yml@o11y-bundles
     with:
       resource-path: "${{ inputs.resource-path }}"
