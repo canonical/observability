@@ -3,9 +3,15 @@ name: Quality Checks
 on:
   workflow_call:
     inputs:
-      charm-path:
+      resource-path:
         type: string
+        description: "Path to the charm or bundle we want to publish. Defaults to the current working directory."
         required: false
+      resource-type:
+        type: string
+        description: 'Type of resource, "charm" or "bundle", in which the workflow is executed for.'
+        required: false
+        default: "charm"
       provider:
         type: string
         description: "The provider to choose for either machine or k8s tests ('lxd' or 'microk8s')"
@@ -43,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - check-secret
-    if: needs.check-secret.outputs.defined == 'true'
+    if: needs.check-secret.outputs.defined == 'true' && inputs.resource-type == 'charm'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -54,27 +60,30 @@ jobs:
         with:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
-          charm-path: "${{ inputs.charm-path }}"
+          charm-path: "${{ inputs.resource-path }}"
   static-analysis:
     name: Static Analysis
     uses: canonical/observability/.github/workflows/_charm-static-analysis.yaml@main
+    if: inputs.resource-type == 'charm'
     with:
-      charm-path: "${{ inputs.charm-path }}"
+      charm-path: "${{ inputs.resource-path }}"
   linting:
     name: Linting
-    uses: canonical/observability/.github/workflows/_charm-linting.yaml@main
+    uses: canonical/observability/.github/workflows/_linting.yaml@main
     with:
-      charm-path: "${{ inputs.charm-path }}"
+      resource-path: "${{ inputs.resource-path }}"
   unit-test:
     name: Unit Tests
     uses: canonical/observability/.github/workflows/_charm-tests-unit.yaml@main
+    if: inputs.resource-type == 'charm'
     with:
-      charm-path: "${{ inputs.charm-path }}"
+      charm-path: "${{ inputs.resource-path }}"
   scenario-test:
     name: Scenario Tests
     uses: canonical/observability/.github/workflows/_charm-tests-scenario.yaml@main
+    if: inputs.resource-type == 'charm'
     with:
-      charm-path: "${{ inputs.charm-path }}"
+      charm-path: "${{ inputs.resource-path }}"
   integration-test:
     name: Integration Tests
     needs:
@@ -82,9 +91,9 @@ jobs:
       - linting
       - unit-test
       - scenario-test
-    uses: canonical/observability/.github/workflows/_charm-tests-integration.yaml@main
+    uses: canonical/observability/.github/workflows/_tests-integration.yaml@main
     with:
-      charm-path: "${{ inputs.charm-path }}"
+      resource-path: "${{ inputs.resource-path }}"
       provider: "${{ inputs.provider }}"
       ip-range: ${{ inputs.ip-range }}
   codeql:
@@ -93,6 +102,6 @@ jobs:
       - static-analysis
       - linting
       - unit-test
-    uses: canonical/observability/.github/workflows/_charm-codeql-analysis.yml@main
+    uses: canonical/observability/.github/workflows/_codeql-analysis.yml@main
     with:
-      charm-path: "${{ inputs.charm-path }}"
+      resource-path: "${{ inputs.resource-path }}"

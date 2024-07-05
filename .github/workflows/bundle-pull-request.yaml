@@ -1,10 +1,10 @@
-name: Pull Request
+name: Bundle Pull Request
 
 on:
   workflow_call:
     inputs:
-      charm-path:
-        description: "Path to the charm we want to publish. Defaults to the current working directory."
+      bundle-path:
+        description: "Path to the bundle we want to publish. Defaults to the current working directory."
         default: '.'
         required: false
         type: string
@@ -65,7 +65,7 @@ jobs:
     uses: canonical/observability/.github/workflows/_quality-checks.yaml@main
     secrets: inherit
     with:
-      resource-path: ${{ inputs.charm-path }}
-      resource-type: "charm"
+      resource-path: ${{ inputs.bundle-path }}
+      resource-type: "bundle"
       provider: ${{ inputs.provider }}
       ip-range: ${{ inputs.ip-range }}
