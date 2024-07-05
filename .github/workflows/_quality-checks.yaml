@@ -91,6 +91,9 @@ jobs:
       - linting
       - unit-test
       - scenario-test
+    # run even if some jobs are skipped in case of bundles
+    # https://github.com/actions/runner/issues/2205
+    if: ${{ !failure() && !cancelled() }}
     uses: canonical/observability/.github/workflows/_tests-integration.yaml@o11y-bundles
     with:
       resource-path: "${{ inputs.resource-path }}"
@@ -102,6 +105,9 @@ jobs:
       - static-analysis
       - linting
       - unit-test
+    # run even if some jobs are skipped in case of bundles
+    # https://github.com/actions/runner/issues/2205
+    if: ${{ !failure() && !cancelled() }}
     uses: canonical/observability/.github/workflows/_codeql-analysis.yml@o11y-bundles
     with:
       resource-path: "${{ inputs.resource-path }}"
