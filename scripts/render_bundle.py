@@ -42,7 +42,9 @@ def parse_args() -> Tuple[Path, Path, Dict[str, str]]:
     Returns:
         A 3-tuple of the template path, the rendered output path and a mapping of template vars.
     """
-    parser = argparse.ArgumentParser(description="Render jinja2 bundle template from cli args.")
+    parser = argparse.ArgumentParser(
+        description="Render jinja2 bundle template from cli args."
+    )
     parser.add_argument(
         "--template",
         type=Path,
@@ -50,7 +52,7 @@ def parse_args() -> Tuple[Path, Path, Dict[str, str]]:
         default=BUNDLE_TEMPLATE_PATH,
     )
     parser.add_argument(
-        "output",
+        "--output",
         type=Path,
         help="path to the rendered bundle yaml",
     )
@@ -69,13 +71,17 @@ def parse_args() -> Tuple[Path, Path, Dict[str, str]]:
     # to the template and be considered as "defined", resulting in:
     # jinja2.exceptions.UndefinedError: 'None' has no attribute 'endswith'
     variables = {
-        k: v for k, v in vars(variable_parser.parse_args(var_args)).items() if v is not None
+        k: v
+        for k, v in vars(variable_parser.parse_args(var_args)).items()
+        if v is not None
     }
 
     return bundle_args.template, bundle_args.output, variables
 
 
-def render_bundle(template: Path, output: Path, variables: Optional[Dict[str, str]] = None):
+def render_bundle(
+    template: Path, output: Path, variables: Optional[Dict[str, str]] = None
+):
     """The main function for rendering the bundle template."""
     if variables is None:
         variables = {}
@@ -87,5 +93,9 @@ def render_bundle(template: Path, output: Path, variables: Optional[Dict[str, st
         jinja_template.stream(**variables).dump(o)
 
 
-if __name__ == "__main__":
+def main():
     render_bundle(*parse_args())
+
+
+if __name__ == "__main__":
+    main()

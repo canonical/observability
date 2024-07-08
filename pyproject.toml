@@ -16,3 +16,6 @@ requires-python = ">=3.8"
 dependencies = [
     "jinja2"
 ]
+
+[project.scripts]
+render-bundle = "scripts.render_bundle:main"
