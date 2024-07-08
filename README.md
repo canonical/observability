@@ -22,13 +22,13 @@ The **`issues.yaml`** workflow is used in all of our repositories to propagate G
 | On PRs                                  | On main                                 | Periodically                 | Manually                   |
 | --------------------------------------- | --------------------------------------- | ---------------------------- | -------------------------- |
 | **`charm-pull-request.yaml`**           | **`charm-release.yaml`**                | **`charm-update-libs.yaml`** | **`charm-promote.yaml`**   |
-| **`└── _quality-checks.yaml`**    | **`├── _quality-checks.yaml`**    |                              | `(charm-update-libs.yaml)` |
-| `....├── _codeql-analysis.yaml`   | `....├── _codeql-analysis.yaml`   |                              |                            |
+| **`└── _charm-quality-checks.yaml`**    | **`├── _charm-quality-checks.yaml`**    |                              | `(charm-update-libs.yaml)` |
+| `....├── _charm-codeql-analysis.yaml`   | `....├── _charm-codeql-analysis.yaml`   |                              |                            |
 | `....├── _charm-static-analysis.yaml`   | `....├── _charm-static-analysis.yaml`   |                              |                            |
-| `....├── _linting.yaml`           | `....├── _linting.yaml`           |                              |                            |
+| `....├── _charm-linting.yaml`           | `....├── _charm-linting.yaml`           |                              |                            |
 | `....├── _charm-tests-unit.yaml`        | `....├── _charm-tests-unit.yaml`        |                              |                            |
 | `....├── _charm-tests-scenario.yaml`    | `....├── _charm-tests-scenario.yaml`    |                              |                            |
-| `....└── _tests-integration.yaml` | `....└── _tests-integration.yaml` |                              |                            |
+| `....└── _charm-tests-integration.yaml` | `....└── _charm-tests-integration.yaml` |                              |                            |
 |                                         | **`└── _charm-release.yaml`**           |                              |                            |
 
 Whenever a PR is opened to a charm repository, some quality checks are run:
@@ -47,10 +47,10 @@ There's also a manual action to promote the charm (i.e., from `latest/edge` to `
 | On PRs                                  |
 | --------------------------------------- |
 | **`bundle-pull-request.yaml`**           |
-| **`└── _quality-checks.yaml`**    |
-| `....├── _codeql-analysis.yaml`   |
-| `....├── _linting.yaml`           |
-| `....└── _tests-integration.yaml` |
+| **`└── _charm-quality-checks.yaml`**    |
+| `....├── _charm-codeql-analysis.yaml`   |
+| `....├── _charm-linting.yaml`           |
+| `....└── _charm-tests-integration.yaml` |
 
 Whenever a PR is opened to a bundle repository, some quality checks are run:
 * first check that the `CHARMHUB_TOKEN` secret is set on the repo, as it's needed by other actions;
