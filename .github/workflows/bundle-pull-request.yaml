@@ -66,6 +66,5 @@ jobs:
     secrets: inherit
     with:
       charm-path: ${{ inputs.bundle-path }}
-      package-type: "bundle"
       provider: ${{ inputs.provider }}
       ip-range: ${{ inputs.ip-range }}
