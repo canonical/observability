@@ -52,8 +52,8 @@ jobs:
     uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@main
     secrets: inherit
     with:
-      resource-path: "${{ inputs.charm-path }}"
-      resource-type: "charm"
+      charm-path: "${{ inputs.charm-path }}"
+      package-type: "charm"
       provider: "${{ inputs.provider }}"
       ip-range: "${{ inputs.ip-range }}"
   release-charm:

@@ -62,10 +62,10 @@ jobs:
     needs:
       - ci-ignore
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@o11y-bundles
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@main
     secrets: inherit
     with:
-      resource-path: ${{ inputs.bundle-path }}
-      resource-type: "bundle"
+      charm-path: ${{ inputs.bundle-path }}
+      package-type: "bundle"
       provider: ${{ inputs.provider }}
       ip-range: ${{ inputs.ip-range }}

@@ -4,7 +4,7 @@ name: "CodeQL"
 on:
   workflow_call:
     inputs:
-      resource-path:
+      charm-path:
         type: string
         required: false
 
