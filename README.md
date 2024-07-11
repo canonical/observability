@@ -44,13 +44,12 @@ Periodically, CI checks whether the charm libraries are up-to-date; if not (i.e.
 There's also a manual action to promote the charm (i.e., from `latest/edge` to `latest/beta`), making the process more user-friendly.
 
 ### Bundle Workflows
-| On PRs                                  |
-| --------------------------------------- |
-| **`bundle-pull-request.yaml`**           |
-| **`└── _charm-quality-checks.yaml`**    |
-| `....├── _charm-codeql-analysis.yaml`   |
-| `....├── _charm-linting.yaml`           |
-| `....└── _charm-tests-integration.yaml` |
+| On PRs                              |
+| ------------------------------------|
+| **`bundle-pull-request.yaml`**      |
+| `├── _charm-codeql-analysis.yaml`   |
+| `├── _charm-linting.yaml`           |
+| `└── _charm-tests-integration.yaml` |
 
 Whenever a PR is opened to a bundle repository, some quality checks are run:
 * first check that the `CHARMHUB_TOKEN` secret is set on the repo, as it's needed by other actions;

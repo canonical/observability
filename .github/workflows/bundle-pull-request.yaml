@@ -57,6 +57,15 @@ jobs:
           echo "Modified files: ${{ steps.changed-files.outputs.all_modified_files }}"
           echo "any_modified=${{ steps.changed-files.outputs.any_modified }}" >> $GITHUB_OUTPUT
 
+  codeql:
+    name: CodeQL analysis
+    needs:
+      - ci-ignore
+    if: needs.ci-ignore.outputs.any_modified == 'true'
+    uses: canonical/observability/.github/workflows/_charm-codeql-analysis.yml@main
+    with:
+      charm-path: "${{ inputs.charm-path }}"
+
   linting:
     name: Linting
     needs:
