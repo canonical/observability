@@ -79,6 +79,7 @@ jobs:
     name: Integration Tests
     needs:
       - ci-ignore
+      - codeql
       - linting
     if: needs.ci-ignore.outputs.any_modified == 'true'
     uses: canonical/observability/.github/workflows/_charm-tests-integration.yaml@main
