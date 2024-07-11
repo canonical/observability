@@ -83,9 +83,6 @@ jobs:
       - linting
       - unit-test
       - scenario-test
-    # run even if some jobs are skipped in case of bundles
-    # https://github.com/actions/runner/issues/2205
-    if: ${{ !failure() && !cancelled() }}
     uses: canonical/observability/.github/workflows/_charm-tests-integration.yaml@main
     with:
       charm-path: "${{ inputs.charm-path }}"
@@ -97,9 +94,6 @@ jobs:
       - static-analysis
       - linting
       - unit-test
-    # run even if some jobs are skipped in case of bundles
-    # https://github.com/actions/runner/issues/2205
-    if: ${{ !failure() && !cancelled() }}
     uses: canonical/observability/.github/workflows/_charm-codeql-analysis.yml@main
     with:
       charm-path: "${{ inputs.charm-path }}"

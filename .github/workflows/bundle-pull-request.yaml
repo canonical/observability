@@ -57,14 +57,23 @@ jobs:
           echo "Modified files: ${{ steps.changed-files.outputs.all_modified_files }}"
           echo "any_modified=${{ steps.changed-files.outputs.any_modified }}" >> $GITHUB_OUTPUT
 
-  quality-checks:
-    name: Quality Checks
+  linting:
+    name: Linting
     needs:
       - ci-ignore
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@main
-    secrets: inherit
+    uses: canonical/observability/.github/workflows/_charm-linting.yaml@main
     with:
-      charm-path: ${{ inputs.bundle-path }}
-      provider: ${{ inputs.provider }}
+      charm-path: "${{ inputs.charm-path }}"
+
+  integration-test:
+    name: Integration Tests
+    needs:
+      - ci-ignore
+      - linting
+    if: needs.ci-ignore.outputs.any_modified == 'true'
+    uses: canonical/observability/.github/workflows/_charm-tests-integration.yaml@main
+    with:
+      charm-path: "${{ inputs.charm-path }}"
+      provider: "${{ inputs.provider }}"
       ip-range: ${{ inputs.ip-range }}
