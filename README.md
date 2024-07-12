@@ -107,5 +107,6 @@ This helper script is used by COS bundles as a `pip` package in a `tox.ini` file
 
 ### Contributing
 To add similar helper scripts (e.g: `my_helper.py`) to be used as a `pip` package:
-1- Add the script inside `scripts` directory.
-2- In `scripts/pyproject.toml`, under `[project.scripts]`, add an entrypoint to your newly added script.
+
+1. Add the script inside `scripts` directory.
+2. In `scripts/pyproject.toml`, under `[project.scripts]`, add an entrypoint to your newly added script.
