@@ -64,7 +64,7 @@ jobs:
     if: needs.ci-ignore.outputs.any_modified == 'true'
     uses: canonical/observability/.github/workflows/_charm-codeql-analysis.yml@main
     with:
-      charm-path: "${{ inputs.charm-path }}"
+      charm-path: "${{ inputs.bundle-path }}"
 
   linting:
     name: Linting
@@ -73,7 +73,7 @@ jobs:
     if: needs.ci-ignore.outputs.any_modified == 'true'
     uses: canonical/observability/.github/workflows/_charm-linting.yaml@main
     with:
-      charm-path: "${{ inputs.charm-path }}"
+      charm-path: "${{ inputs.bundle-path }}"
 
   integration-test:
     name: Integration Tests
@@ -84,6 +84,6 @@ jobs:
     if: needs.ci-ignore.outputs.any_modified == 'true'
     uses: canonical/observability/.github/workflows/_charm-tests-integration.yaml@main
     with:
-      charm-path: "${{ inputs.charm-path }}"
+      charm-path: "${{ inputs.bundle-path }}"
       provider: "${{ inputs.provider }}"
       ip-range: ${{ inputs.ip-range }}
