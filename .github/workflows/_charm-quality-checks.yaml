@@ -5,7 +5,6 @@ on:
     inputs:
       charm-path:
         type: string
-        description: "Path to the charm or bundle we want to publish. Defaults to the current working directory."
         required: false
       provider:
         type: string
