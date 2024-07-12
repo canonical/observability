@@ -99,3 +99,13 @@ $ pip3 install metarepo
 # sync the repos using the manifest
 $ git meta sync
 ```
+## Scripts
+This repo also contains a `scripts` directory that could hold helper scripts for COS charms and bundles as `pip-installables`.
+
+### `render-bundle`
+This helper script is used by COS bundles as a `pip` package in a `tox.ini` file to render a `bundle.yaml.j2` template into a `bundle.yaml` file that can be deployed using `juju deploy ./bundle.yaml`.
+
+### Contributing
+To add similar helper scripts (e.g: `my_helper.py`) to be used as a `pip` package:
+1- Add the script inside `scripts` directory.
+2- In `scripts/pyproject.toml`, under `[project.scripts]`, add an entrypoint to your newly added script.
