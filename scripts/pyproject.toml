@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["scripts"]
+
+[project]
+name = "cos-scripts"
+authors = [
+    {name = "Observability team"}
+]
+description = "Helper scripts for COS charms and bundles"
+version = "0.0.1"
+requires-python = ">=3.8"
+dependencies = [
+    "jinja2"
+]
+
+[project.scripts]
+render-bundle = "scripts.render_bundle:main"

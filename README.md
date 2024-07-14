@@ -26,9 +26,9 @@ The **`issues.yaml`** workflow is used in all of our repositories to propagate G
 | `....├── _charm-codeql-analysis.yaml`   | `....├── _charm-codeql-analysis.yaml`   |                              |                            |
 | `....├── _charm-static-analysis.yaml`   | `....├── _charm-static-analysis.yaml`   |                              |                            |
 | `....├── _charm-linting.yaml`           | `....├── _charm-linting.yaml`           |                              |                            |
-| `....├── _charm-unit-tests.yaml`        | `....├── _charm-unit-tests.yaml`        |                              |                            |
-| `....├── _charm-scenario-tests.yaml`    | `....├── _charm-scenario-tests.yaml`    |                              |                            |
-| `....└── _charm-integration-tests.yaml` | `....└── _charm-integration-tests.yaml` |                              |                            |
+| `....├── _charm-tests-unit.yaml`        | `....├── _charm-tests-unit.yaml`        |                              |                            |
+| `....├── _charm-tests-scenario.yaml`    | `....├── _charm-tests-scenario.yaml`    |                              |                            |
+| `....└── _charm-tests-integration.yaml` | `....└── _charm-tests-integration.yaml` |                              |                            |
 |                                         | **`└── _charm-release.yaml`**           |                              |                            |
 
 Whenever a PR is opened to a charm repository, some quality checks are run:
@@ -42,6 +42,21 @@ After a PR is merged, the same quality checks are run on the main branch; when p
 Periodically, CI checks whether the charm libraries are up-to-date; if not (i.e., another charm published an updated library), a PR is automatically opened to update them with the new version.
 
 There's also a manual action to promote the charm (i.e., from `latest/edge` to `latest/beta`), making the process more user-friendly.
+
+### Bundle Workflows
+| On PRs                              |
+| ------------------------------------|
+| **`bundle-pull-request.yaml`**      |
+| `├── _charm-codeql-analysis.yaml`   |
+| `├── _charm-linting.yaml`           |
+| `└── _charm-tests-integration.yaml` |
+
+Whenever a PR is opened to a bundle repository, some quality checks are run:
+* first check that the `CHARMHUB_TOKEN` secret is set on the repo, as it's needed by other actions;
+* run the Canonical inclusive naming workflow.
+* run linting, analyses and tests to ensure the code quality.
+
+<!-- TODO: add merging PR workflow -->
 
 ### Rock Workflows
 
@@ -84,3 +99,14 @@ $ pip3 install metarepo
 # sync the repos using the manifest
 $ git meta sync
 ```
+## Scripts
+This repo also contains a `scripts` directory that could hold helper scripts for COS charms and bundles as `pip-installables`.
+
+### `render-bundle`
+This helper script is used by COS bundles as a `pip` package in a `tox.ini` file to render a `bundle.yaml.j2` template into a `bundle.yaml` file that can be deployed using `juju deploy ./bundle.yaml`.
+
+### Contributing
+To add similar helper scripts (e.g: `my_helper.py`) to be used as a `pip` package:
+
+1. Add the script inside `scripts` directory.
+2. In `scripts/pyproject.toml`, under `[project.scripts]`, add an entrypoint to your newly added script.
