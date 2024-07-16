@@ -5,10 +5,11 @@
 
 ## Context and Problem Statement
 The workload of many charms is a server, that other charmed workloads need to reach.
-Typically, the server URL is "announced" over relation data, but we have different URLs "types" we could announce:
-```
-{HTTP / HTTPS} {internal / ingress} {IP / FQDN}
-```
+Typically, the server URL is "announced" over relation data, but we have different URLs "types" we could announce, for example:
+- app / unit IP (internal)
+- unit's fqdn (internal)
+- ingress url (external)
+
 Which URL(s) should we announce to other charms?
 
 ## Decision
