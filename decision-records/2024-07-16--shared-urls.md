@@ -43,7 +43,7 @@ grafana-agent ---|ingress url| prometheus
 - Charm code does not need to concern itself whether a given relation is in-model or cross-model.
 
 ## Disadvantages
-- Ingress (traefik) becomes a single point of failure for in-model traffic.
+- Ingress (traefik) becomes a single point of failure for in-model traffic. This means that if traefik stops working, we not only stop receiving telemetry from charms, but we also stop self-monitoring our own stack.
 - All charms need to trust the CA that signed the ingress. If the trust chain includes a root CA and the charm has ca-certificates installed, then this is a non-issue.
   Otherwise may need to have a [`receive-ca-cert`](https://github.com/canonical/certificate-transfer-interface/) relation.
 
