@@ -19,6 +19,26 @@ Which URL(s) should we announce to other charms?
   - `tls-certificates` relation: only ingress charms will render a CSR with their external url; all other charms will render a CSR with k8s fqdn address.
   - Alertmanager's peer relation: gossip ring will use k8s fqdn address.
 
+```mermaid
+graph LR
+
+subgraph www
+CA
+end
+
+subgraph COS
+CA -.-|external hostname| traefik
+traefik ---|fqdn url| alertmanager
+traefik ---|fqdn url| prometheus
+alertmanager ---|ingress url| prometheus
+alertmanager ---|fqdn url| alertmanager
+self-signed-certs ---|fqdn url| alertmanager
+self-signed-certs ---|fqdn url| prometheus
+end
+
+grafana-agent ---|ingress url| prometheus
+```
+
 ## Benefits
 - Charm code does not need to concern itself whether a given relation is in-model or cross-model.
 
