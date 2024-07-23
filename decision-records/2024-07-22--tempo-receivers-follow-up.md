@@ -1,4 +1,4 @@
-**Date:** 2024-22-07<br/>
+**Date:** 2024-07-22<br/>
 **Author:** Michael Dmitry (@michaeldmitry)  
 
 ## Context and Problem Statement
@@ -29,15 +29,15 @@ This is a follow-up on the ADR on [2024-07-05--tempo-receivers](2024-07-05--temp
 
 ### Kafka Charm
 Have an integration with a Kafka charm so that we can enable `kafka` protocol.
-### Benefits
+#### Benefits
 - Enabling an extra upstream Tempo supported protocol.
-### Disadvantages
+#### Disadvantages
 - Added complexity to Tempo-k8s.
 - Tight coupling with a second-tier charm, like Kafka.
 
 ### Unsecured UDP
 Have a partial support for UDP protocols without encryption (e.g: DTLS).
-### Benefits
+#### Benefits
 - Enabling 2 extra upstream Tempo supported protocols.
-### Disadvantages
+#### Disadvantages
 - Security concern in supporting traces to be sent over unsecured UDP.
