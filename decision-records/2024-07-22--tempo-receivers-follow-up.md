@@ -15,7 +15,7 @@ This is a follow-up on the ADR on [2024-07-05--tempo-receivers](2024-07-05--temp
 ## Decision 
 
 - Drop `kafka` receiver support from Tempo-k8s and document that.
-- Drop `jaeger_thrift_compact` and `jaeger_thrift_binary` receievers support from Tempo-k8s and document that.
+- Drop `jaeger_thrift_compact` and `jaeger_thrift_binary` receivers support from Tempo-k8s and document that.
 
 ## Benefits
 
@@ -23,7 +23,7 @@ This is a follow-up on the ADR on [2024-07-05--tempo-receivers](2024-07-05--temp
 
 ## Disadvantages
 
-- Not supporting all what upstream Tempo allegedly supports.
+- Not supporting all protocols that upstream Tempo allegedly supports.
 
 ## Alternatives considered
 
