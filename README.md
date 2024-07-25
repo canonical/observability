@@ -44,10 +44,10 @@ Periodically, CI checks whether the charm libraries are up-to-date; if not (i.e.
 There's also a manual action to promote the charm (i.e., from `latest/edge` to `latest/beta`), making the process more user-friendly.
 
 ### Bundle Workflows
-| On PRs                              |
-| ------------------------------------|
-| **`bundle-pull-request.yaml`**      |
-| `├── _charm-codeql-analysis.yaml`   |
+| On PRs                              | Periodically                |
+| ------------------------------------| ----------------------------|
+| **`bundle-pull-request.yaml`**      | **`bundle-release.yaml`**   |
+| `├── _charm-codeql-analysis.yaml`   | `├── _bundle-release.yaml`  |
 | `├── _charm-linting.yaml`           |
 | `└── _charm-tests-integration.yaml` |
 
@@ -56,7 +56,7 @@ Whenever a PR is opened to a bundle repository, some quality checks are run:
 * run the Canonical inclusive naming workflow.
 * run linting, analyses and tests to ensure the code quality.
 
-<!-- TODO: add merging PR workflow -->
+Periodically, integration matrix tests will run against a COS-related bundle and then, once the integration tests pass for any of the tracks: `edge`, `beta`, `candidate`, `stable`, a bundle gets released to each respective pinned track on Charmhub.
 
 ### Rock Workflows
 
@@ -105,8 +105,13 @@ This repo also contains a `scripts` directory that could hold helper scripts for
 ### `render-bundle`
 This helper script is used by COS bundles as a `pip` package in a `tox.ini` file to render a `bundle.yaml.j2` template into a `bundle.yaml` file that can be deployed using `juju deploy ./bundle.yaml`.
 
+### `freeze-bundle`
+This script takes a `bundle.yaml` file and for each `application` along with its defined channel, it obtains the revision number for that application charm from Charmhub and updates `bundle.yaml` file with a pinned `revision` on each application. Currently, this script is used inside the `bundle-release.yaml` workflow.
+
 ### Contributing
 To add similar helper scripts (e.g: `my_helper.py`) to be used as a `pip` package:
 
 1. Add the script inside `scripts` directory.
 2. In `scripts/pyproject.toml`, under `[project.scripts]`, add an entrypoint to your newly added script.
+3. Increment `version` in `scripts/pyproject.toml`.
+4. Add the script's description in `README.md`.
