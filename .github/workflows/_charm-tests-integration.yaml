@@ -63,3 +63,8 @@ jobs:
       - name: Dump logs
         if: failure()
         uses: canonical/charming-actions/dump-logs@main
+      - name: Dump scenario snapshots
+        if: failure()
+        run: |
+          sudo snap install jhack --channel latest/edge
+          jhack scenario snapshot --format json
