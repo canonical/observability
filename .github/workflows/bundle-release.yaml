@@ -2,7 +2,7 @@ name: Release Bundle
 
 on:
   workflow_call:
-    
+
 jobs:
     per-channel-integration-matrix:
         name: Per-channel integration matrix
@@ -13,7 +13,7 @@ jobs:
                 charm-channel: [ "edge", "beta", "candidate", "stable" ]
         steps:
         -   name: Run integration matrix for ${{ matrix.charm-channel }} channel
-            uses:  canonical/observability/.github/workflows/_bundle_release.yaml@main
+            uses:  canonical/observability/.github/workflows/_bundle-release.yaml@main
             with:
                 charm-channel: ${{ matrix.charm-channel }}
 
