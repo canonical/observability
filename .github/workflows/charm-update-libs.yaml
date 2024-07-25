@@ -34,7 +34,7 @@ jobs:
           if [[ "$is_pr_open" == "1" ]]; then
             if gh pr checks chore/auto-libs; then
               echo "CI checks are passing, merging the chore/auto-libs PR"
-              gh pr merge chore/auto-libs --admin --squash
+              gh pr merge chore/auto-libs --admin --squash --delete-branch
             fi
           elif [[ "$is_pr_open" != "0" ]]; then
             # The number of open PRs should always be either 0 or 1
@@ -97,6 +97,7 @@ jobs:
 
       - name: Fetch charm libraries
         run: |
+          git pull
           cd "$GITHUB_WORKSPACE/${{ inputs.charm-path }}"
           charmcraft fetch-lib
         env:
