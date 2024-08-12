@@ -95,6 +95,7 @@ jobs:
           sudo snap install lxd
           sudo lxd init --auto
           sudo snap install charmcraft --classic
+          sudo snap install docker
       - name: Build charm(s)
         id: builder
         run: |    
