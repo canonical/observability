@@ -4,6 +4,10 @@ repos:
     track: main
     url: git@github.com:canonical/cos-lite-bundle.git
 
+  - path: ../tempo-bundle
+    track: main
+    url: git@github.com:canonical/tempo-bundle.git
+
   # charms
   - path: ../alertmanager-k8s-operator
     track: main
