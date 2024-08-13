@@ -28,7 +28,8 @@ jobs:
     - name: Setup LXD
       uses: canonical/setup-lxd@v0.1.1
       with:
-        channel: latest/stable
+        # LTS version. using latest/stable causes issues with rockcraft pack (error with mount/umount)
+        channel: 5.21/stable
 
     - name: Install dependencies
       run: |
