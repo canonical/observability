@@ -95,7 +95,6 @@ jobs:
           sudo snap install lxd
           sudo lxd init --auto
           sudo snap install charmcraft --classic
-          sudo snap install docker
       - name: Build charm(s)
         id: builder
         run: |    
@@ -174,6 +173,10 @@ jobs:
         with:
           name: charms-arm
           path: "${{ github.workspace }}/${{ inputs.charm-path }}"
+      - name: Setup deps
+        run: |
+          # upload-charm for arm started requiring docker sometimes
+          sudo snap install docker
       - name: Upload charm to charmhub
         uses: canonical/charming-actions/upload-charm@2.5.0-rc
         with:
