@@ -174,7 +174,7 @@ jobs:
           name: charms-arm
           path: "${{ github.workspace }}/${{ inputs.charm-path }}"
       - name: Setup docker  # upload-charm for arm started requiring docker sometimes
-        uses: docker-practice/actions-setup-docker@v1
+        uses: crazy-max/ghaction-setup-docker@v3.3.0
       - name: Upload charm to charmhub
         uses: canonical/charming-actions/upload-charm@2.5.0-rc
         with:
