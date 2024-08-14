@@ -173,10 +173,8 @@ jobs:
         with:
           name: charms-arm
           path: "${{ github.workspace }}/${{ inputs.charm-path }}"
-      - name: Setup deps
-        run: |
-          # upload-charm for arm started requiring docker sometimes
-          sudo snap install docker
+      - name: Setup docker  # upload-charm for arm started requiring docker sometimes
+        uses: docker-practice/actions-setup-docker@v1
       - name: Upload charm to charmhub
         uses: canonical/charming-actions/upload-charm@2.5.0-rc
         with:
