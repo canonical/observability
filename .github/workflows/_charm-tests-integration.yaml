@@ -47,15 +47,15 @@ jobs:
         if: inputs.provider == 'lxd'
         uses: charmed-kubernetes/actions-operator@main
         with:
-          juju-channel: 3.4/stable
+          juju-channel: 3.5/stable
           provider: lxd
       - name: Setup operator environment (k8s)
         if: inputs.provider == 'microk8s'
         uses: charmed-kubernetes/actions-operator@main
         with:
-          juju-channel: 3.4/stable
+          juju-channel: 3.5/stable
           provider: microk8s
-          channel: 1.26-strict/stable
+          channel: 1.29-strict/stable
           microk8s-group: snap_microk8s
           microk8s-addons: "hostpath-storage dns metallb:${{ inputs.ip-range || steps.ip_range.outputs.ip_range }}"
       - name: Run integration tests
