@@ -82,7 +82,7 @@ jobs:
       - linting
       - unit-test
       - scenario-test
-    uses: canonical/observability/.github/workflows/_charm-tests-integration.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-tests-integration.yaml@istio-test
     with:
       charm-path: "${{ inputs.charm-path }}"
       provider: "${{ inputs.provider }}"
