@@ -57,7 +57,7 @@ jobs:
           provider: microk8s
           channel: 1.29-strict/stable
           microk8s-group: snap_microk8s
-          microk8s-addons: "hostpath-storage dns metallb:${{ inputs.ip-range || steps.ip_range.outputs.ip_range }}"
+          microk8s-addons: "hostpath-storage rbac dns metallb:${{ inputs.ip-range || steps.ip_range.outputs.ip_range }}"
       - name: Run integration tests
         run: cd ${{ inputs.charm-path }} && tox -vve integration
       - name: Dump logs
