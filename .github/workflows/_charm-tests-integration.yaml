@@ -51,13 +51,14 @@ jobs:
           provider: lxd
       - name: Setup operator environment (k8s)
         if: inputs.provider == 'microk8s'
-        uses: IbraAoad/actions-operator@patch-1
+        uses: charmed-kubernetes/actions-operator@main
         with:
           juju-channel: 3.5/stable
           provider: microk8s
           channel: 1.29-strict/stable
           microk8s-group: snap_microk8s
           microk8s-addons: "hostpath-storage rbac dns metallb:${{ inputs.ip-range || steps.ip_range.outputs.ip_range }}"
+          bootstrap-options: "--model-default automatically-retry-hooks=true"
       - name: Run integration tests
         run: cd ${{ inputs.charm-path }} && tox -vve integration
       - name: Dump logs
