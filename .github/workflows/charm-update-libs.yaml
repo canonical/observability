@@ -128,8 +128,8 @@ jobs:
         with:
           token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
           commit-message: "chore: update charm libraries"
-          committer: "${{ inputs.commit-email }} <${{ inputs.commit-email }}>"
-          author: "${{ inputs.commit-email }} <${{ inputs.commit-email }}>"
+          committer: "${{ inputs.commit-username }} <${{ inputs.commit-email }}>"
+          author: "${{ inputs.commit-username }} <${{ inputs.commit-email }}>"
           title: "chore: update charm libraries"
           body: |
             Automated action to fetch the latest minor and major versions of all charm libraries used by this charm. The branch of this PR 
