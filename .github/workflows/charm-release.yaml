@@ -36,6 +36,12 @@ on:
         required: false
         description: |
           Whether or not to also build the charm for arm64. Defaults to false.
+      charmcraft-channel:
+        type: string
+        default: "2.x/stable"
+        required: false
+        description: |
+          The snap channel from which to install Charmcraft.
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -55,6 +61,7 @@ jobs:
       charm-path: "${{ inputs.charm-path }}"
       provider: "${{ inputs.provider }}"
       ip-range: "${{ inputs.ip-range }}"
+      charmcraft-channel: ${{ inputs.charmcraft-channel }}
   release-charm:
     name: Release Charm and Libraries
     needs:

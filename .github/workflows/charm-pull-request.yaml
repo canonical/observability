@@ -20,6 +20,12 @@ on:
           It can be either a subnet(IP/mask) or a range (<IP1>-<IP2>)
         required: false
         default: null
+      charmcraft-channel:
+        type: string
+        default: "2.x/stable"
+        required: false
+        description: |
+          The snap channel from which to install Charmcraft.
     secrets:
        CHARMHUB_TOKEN:
          required: false
@@ -68,3 +74,4 @@ jobs:
       charm-path: ${{ inputs.charm-path }}
       provider: ${{ inputs.provider }}
       ip-range: ${{ inputs.ip-range }}
+      charmcraft-channel: ${{ inputs.charmcraft-channel }}

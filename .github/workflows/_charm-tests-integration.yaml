@@ -17,7 +17,12 @@ on:
           It can be either a subnet(IP/mask) or a range (<IP1>-<IP2>)
         required: false
         default: null
-
+      charmcraft-channel:
+        type: string
+        default: "2.x/stable"
+        required: false
+        description: |
+          The snap channel from which to install Charmcraft.
 # Default to bash
 defaults:
   run:
@@ -49,6 +54,7 @@ jobs:
         with:
           juju-channel: 3.4/stable
           provider: lxd
+          charmcraft-channel: "${{ inputs.charmcraft-channel }}"
       - name: Setup operator environment (k8s)
         if: inputs.provider == 'microk8s'
         uses: charmed-kubernetes/actions-operator@main
@@ -58,6 +64,7 @@ jobs:
           channel: 1.26-strict/stable
           microk8s-group: snap_microk8s
           microk8s-addons: "hostpath-storage dns metallb:${{ inputs.ip-range || steps.ip_range.outputs.ip_range }}"
+          charmcraft-channel: "${{ inputs.charmcraft-channel }}"
       - name: Run integration tests
         run: cd ${{ inputs.charm-path }} && tox -vve integration
       - name: Dump logs

@@ -23,7 +23,12 @@ on:
         required: false
         description: >
           Whether or not to build the charm for arm64. Defaults to false.
-        
+      charmcraft-channel:
+        type: string
+        default: "2.x/stable"
+        required: false
+        description: |
+          The snap channel from which to install Charmcraft.
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -56,7 +61,7 @@ jobs:
         id: builder
         run: |
           sudo snap install jq
-          sudo snap install charmcraft --classic
+          sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
           (cd ${{ inputs.charm-path }}; charmcraft pack)
           export CHARMS=$(basename -a ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
           echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
@@ -94,7 +99,7 @@ jobs:
           sudo snap install jq
           sudo snap install lxd
           sudo lxd init --auto
-          sudo snap install charmcraft --classic
+          sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
       - name: Build charm(s)
         id: builder
         run: |    
