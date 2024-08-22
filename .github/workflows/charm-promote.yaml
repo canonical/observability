@@ -11,6 +11,11 @@ on:
       promotion:
         type: string
         required: true
+      track:
+        description: "Track of the charm on which we want the promotion to happen. Defaults to latest."
+        type: string
+        default: 'latest'
+        required: false
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -41,6 +46,6 @@ jobs:
         with:
           charm-path: ${{ inputs.charm-path }}
           credentials: ${{ secrets.CHARMHUB_TOKEN }}
-          destination-channel: latest/${{ env.promote-to }}
-          origin-channel: latest/${{ env.promote-from }}
+          destination-channel: ${{ github.event.inputs.track }}/${{ env.promote-to }}
+          origin-channel: ${{ github.event.inputs.track }}/${{ env.promote-from }}
           charmcraft-channel: latest/stable
