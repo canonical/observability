@@ -17,6 +17,12 @@ on:
         default: 'webops+observability-noctua-bot@canonical.com'
         required: false
         type: string
+      charmcraft-channel:
+        type: string
+        default: "2.x/stable"
+        required: false
+        description: |
+          The snap channel from which to install Charmcraft.
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -56,7 +62,7 @@ jobs:
 
       - name: Check for major library updates
         run: |
-          sudo snap install charmcraft --classic --channel latest/stable
+          sudo snap install charmcraft --classic --channel "${{ inputs.charmcraft-channel }}"
           cd "$GITHUB_WORKSPACE/${{ inputs.charm-path }}"
           # Get the charm name
           charm_name=$((yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
