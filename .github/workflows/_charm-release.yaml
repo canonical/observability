@@ -166,6 +166,7 @@ jobs:
     strategy:
       matrix: 
         path: ${{ fromjson(needs.build-arm.outputs.charms) }}
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -179,6 +180,13 @@ jobs:
         with:
           name: charms-arm
           path: "${{ github.workspace }}/${{ inputs.charm-path }}"
+      - name: Set up Docker
+        run: |
+          sudo snap install docker
+          sudo addgroup --system docker
+          sudo adduser $USER docker
+          newgrp docker <<< "sudo snap disable docker"
+          newgrp docker <<< "sudo snap enable docker"
       - name: Upload charm to charmhub
         uses: canonical/charming-actions/upload-charm@2.5.0-rc
         with:
