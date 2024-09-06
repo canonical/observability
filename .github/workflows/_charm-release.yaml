@@ -154,10 +154,10 @@ jobs:
         run: |
           pip install git+https://github.com/lucabello/noctua
           cd "${{ inputs.charm-path }}"
-          noctua charm release --path="${{ matrix.path }}" --channel=${{ inputs.release-channel }}
-          # TODO: how do I get the revision number? store it into REVISION
+          release=$(noctua charm release --path="${{ matrix.path }}" --channel=${{ inputs.release-channel }} --json | tail -n1)
+          revision=$(echo "$release" | jq .revision)
           # TODO: push git tag; is it necessary?
-          gh release create "rev$REVISION" --title="Revision $REVISION" --generate-notes
+          gh release create "${{inputs.release-tag-prefix}}rev${revision}" --title="Revision ${revision}" --generate-notes
   release-arm-to-charmhub:
     name: Release arm64 to CharmHub
     # needs to be run on arm or the oci image will resolve to the amd64 one.
@@ -185,7 +185,7 @@ jobs:
         run: |
           pip install git+https://github.com/lucabello/noctua
           cd "${{ inputs.charm-path }}"
-          noctua charm release --path="${{ matrix.path }}" --channel=${{ inputs.release-channel }}
-          # TODO: how do I get the revision number? store it into REVISION
+          release=$(noctua charm release --path="${{ matrix.path }}" --channel=${{ inputs.release-channel }} --json | tail -n1)
+          revision=$(echo "$release" | jq .revision)
           # TODO: push git tag; is it necessary?
-          gh release create "rev$REVISION" --title="Revision $REVISION" --generate-notes
+          gh release create "${{inputs.release-tag-prefix}}rev${revision}" --title="Revision ${revision}" --generate-notes
