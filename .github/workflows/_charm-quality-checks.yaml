@@ -56,12 +56,21 @@ jobs:
         with:
           fetch-depth: 1
       - name: Check charm libraries # Make sure our charm libraries are updated
-        uses: canonical/charming-actions/check-libraries@2.5.0-rc
-        with:
-          credentials: "${{ secrets.CHARMHUB_TOKEN }}"
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
+        env:
+          CHARMHUB_TOKEN: "${{ secrets.CHARMHUB_TOKEN }}"
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           charm-path: "${{ inputs.charm-path }}"
           charmcraft-channel: "${{ inputs.charmcraft-channel }}"
+        run: |
+          pip install git+https://github.com/lucabello/noctua
+          outdated_libs=$(noctua charm libraries check --minor | jq 'length')
+          if [[ $outdated_libs != "0" ]]; then
+            gh pr edit ${{ github.event.number }} --remove-label="Libraries: OK"
+            gh pr edit ${{ github.event.number }} --add-label="Libraries: Out of sync"
+          else
+            gh pr edit ${{ github.event.number }} --remove-label="Libraries: Out of sync"
+            gh pr edit ${{ github.event.number }} --add-label="Libraries: OK"
+          fi
   static-analysis:
     name: Static Analysis
     uses: canonical/observability/.github/workflows/_charm-static-analysis.yaml@main

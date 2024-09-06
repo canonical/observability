@@ -3,7 +3,7 @@ name: Promote Charm
 on:
   workflow_call:
     inputs:
-      charm-path:
+      charm-name:
         description: "Path to the charm we want to promote. Defaults to the current working directory."
         type: string
         default: '.'
@@ -27,25 +27,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
       - name: Set target channel
         env:
           PROMOTE_FROM: ${{ github.event.inputs.promotion }}
         run: |
           if [ "${PROMOTE_FROM}" == "edge -> beta" ]; then
             echo "promote-from=edge" >> ${GITHUB_ENV}
-            echo "promote-to=beta" >> ${GITHUB_ENV}
           elif [ "${PROMOTE_FROM}" == "beta -> candidate" ]; then
             echo "promote-from=beta" >> ${GITHUB_ENV}
-            echo "promote-to=candidate" >> ${GITHUB_ENV}
           elif [ "${PROMOTE_FROM}" == "candidate -> stable" ]; then
             echo "promote-from=candidate" >> ${GITHUB_ENV}
-            echo "promote-to=stable" >> ${GITHUB_ENV}
           fi
       - name: Promote Charm
-        uses: canonical/charming-actions/promote-charm@2.6.0
-        with:
-          charm-path: ${{ inputs.charm-path }}
-          credentials: ${{ secrets.CHARMHUB_TOKEN }}
-          destination-channel: ${{ github.event.inputs.track }}/${{ env.promote-to }}
-          origin-channel: ${{ github.event.inputs.track }}/${{ env.promote-from }}
-          charmcraft-channel: latest/stable
+        env:
+          CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
+        run: |
+          pip install git+https://github.com/lucabello/noctua
+          cd ${{ inputs.charm-path }}
+          noctua charm promote --from=${{ github.event.inputs.track }}/${{ env.promote-from }}

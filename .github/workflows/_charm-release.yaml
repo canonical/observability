@@ -29,6 +29,12 @@ on:
         required: false
         description: |
           The snap channel from which to install Charmcraft.
+      release-channel:
+        type: string
+        default: latest/edge
+        required: false
+        description: |
+          The default channel to release charms to.
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -136,27 +142,22 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Select charmhub channel
-        uses: canonical/charming-actions/channel@2.1.1
-        id: channel
       - name: Fetch charm artifacts
         uses: actions/download-artifact@v3
         with:
           name: charms
           path: "${{ github.workspace }}/${{ inputs.charm-path }}"
-      - name: Upload charm to charmhub
-        uses: canonical/charming-actions/upload-charm@2.5.0-rc
-        with:
-          credentials: "${{ secrets.CHARMHUB_TOKEN }}"
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-          channel: "${{ steps.channel.outputs.name }}"
-          built-charm-path: "${{ matrix.path }}"
-          charm-path: "${{ inputs.charm-path }}"
-          tag-prefix: "${{ inputs.release-tag-prefix }}"
-          charmcraft-channel: "${{ inputs.charmcraft-channel }}"
-          # We set destructive mode to false, otherwise runner's OS would have to match
-          # charm's 'build-on' OS.
-          destructive-mode: false
+      - name: Upload charm to Charmhub
+        env:
+          CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pip install git+https://github.com/lucabello/noctua
+          cd "${{ inputs.charm-path }}"
+          noctua charm release --path="${{ matrix.path }}" --channel=${{ inputs.release-channel }}
+          # TODO: how do I get the revision number? store it into REVISION
+          # TODO: push git tag; is it necessary?
+          gh release create "rev$REVISION" --title="Revision $REVISION" --generate-notes
   release-arm-to-charmhub:
     name: Release arm64 to CharmHub
     # needs to be run on arm or the oci image will resolve to the amd64 one.
@@ -172,31 +173,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Select charmhub channel
-        uses: canonical/charming-actions/channel@2.1.1
-        id: channel
       - name: Fetch charm artifacts
         uses: actions/download-artifact@v3
         with:
           name: charms-arm
           path: "${{ github.workspace }}/${{ inputs.charm-path }}"
-      - name: Set up Docker
+      - name: Upload charm to Charmhub
+        env:
+          CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          sudo snap install docker
-          sudo addgroup --system docker
-          sudo adduser $USER docker
-          newgrp docker <<< "sudo snap disable docker"
-          newgrp docker <<< "sudo snap enable docker"
-      - name: Upload charm to charmhub
-        uses: canonical/charming-actions/upload-charm@2.5.0-rc
-        with:
-          credentials: "${{ secrets.CHARMHUB_TOKEN }}"
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-          channel: "${{ steps.channel.outputs.name }}"
-          built-charm-path: "${{ matrix.path }}"
-          charm-path: "${{ inputs.charm-path }}"
-          tag-prefix: "${{ inputs.release-tag-prefix }}"
-          charmcraft-channel: "${{ inputs.charmcraft-channel }}"
-          # We set destructive mode to false, otherwise runner's OS would have to match
-          # charm's 'build-on' OS.
-          destructive-mode: false
+          pip install git+https://github.com/lucabello/noctua
+          cd "${{ inputs.charm-path }}"
+          noctua charm release --path="${{ matrix.path }}" --channel=${{ inputs.release-channel }}
+          # TODO: how do I get the revision number? store it into REVISION
+          # TODO: push git tag; is it necessary?
+          gh release create "rev$REVISION" --title="Revision $REVISION" --generate-notes
