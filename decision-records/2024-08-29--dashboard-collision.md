@@ -4,6 +4,19 @@
 
 
 ## Context and Problem Statement
+Dashboard json includes keys such as in the following example:
+```bash
+$ cat metrics-dashboard.json | jq '{"title", "uid", "version", "tags"}'
+{
+  "title": "Loki Operator Overview",
+  "uid": "loki",
+  "version": 1,
+  "tags": [
+    "loki"
+  ]
+}
+```
+
 Grafana [documented](https://grafana.com/docs/grafana/latest/administration/provisioning/#reusable-dashboard-urls) that dashboards should not have the same *title* within a folder, or the same *uid* within installations.
 
 This causes some problems in different scenarios.
@@ -20,10 +33,17 @@ Unless manually modified, `dashboard v1` and `dashboard v2` have the same *title
 
 If both charms have a dashboard simply named "Overview", we have problems. Suggesting a UID and Title to be manually upgraded on every dashboard modification (to avoid (1)) seems like a tedious UX.
 
-## Requirements
+## Potential requirements
 
-The solution should:
-1. have consistent links (determined by a UID), also across an upgrade.
+| Knobs / Requirements        | Deterministic links[^DbURL] | Same link across upgrades | User-controlled folder structure |
+|-----------------------------|---------------------|---------------------------|----------------------------------|
+| uid                         |                     |                           |                                  |
+| rev                         |                     |                           |                                  |
+| title                       |                     |                           |                                  |
+| Prescribed folder structure |                     |                           |                                  |
+
+[^DbURL]: Dashboard URL is determined by its UID and the chain of parent folders under which it is stored on disk. 
+
 
 ## Decision
 
