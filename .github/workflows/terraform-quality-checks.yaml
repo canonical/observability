@@ -1,0 +1,13 @@
+name: Terraform CI
+
+on:
+  workflow_call:
+
+jobs:
+    terraform-lint:
+        name: Terraform lint
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: hashicorp/setup-terraform@v3
+            - run: terraform fmt -check -recursive -diff
