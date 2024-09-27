@@ -1,1 +1,3 @@
 **/dist/**
+.terraform*
+*.tfstate*
