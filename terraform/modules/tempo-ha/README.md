@@ -24,7 +24,7 @@ The module offers the following configurable inputs:
 
 | Name | Type | Description | Required |
 | - | - | - | - |
-| `channel`| string | Channel that the charms are deployed from | latest/stable |
+| `channel`| string | Channel that the charms are deployed from | latest/edge |
 | `compactor_units`| number | Number of Tempo worker units with compactor role | 1 |
 | `distributor_units`| number | Number of Tempo worker units with distributor role | 1 |
 | `ingester_units`| number | Number of Tempo worker units with ingester role | 1 |
@@ -32,6 +32,7 @@ The module offers the following configurable inputs:
 | `model_name`| string | Name of the model that the charm is deployed on |  |
 | `querier_units`| number | Number of Tempo worker units with querier role | 1 |
 | `query_frontend_units`| number | Number of Tempo worker units with query-frontend role | 1 |
+| `use_tls`| bool | Specify whether to use TLS or not for coordinator-worker communication. By default, TLS is enabled through self-signed-certificates | true |
 
 ### Outputs
 Upon applied, the module exports the following outputs:
@@ -50,6 +51,10 @@ Upon applied, the module exports the following outputs:
 Users should ensure that Terraform is aware of the `juju_model` dependency of the charm module.
 
 To deploy this module with its needed dependency, you can run `terraform apply -var="model_name=<MODEL_NAME>" -auto-approve`. This would deploy all Tempo HA solution modules in the same model.
+
+### Disable TLS
+
+By default, this Terraform module deploys `self-signed-certificates` to secure traffic between the Tempo coordinator and worker through TLS. To opt-out and choose to disable TLS, you can configure the variable `use_tls` and run `terraform apply -var="model_name=<MODEL_NAME>" -var="use_tls=false" -auto-approve`
 
 ### High Availability 
 

@@ -1,7 +1,7 @@
 variable "channel" {
   description = "Charms channel"
   type        = string
-  default     = "latest/stable"
+  default     = "latest/edge"
 }
 
 variable "compactor_units" {
@@ -69,4 +69,9 @@ variable "query_frontend_units" {
   }
 }
 
+variable "use_tls" {
+  description = "Specify whether to use TLS or not for coordinator-worker communication. By default, TLS is enabled through self-signed-certificates"
+  type        = bool
+  default     = true
+}
 

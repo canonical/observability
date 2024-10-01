@@ -72,6 +72,7 @@ module "tempo_metrics_generator" {
 }
 
 module "ssc" {
+  count      = var.use_tls ? 1 : 0
   source     = "git::https://github.com/canonical/self-signed-certificates-operator//terraform"
   model_name = var.model_name
   channel    = var.channel
@@ -109,6 +110,7 @@ resource "juju_integration" "coordinator_to_s3_integrator" {
 }
 
 resource "juju_integration" "coordinator_to_ssc" {
+  count = var.use_tls ? 1 : 0
   model = var.model_name
 
   application {
@@ -117,7 +119,7 @@ resource "juju_integration" "coordinator_to_ssc" {
   }
 
   application {
-    name     = module.ssc.app_name
+    name     = module.ssc[0].app_name
     endpoint = "certificates"
   }
 }
