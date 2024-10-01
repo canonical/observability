@@ -1,11 +1,11 @@
 module "tempo_coordinator" {
-  source     = "git::https://github.com/canonical/tempo-coordinator-k8s-operator//terraform?ref=OPENG-2685"
+  source     = "git::https://github.com/canonical/tempo-coordinator-k8s-operator//terraform"
   model_name = var.model_name
   channel    = var.channel
 }
 
 module "tempo_querier" {
-  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform?ref=OPENG-2685"
+  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name   = "tempo-querier"
   model_name = var.model_name
   channel    = var.channel
@@ -16,7 +16,7 @@ module "tempo_querier" {
   units = var.querier_units
 }
 module "tempo_query_frontend" {
-  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform?ref=OPENG-2685"
+  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name   = "tempo-query-frontend"
   model_name = var.model_name
   channel    = var.channel
@@ -27,7 +27,7 @@ module "tempo_query_frontend" {
   units = var.query_frontend_units
 }
 module "tempo_ingester" {
-  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform?ref=OPENG-2685"
+  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name   = "tempo-ingester"
   model_name = var.model_name
   channel    = var.channel
@@ -38,7 +38,7 @@ module "tempo_ingester" {
   units = var.ingester_units
 }
 module "tempo_distributor" {
-  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform?ref=OPENG-2685"
+  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name   = "tempo-distributor"
   model_name = var.model_name
   channel    = var.channel
@@ -49,7 +49,7 @@ module "tempo_distributor" {
   units = var.distributor_units
 }
 module "tempo_compactor" {
-  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform?ref=OPENG-2685"
+  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name   = "tempo-compactor"
   model_name = var.model_name
   channel    = var.channel
@@ -60,7 +60,7 @@ module "tempo_compactor" {
   units = var.compactor_units
 }
 module "tempo_metrics_generator" {
-  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform?ref=OPENG-2685"
+  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name   = "tempo-metrics-generator"
   model_name = var.model_name
   channel    = var.channel
