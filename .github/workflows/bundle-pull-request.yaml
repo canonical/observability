@@ -20,6 +20,10 @@ on:
           It can be either a subnet(IP/mask) or a range (<IP1>-<IP2>)
         required: false
         default: null
+      workflow-runner:
+          type: string
+          description: The runner type to use for integration tests.
+          default: '["ubuntu-latest"]'
     secrets:
        CHARMHUB_TOKEN:
          required: false
@@ -87,3 +91,4 @@ jobs:
       charm-path: "${{ inputs.bundle-path }}"
       provider: "${{ inputs.provider }}"
       ip-range: ${{ inputs.ip-range }}
+      workflow-runner: '${{ inputs.workflow-runner }}'
