@@ -1,3 +1,18 @@
+# TODO: Replace s3_integrator resource to use its remote terraform module once available
+resource "juju_application" "s3_integrator" {
+  count = var.create_s3_integrator ? 1 : 0
+  name = "s3-integrator"
+  model = var.model_name
+  trust = true
+
+  charm {
+    name    = "s3-integrator"
+    channel = var.channel
+  }
+  units = 1
+
+}
+
 module "mimir_coordinator" {
   source     = "git::https://github.com/canonical/mimir-coordinator-k8s-operator//terraform?ref=feature/terraform"
   app_name   = "mimir-coordinator"
@@ -137,28 +152,13 @@ module "mimir_compactor" {
   units = var.compactor_units
 }
 
-# TODO: Replace s3_integrator resource to use its remote terraform module once available
-resource "juju_application" "s3_integrator" {
-  name = "s3-integrator"
-
-  model = var.model_name
-  trust = true
-
-  charm {
-    name    = "s3-integrator"
-    channel = var.channel
-  }
-  units = 1
-
-}
-
 # -------------- # Integrations --------------
 
 resource "juju_integration" "coordinator_to_s3_integrator" {
+  count = var.create_s3_integrator ? 1 : 0
   model = var.model_name
-
   application {
-    name     = juju_application.s3_integrator.name
+    name     = juju_application.s3_integrator[0].name
     endpoint = "s3-credentials"
   }
 

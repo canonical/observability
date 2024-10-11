@@ -13,7 +13,7 @@ output "app_names" {
       mimir_ruler              = module.mimir_ruler.app_name,
       mimir_alertmanager       = module.mimir_alertmanager.app_name,
       mimir_compactor          = module.mimir_compactor.app_name,
-      s3_integrator            = juju_application.s3_integrator.name,
+      s3_integrator            = try(juju_application.s3_integrator[0].name, ""),
     }
   )
 }

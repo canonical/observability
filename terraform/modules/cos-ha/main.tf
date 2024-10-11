@@ -1,14 +1,15 @@
 module "grafana" {
-  source     = "git::https://github.com/canonical/mimir-coordinator-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/grafana-k8s-operator//terraform?ref=feature/terraform"
   app_name   = "grafana"
   model_name = var.model_name
   channel    = var.channel
 }
 
 module "mimir" {
-  source     = "../mimir-ha"
-  model_name = var.model_name
-  channel    = var.channel
+  source                = "../mimir-ha"
+  model_name            = var.model_name
+  channel               = var.channel
+  create_s3_integrator  = false
 }
 
 module "ssc" {
