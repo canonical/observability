@@ -51,15 +51,16 @@ If both charms have a dashboard simply named "Overview", we have problems. Sugge
 2. Dashboards must not have the same *title* within a folder.
 3. Dashboard URL must be stable across dashboard updates (e.g. charm upgrades). Do not generate the UID from the hasing dashboard's entire contents, because it would break links to the dashboard.[^DbURL]
 4. UID length must be <= 40 (grafana limit).
+5. Juju admins, not charm authors, should have the final say on how dashboards are organized in sub-folders.
 
 ## Decision
-> TBD.
+(2/P) + (4/R) + (6/P).
 
 ## Alternatives considered
 Deduplication can be addressed on the provider (charm with dashboards) or the requrier side (grafana charm). In the following subsections, `P` and `R` stand for provider and requirer.
 
 ### (1/P) Use a prescribed naming pattern for UIDs at dev time
-We will update the [best practices doc](https://discourse.charmhub.io/t/grafana-k8s-docs-how-to-create-a-great-charmed-dashboard/14188#use-an-effective-naming-scheme-22),
+We can update the [best practices doc](https://discourse.charmhub.io/t/grafana-k8s-docs-how-to-create-a-great-charmed-dashboard/14188#use-an-effective-naming-scheme-22),
 and it's up to charm authors to be disciplined about adhering to it. Charm lib will raise if the pattern doesn't match the expected ("test-time linter").
 
 A good option for UIDs could be `f"{charm_name}-{codename}"`, where `codename` is e.g. an abbreviate dashboard title that the charm author needs to make sure is unique within the charm.
@@ -103,14 +104,18 @@ Disadvantages:
 
 ### (5/R) Place dashboards in folders by charm name
 
-We create a folder per charm (using the charm name, not the app name) and put the dashboard in there. However, the folder names goes to the URL and would break links on upgrade.
+We can create a folder per charm (using the charm name, not the app name) and put the dashboard in there. This is possible because the charm name is already part of the relation data schema (Appendix 1).
 
 ### (6/P) Let charm authors or admins specify the folder name under which grafana should place its dashboards
 
 This would solve (2) if charm authors configure their charms correctly. The default behavior would be either the "General" folder (as it is right now) or a folder named after the charm name.
+We could add a constructor arg for the name of the folder. Charm authors can choose whether to expose it as a config option. The constructor arg(s) could offer the following functionality:
+- Default value is charm name
+- Charm author could `preserve=True`, so that the tree structure of dashboards in the charm is preserved on grafana side as well. In any case, it will be nested under the toplevel value (which could be just `"."`, or `""`).
 
 Benefits:
 - Solves problem 2 and allows solutions to have a unified folder (e.g., a `COS` folder for all of our charms).
+- Charm authors can organize dashboards in whatever tree structure they like, and charm lib will flatten or preserve it.
 
 
 ## Appendix 1: grafana-dashboard relation schema
