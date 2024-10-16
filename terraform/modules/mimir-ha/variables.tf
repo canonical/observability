@@ -15,11 +15,6 @@ variable "use_tls" {
   default     = true
 }
 
-variable "create_s3_integrator" {
-  type    = bool
-  default = true
-}
-
 # -------------- # App Names --------------
 
 variable "overrides_exporter_name" {

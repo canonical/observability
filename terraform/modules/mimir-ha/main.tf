@@ -1,7 +1,6 @@
 # TODO: Replace s3_integrator resource to use its remote terraform module once available
-resource "juju_application" "s3_integrator" {
-  count = var.create_s3_integrator ? 1 : 0
-  name = "s3-integrator"
+resource "juju_application" "mimir_s3_integrator" {
+  name = "mimir-s3-integrator"
   model = var.model_name
   trust = true
 
@@ -155,10 +154,9 @@ module "mimir_compactor" {
 # -------------- # Integrations --------------
 
 resource "juju_integration" "coordinator_to_s3_integrator" {
-  count = var.create_s3_integrator ? 1 : 0
   model = var.model_name
   application {
-    name     = juju_application.s3_integrator[0].name
+    name     = juju_application.mimir_s3_integrator.name
     endpoint = "s3-credentials"
   }
 
