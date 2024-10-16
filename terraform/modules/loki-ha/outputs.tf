@@ -9,3 +9,18 @@ output "app_names" {
     }
   )
 }
+
+output "grafana_dashboard_endpoint" {
+  description = "Forwards the built-in Grafana dashboard(s) for monitoring applications."
+  value       = "grafana-dashboard"
+}
+
+output "grafana_source_endpoint" {
+  description = "Name of the endpoint used by apps to create a datasource in Grafana."
+  value       = "grafana-source"
+}
+
+output "ingress_endpoint" {
+  description = "Name of the endpoint used by Loki to provide ingress."
+  value       = "ingress"
+}
