@@ -68,10 +68,3 @@ variable "query_frontend_units" {
     error_message = "The number of units must be greater than or equal to 1."
   }
 }
-
-variable "use_tls" {
-  description = "Specify whether to use TLS or not for coordinator-worker communication. By default, TLS is enabled through self-signed-certificates"
-  type        = bool
-  default     = true
-}
-

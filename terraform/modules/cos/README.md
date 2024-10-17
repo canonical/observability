@@ -25,7 +25,6 @@ The module offers the following configurable inputs:
 | - | - | - | - |
 | `channel`| string | Channel that the charms are deployed from | latest/edge |
 | `model_name`| string | Name of the model that the charm is deployed on |  |
-| `use_tls`| bool | Specify whether to use TLS or not for coordinator-worker communication. By default, TLS is enabled through self-signed-certificates | true |
 
 ### Outputs
 Upon application, the module exports the following outputs:
@@ -44,10 +43,6 @@ Upon application, the module exports the following outputs:
 Users should ensure that Terraform is aware of the `juju_model` dependency of the charm module.
 
 To deploy this module with its needed dependency, you can run `terraform apply -var="model_name=<MODEL_NAME>" -auto-approve`. This would deploy all COS HA solution modules in the same model.
-
-### Disable TLS
-
-By default, this Terraform module deploys `self-signed-certificates` to secure traffic between the underlying coordinators and workers through TLS. To opt-out and choose to disable TLS, you can configure the variable `use_tls` and run `terraform apply -var="model_name=<MODEL_NAME>" -var="use_tls=false" -auto-approve`
 
 ### High Availability 
 
