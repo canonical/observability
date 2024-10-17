@@ -9,10 +9,7 @@ output "app_names" {
       tempo_compactor         = module.tempo_compactor.app_name,
       tempo_metrics_generator = module.tempo_metrics_generator.app_name,
       s3_integrator           = juju_application.s3_integrator.name,
-    },
-    var.use_tls ? {
-      self_signed_certificates = module.ssc[0].app_name
-    } : {}
+    }
   )
 
 

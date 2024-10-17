@@ -1,5 +1,5 @@
 # TODO: Replace s3_integrator resource to use its remote terraform module once available
-resource "juju_application" "loki_s3_integrator" {
+resource "juju_application" "s3_integrator" {
   name = "loki-s3-bucket"
   model = var.model_name
   trust = true
@@ -56,7 +56,7 @@ module "loki_write" {
 resource "juju_integration" "coordinator_to_s3_integrator" {
   model = var.model_name
   application {
-    name     = juju_application.loki_s3_integrator.name
+    name     = juju_application.s3_integrator.name
     endpoint = "s3-credentials"
   }
 
