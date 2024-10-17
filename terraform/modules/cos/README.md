@@ -4,7 +4,7 @@ This is a Terraform module facilitating the deployment of COS HA solution, using
 
 The HA solution consists of the following Terraform modules:
 - [grafana-k8s](https://github.com/canonical/grafana-k8s-operator): Visualization, monitoring,and dashboards.
-- [mimir-ha](https://github.com/canonical/observability/tree/cos-ha/terraform/modules/mimir-ha): Storage, metrics, and scalability.
+- [mimir](https://github.com/canonical/observability/tree/cos-ha/terraform/modules/mimir): Storage, metrics, and scalability.
 - [s3-integrator](https://github.com/canonical/s3-integrator): facade for S3 storage configurations.
 - [self-signed-certificates](https://github.com/canonical/self-signed-certificates-operator): certificates operator to secure traffic with TLS.
 

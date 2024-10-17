@@ -18,19 +18,19 @@ variable "use_tls" {
 # -------------- # App Names --------------
 
 variable "read_name" {
-  description = "Name of the Loki read app"
+  description = "Name of the Loki app with the read role"
   type        = string
   default     = "loki-read"
 }
 
 variable "write_name" {
-  description = "Name of the Loki write app"
+  description = "Name of the Loki app with the write role"
   type        = string
   default     = "loki-write"
 }
 
 variable "backend_name" {
-  description = "Name of the Loki backend app"
+  description = "Name of the Loki app with the backend role"
   type        = string
   default     = "loki-backend"
 }
@@ -41,28 +41,16 @@ variable "read_units" {
   description = "Number of Loki worker units with the read role"
   type        = number
   default     = 1
-  validation {
-    condition     = var.read_units >= 1
-    error_message = "The number of units must be greater than or equal to 1."
-  }
 }
 
 variable "write_units" {
   description = "Number of Loki worker units with the write role"
   type        = number
   default     = 1
-  validation {
-    condition     = var.write_units >= 1
-    error_message = "The number of units must be greater than or equal to 1."
-  }
 }
 
 variable "backend_units" {
   description = "Number of Loki worker units with the backend role"
   type        = number
   default     = 1
-  validation {
-    condition     = var.backend_units >= 1
-    error_message = "The number of units must be greater than or equal to 1."
-  }
 }

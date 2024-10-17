@@ -13,13 +13,13 @@ module "grafana" {
 }
 
 module "loki" {
-  source      = "git::https://github.com/canonical/observability//terraform/modules/loki-ha?ref=cos-ha"
+  source      = "git::https://github.com/canonical/observability//terraform/modules/loki?ref=cos-ha"
   model_name  = var.model_name
   channel     = var.channel
 }
 
 module "mimir" {
-  source      = "git::https://github.com/canonical/observability//terraform/modules/mimir-ha?ref=cos-ha"
+  source      = "git::https://github.com/canonical/observability//terraform/modules/mimir?ref=cos-ha"
   model_name  = var.model_name
   channel     = var.channel
 }
@@ -29,6 +29,12 @@ module "ssc" {
   source     = "git::https://github.com/canonical/self-signed-certificates-operator//terraform"
   model_name = var.model_name
   channel    = var.channel
+}
+
+module "tempo" {
+  source      = "git::https://github.com/canonical/observability//terraform/modules/tempo"
+  model_name  = var.model_name
+  channel     = var.channel
 }
 
 module "traefik" {
@@ -46,7 +52,7 @@ resource "juju_integration" "loki-grafana-dashboard" {
   model = var.model_name
 
   application {
-    name     = module.loki.app_names["loki_coordinator"]
+    name     = module.loki.app_names.loki_coordinator
     endpoint = module.loki.grafana_dashboard_endpoint
   }
 
@@ -60,7 +66,7 @@ resource "juju_integration" "loki-grafana-source" {
   model = var.model_name
 
   application {
-    name     = module.loki.app_names["loki_coordinator"]
+    name     = module.loki.app_names.loki_coordinator
     endpoint = module.loki.grafana_source_endpoint
   }
 
@@ -125,7 +131,7 @@ resource "juju_integration" "loki-ingress" {
   }
 
   application {
-    name     = module.loki.app_names["loki_coordinator"]
+    name     = module.loki.app_names.loki_coordinator
     endpoint = module.loki.ingress_endpoint
   }
 }

@@ -24,18 +24,19 @@ The module offers the following configurable inputs:
 
 | Name | Type | Description | Required |
 | - | - | - | - |
-| `alertmanager_units`| number | Number of Mimir worker units with the alertmanager role | 1 |
 | `channel`| string | Channel that the charms are deployed from | latest/edge |
+| `model_name`| string | Name of the model that the charm is deployed on |  |
+| `use_tls`| bool | Specify whether to use TLS or not for coordinator-worker communication. By default, TLS is enabled through self-signed-certificates | true |
+| `alertmanager_units`| number | Number of Mimir worker units with the alertmanager role | 1 |
 | `compactor_units`| number | Number of Mimir worker units with the compactor role | 1 |
 | `distributor_units`| number | Number of Mimir worker units with the distributor role | 1 |
+| `flusher_units`| number | Number of Mimir worker units with the flusher role | 1 |
 | `ingester_units`| number | Number of Mimir worker units with the ingester role | 1 |
-| `model_name`| string | Name of the model that the charm is deployed on |  |
 | `querier_units`| number | Number of Mimir worker units with the querier role | 1 |
 | `query_frontend_units`| number | Number of Mimir worker units with the query-frontend role | 1 |
 | `query_scheduler_units`| number | Number of Mimir worker units with the query-scheduler role | 1 |
 | `ruler_units`| number | Number of Mimir worker units with the ruler role | 1 |
 | `store_gateway_units`| number | Number of Mimir worker units with the store-gateway role | 1 |
-| `use_tls`| bool | Specify whether to use TLS or not for coordinator-worker communication. By default, TLS is enabled through self-signed-certificates | true |
 
 ### Outputs
 Upon application, the module exports the following outputs:
