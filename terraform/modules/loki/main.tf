@@ -18,6 +18,17 @@ module "loki_coordinator" {
   channel    = var.channel
 }
 
+module "loki_backend" {
+  source     = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform?ref=feature/terraform"
+  app_name   = var.backend_name
+  model_name = var.model_name
+  channel    = var.channel
+  config = {
+    role-backend  = true
+  }
+  units = var.backend_units
+}
+
 module "loki_read" {
   source     = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform?ref=feature/terraform"
   app_name   = var.read_name
@@ -40,17 +51,6 @@ module "loki_write" {
   units = var.write_units
 }
 
-module "loki_backend" {
-  source     = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform?ref=feature/terraform"
-  app_name   = var.backend_name
-  model_name = var.model_name
-  channel    = var.channel
-  config = {
-    role-backend  = true
-  }
-  units = var.backend_units
-}
-
 # -------------- # Integrations --------------
 
 resource "juju_integration" "coordinator_to_s3_integrator" {
@@ -63,6 +63,20 @@ resource "juju_integration" "coordinator_to_s3_integrator" {
   application {
     name     = module.loki_coordinator.app_name
     endpoint = "s3"
+  }
+}
+
+resource "juju_integration" "coordinator_to_backend" {
+  model = var.model_name
+
+  application {
+    name     = module.loki_coordinator.app_name
+    endpoint = "loki-cluster"
+  }
+
+  application {
+    name     = module.loki_backend.app_name
+    endpoint = "loki-cluster"
   }
 }
 
@@ -90,20 +104,6 @@ resource "juju_integration" "coordinator_to_write" {
 
   application {
     name     = module.loki_write.app_name
-    endpoint = "loki-cluster"
-  }
-}
-
-resource "juju_integration" "coordinator_to_backend" {
-  model = var.model_name
-
-  application {
-    name     = module.loki_coordinator.app_name
-    endpoint = "loki-cluster"
-  }
-
-  application {
-    name     = module.loki_backend.app_name
     endpoint = "loki-cluster"
   }
 }
