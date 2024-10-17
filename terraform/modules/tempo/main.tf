@@ -72,7 +72,7 @@ module "tempo_metrics_generator" {
 }
 
 # TODO: Replace s3_integrator resource to use its remote terraform module once available
-resource "juju_application" "tempo_s3_integrator" {
+resource "juju_application" "s3_integrator" {
   name = "tempo-s3-bucket"
 
   model = var.model_name
@@ -92,7 +92,7 @@ resource "juju_integration" "coordinator_to_s3_integrator" {
   model = var.model_name
 
   application {
-    name     = juju_application.tempo_s3_integrator.name
+    name     = juju_application.s3_integrator.name
     endpoint = "s3-credentials"
   }
 

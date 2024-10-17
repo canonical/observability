@@ -1,7 +1,7 @@
 output "app_names" {
   value = merge(
     {
-      mimir_s3_integrator      = juju_application.mimir_s3_integrator.name,
+      mimir_s3_integrator      = juju_application.s3_integrator.name,
       mimir_coordinator        = module.mimir_coordinator.app_name,
       mimir_alertmanager       = module.mimir_alertmanager.app_name,
       mimir_compactor          = module.mimir_compactor.app_name,
