@@ -48,12 +48,12 @@ module "traefik" {
 
 # Provided by Loki
 
-resource "juju_integration" "loki-grafana-dashboard" {
+resource "juju_integration" "loki-grafana-dashboard-provider" {
   model = var.model_name
 
   application {
     name     = module.loki.app_names.loki_coordinator
-    endpoint = module.loki.grafana_dashboard_endpoint
+    endpoint = module.loki.grafana_dashboard_provider_endpoint
   }
 
   application {
