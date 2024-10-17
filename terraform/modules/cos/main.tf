@@ -127,7 +127,7 @@ resource "juju_integration" "loki-ingress" {
 
   application {
     name     = module.traefik.app_name
-    endpoint = module.traefik.ingress_per_unit_endpoint
+    endpoint = module.traefik.ingress_endpoint
   }
 
   application {
