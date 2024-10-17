@@ -10,9 +10,9 @@ output "app_names" {
   )
 }
 
-output "grafana_dashboard_provider_endpoint" {
+output "grafana_dashboards_provider_endpoint" {
   description = "Forwards the built-in Grafana dashboard(s) for monitoring applications."
-  value       = "grafana-dashboard-provider"
+  value       = "grafana-dashboards-provider"
 }
 
 output "grafana_source_endpoint" {
