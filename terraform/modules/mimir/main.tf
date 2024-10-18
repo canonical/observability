@@ -20,7 +20,7 @@ module "mimir_coordinator" {
 }
 
 module "mimir_alertmanager" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.alertmanager_name
   model_name = var.model_name
   channel    = var.channel
@@ -32,7 +32,7 @@ module "mimir_alertmanager" {
 }
 
 module "mimir_compactor" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.compactor_name
   model_name = var.model_name
   channel    = var.channel
@@ -44,7 +44,7 @@ module "mimir_compactor" {
 }
 
 module "mimir_distributor" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.distributor_name
   model_name = var.model_name
   channel    = var.channel
@@ -56,7 +56,7 @@ module "mimir_distributor" {
 }
 
 module "mimir_flusher" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.flusher_name
   model_name = var.model_name
   channel    = var.channel
@@ -68,7 +68,7 @@ module "mimir_flusher" {
 }
 
 module "mimir_ingester" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.ingester_name
   model_name = var.model_name
   channel    = var.channel
@@ -80,7 +80,7 @@ module "mimir_ingester" {
 }
 
 module "mimir_overrides_exporter" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.overrides_exporter_name
   model_name = var.model_name
   channel    = var.channel
@@ -92,7 +92,7 @@ module "mimir_overrides_exporter" {
 }
 
 module "mimir_querier" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.querier_name
   model_name = var.model_name
   channel    = var.channel
@@ -104,7 +104,7 @@ module "mimir_querier" {
 }
 
 module "mimir_query_frontend" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.query_frontend_name
   model_name = var.model_name
   channel    = var.channel
@@ -116,7 +116,7 @@ module "mimir_query_frontend" {
 }
 
 module "mimir_query_scheduler" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.query_scheduler_name
   model_name = var.model_name
   channel    = var.channel
@@ -128,7 +128,7 @@ module "mimir_query_scheduler" {
 }
 
 module "mimir_ruler" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.ruler_name
   model_name = var.model_name
   channel    = var.channel
@@ -140,7 +140,7 @@ module "mimir_ruler" {
 }
 
 module "mimir_store_gateway" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.store_gateway_name
   model_name = var.model_name
   channel    = var.channel
