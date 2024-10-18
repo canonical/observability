@@ -13,7 +13,7 @@ resource "juju_application" "s3_integrator" {
 }
 
 module "mimir_coordinator" {
-  source     = "git::https://github.com/canonical/mimir-coordinator-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/mimir-coordinator-k8s-operator//terraform"
   app_name   = "mimir"
   model_name = var.model_name
   channel    = var.channel
