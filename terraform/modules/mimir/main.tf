@@ -13,14 +13,14 @@ resource "juju_application" "s3_integrator" {
 }
 
 module "mimir_coordinator" {
-  source     = "git::https://github.com/canonical/mimir-coordinator-k8s-operator//main"
+  source     = "git::https://github.com/canonical/mimir-coordinator-k8s-operator//terraform"
   app_name   = "mimir"
   model_name = var.model_name
   channel    = var.channel
 }
 
 module "mimir_read" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//main"
+  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.mimir_read_name
   model_name = var.model_name
   channel    = var.channel
@@ -32,7 +32,7 @@ module "mimir_read" {
 }
 
 module "mimir_write" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//main"
+  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.mimir_write_name
   model_name = var.model_name
   channel    = var.channel
@@ -44,7 +44,7 @@ module "mimir_write" {
 }
 
 module "mimir_backend" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//main"
+  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.mimir_backend_name
   model_name = var.model_name
   channel    = var.channel
