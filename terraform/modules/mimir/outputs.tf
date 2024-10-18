@@ -17,3 +17,23 @@ output "app_names" {
     }
   )
 }
+
+output "requires" {
+  value = {
+    certificates     = "certificates",
+    ingress          = "ingress",
+    logging_consumer = "logging-consumer",
+    s3               = "s3",
+    tracing          = "tracing",
+  }
+}
+
+output "provides" {
+  value = {
+    grafana_dashboards_provider = "grafana-dashboards-provider",
+    grafana_source              = "grafana-source",
+    mimir_cluster               = "mimir-cluster",
+    receive_remote_write        = "receive-remote-write",
+    self_metrics_endpoint       = "self-metrics-endpoint",
+  }
+}

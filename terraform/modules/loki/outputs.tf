@@ -10,17 +10,24 @@ output "app_names" {
   )
 }
 
-output "grafana_dashboards_provider_endpoint" {
-  description = "Forwards the built-in Grafana dashboard(s) for monitoring applications."
-  value       = "grafana-dashboards-provider"
+output "requires" {
+  value = {
+    alertmanager     = "alertmanager",
+    certificates     = "certificates",
+    ingress          = "ingress",
+    logging_consumer = "logging-consumer",
+    s3               = "s3",
+    tracing          = "tracing",
+  }
 }
 
-output "grafana_source_endpoint" {
-  description = "Name of the endpoint used by apps to create a datasource in Grafana."
-  value       = "grafana-source"
-}
-
-output "ingress_endpoint" {
-  description = "Name of the endpoint used by Loki to provide ingress."
-  value       = "ingress"
+output "provides" {
+  value = {
+    grafana_dashboards_provider = "grafana-dashboards-provider",
+    grafana_source              = "grafana-source",
+    logging                     = "logging",
+    loki_cluster                = "loki-cluster",
+    receive_remote_write        = "receive-remote-write",
+    self_metrics_endpoint       = "self-metrics-endpoint",
+  }
 }
