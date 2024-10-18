@@ -12,14 +12,14 @@ resource "juju_application" "s3_integrator" {
 }
 
 module "loki_coordinator" {
-  source     = "git::https://github.com/canonical/loki-coordinator-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/loki-coordinator-k8s-operator//terraform"
   app_name   = "loki"
   model_name = var.model_name
   channel    = var.channel
 }
 
 module "loki_backend" {
-  source     = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
   app_name   = var.backend_name
   model_name = var.model_name
   channel    = var.channel
@@ -30,7 +30,7 @@ module "loki_backend" {
 }
 
 module "loki_read" {
-  source     = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
   app_name   = var.read_name
   model_name = var.model_name
   channel    = var.channel
@@ -41,7 +41,7 @@ module "loki_read" {
 }
 
 module "loki_write" {
-  source     = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
   app_name   = var.write_name
   model_name = var.model_name
   channel    = var.channel
