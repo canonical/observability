@@ -1,12 +1,12 @@
 module "catalogue" {
-  source     = "git::https://github.com/canonical/catalogue-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/catalogue-k8s-operator//terraform"
   app_name   = "catalogue"
   model_name = var.model_name
   channel    = var.channel
 }
 
 module "grafana" {
-  source     = "git::https://github.com/canonical/grafana-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/grafana-k8s-operator//terraform"
   app_name   = "grafana"
   model_name = var.model_name
   channel    = var.channel
@@ -38,7 +38,7 @@ module "tempo" {
 }
 
 module "traefik" {
-  source     = "git::https://github.com/canonical/traefik-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/traefik-k8s-operator//terraform"
   app_name   = "traefik"
   model_name = var.model_name
   channel    = var.channel
