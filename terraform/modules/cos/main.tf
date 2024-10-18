@@ -13,13 +13,13 @@ module "grafana" {
 }
 
 module "loki" {
-  source      = "git::https://github.com/canonical/observability//terraform/modules/loki?ref=cos-ha"
+  source      = "git::https://github.com/canonical/observability//terraform/modules/loki?ref=main"
   model_name  = var.model_name
   channel     = var.channel
 }
 
 module "mimir" {
-  source      = "git::https://github.com/canonical/observability//terraform/modules/mimir?ref=cos-ha"
+  source      = "git::https://github.com/canonical/observability//terraform/modules/mimir?ref=main"
   model_name  = var.model_name
   channel     = var.channel
 }
@@ -32,7 +32,7 @@ module "ssc" {
 }
 
 module "tempo" {
-  source      = "git::https://github.com/canonical/observability//terraform/modules/tempo?ref=cos-ha"
+  source      = "git::https://github.com/canonical/observability//terraform/modules/tempo?ref=main"
   model_name  = var.model_name
   channel     = var.channel
 }
