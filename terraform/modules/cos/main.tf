@@ -46,6 +46,36 @@ module "traefik" {
 
 # -------------- # Integrations --------------
 
+# Provided by Mimir
+
+resource "juju_integration" "mimir-grafana-dashboards-provider" {
+  model = var.model_name
+
+  application {
+    name     = module.mimir.app_names.mimir_coordinator
+    endpoint = module.mimir.provides.grafana_dashboards_provider
+  }
+
+  application {
+    name     = module.grafana.app_name
+    endpoint = module.grafana.requires.grafana_dashboard
+  }
+}
+
+resource "juju_integration" "mimir-grafana-source" {
+  model = var.model_name
+
+  application {
+    name     = module.mimir.app_names.mimir_coordinator
+    endpoint = module.mimir.provides.grafana_source
+  }
+
+  application {
+    name     = module.grafana.app_name
+    endpoint = module.grafana.requires.grafana_source
+  }
+}
+
 # Provided by Loki
 
 resource "juju_integration" "loki-grafana-dashboards-provider" {
