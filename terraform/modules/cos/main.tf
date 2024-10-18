@@ -13,13 +13,13 @@ module "grafana" {
 }
 
 module "loki" {
-  source      = "git::https://github.com/canonical/observability//terraform/modules/loki?ref=main"
+  source      = "git::https://github.com/canonical/observability//terraform/modules/loki?ref=feature-mimir-tf-3-roles"
   model_name  = var.model_name
   channel     = var.channel
 }
 
 module "mimir" {
-  source      = "git::https://github.com/canonical/observability//terraform/modules/mimir?ref=main"
+  source      = "git::https://github.com/canonical/observability//terraform/modules/mimir?ref=feature-mimir-tf-3-roles"
   model_name  = var.model_name
   channel     = var.channel
 }
@@ -32,7 +32,7 @@ module "ssc" {
 }
 
 module "tempo" {
-  source      = "git::https://github.com/canonical/observability//terraform/modules/tempo?ref=main"
+  source      = "git::https://github.com/canonical/observability//terraform/modules/tempo?ref=feature-mimir-tf-3-roles"
   model_name  = var.model_name
   channel     = var.channel
 }
