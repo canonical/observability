@@ -53,12 +53,12 @@ resource "juju_integration" "loki-grafana-dashboards-provider" {
 
   application {
     name     = module.loki.app_names.loki_coordinator
-    endpoint = module.loki.grafana_dashboards_provider_endpoint
+    endpoint = module.loki.provides.grafana_dashboards_provider
   }
 
   application {
     name     = module.grafana.app_name
-    endpoint = module.grafana.grafana_dashboard_endpoint
+    endpoint = module.grafana.requires.grafana_dashboard
   }
 }
 
@@ -67,12 +67,12 @@ resource "juju_integration" "loki-grafana-source" {
 
   application {
     name     = module.loki.app_names.loki_coordinator
-    endpoint = module.loki.grafana_source_endpoint
+    endpoint = module.loki.provides.grafana_source
   }
 
   application {
     name     = module.grafana.app_name
-    endpoint = module.grafana.grafana_source_endpoint
+    endpoint = module.grafana.requires.grafana_source
   }
 }
 
@@ -83,12 +83,12 @@ resource "juju_integration" "grafana-catalogue" {
 
   application {
     name     = module.catalogue.app_name
-    endpoint = module.catalogue.catalogue_endpoint
+    endpoint = module.catalogue.provides.catalogue
   }
 
   application {
     name     = module.grafana.app_name
-    endpoint = module.grafana.catalogue_endpoint
+    endpoint = module.grafana.requires.catalogue
   }
 }
 
@@ -99,12 +99,12 @@ resource "juju_integration" "catalogue-ingress" {
 
   application {
     name     = module.traefik.app_name
-    endpoint = module.traefik.ingress_endpoint
+    endpoint = module.traefik.requires.ingress
   }
 
   application {
     name     = module.catalogue.app_name
-    endpoint = module.catalogue.ingress_endpoint
+    endpoint = module.catalogue.requires.ingress
   }
 }
 
@@ -113,12 +113,12 @@ resource "juju_integration" "grafana-ingress" {
 
   application {
     name     = module.traefik.app_name
-    endpoint = module.traefik.traefik_route_endpoint
+    endpoint = module.traefik.provides.traefik_route
   }
 
   application {
     name     = module.grafana.app_name
-    endpoint = module.grafana.ingress_endpoint
+    endpoint = module.grafana.requires.ingress
   }
 }
 
@@ -127,11 +127,11 @@ resource "juju_integration" "loki-ingress" {
 
   application {
     name     = module.traefik.app_name
-    endpoint = module.traefik.ingress_endpoint
+    endpoint = module.traefik.provides.ingress
   }
 
   application {
     name     = module.loki.app_names.loki_coordinator
-    endpoint = module.loki.ingress_endpoint
+    endpoint = module.loki.requires.ingress
   }
 }
