@@ -99,7 +99,7 @@ resource "juju_integration" "catalogue-ingress" {
 
   application {
     name     = module.traefik.app_name
-    endpoint = module.traefik.requires.ingress
+    endpoint = module.traefik.provides.ingress
   }
 
   application {
