@@ -188,7 +188,7 @@ resource "null_resource" "s3fix" {
     # There's currently no way to wait for the charm to be idle, hence the sleep
     # https://github.com/juju/terraform-provider-juju/issues/202
     command = <<-EOT
-      sleep 120;
+      sleep 600;
 
       juju ssh -m cos minio/leader curl https://dl.min.io/client/mc/release/linux-amd64/mc --create-dirs -o '/root/minio/mc';
       juju ssh -m cos minio/leader chmod +x '/root/minio/mc';
