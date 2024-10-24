@@ -32,7 +32,7 @@ module "ssc" {
 }
 
 module "tempo" {
-  source      = "git::https://github.com/canonical/observability//terraform/modules/tempo"
+  source      = "git::https://github.com/canonical/observability//terraform/modules/tempo?ref=feature/local_exec"
   model_name  = var.model_name
   channel     = var.channel
 }
