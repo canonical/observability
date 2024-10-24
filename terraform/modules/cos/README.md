@@ -49,6 +49,8 @@ To deploy this module with its needed dependency, you can run `terraform apply -
 By default, this Terraform module will deploy each worker with `1` unit. To configure the module to run `x` units of any worker role, you can run `terraform apply -var="model_name=<MODEL_NAME>" -var="<ROLE>_units=<x>" -auto-approve`.
 See each ... for the recommended scale for each role.
 
+### Sample deployment
+
 ```hcl
 terraform {
   required_version = ">= 1.5"
@@ -60,7 +62,7 @@ terraform {
 }
 
 module "cos" {
-  source    	= "git::https://github.com/canonical/observability//terraform/modules/cos?ref=feature/local_exec"
+  source    	= "git::https://github.com/canonical/observability//terraform/modules/cos"
   model_name = var.model_name
 }
 
@@ -85,6 +87,35 @@ resource "juju_application" "minio" {
   config = {
 	access-key = "user"
 	secret-key = "password"
+  }
+}
+
+
+resource "null_resource" "s3fix" {
+
+  provisioner "local-exec" {
+    # There's currently no way to wait for the charm to be idle, hence the sleep
+    # https://github.com/juju/terraform-provider-juju/issues/202
+    command = <<-EOT
+      sleep 600;
+
+      juju ssh -m cos minio/leader curl https://dl.min.io/client/mc/release/linux-amd64/mc --create-dirs -o '/root/minio/mc';
+      juju ssh -m cos minio/leader chmod +x '/root/minio/mc';
+      juju ssh -m cos minio/leader /root/minio/mc alias set local http://minio-0.minio-endpoints.cos.svc.cluster.local:9000 user password;
+      juju ssh -m cos minio/leader /root/minio/mc mb local/mimir;
+      juju ssh -m cos minio/leader /root/minio/mc mb local/loki;
+      juju ssh -m cos minio/leader /root/minio/mc mb local/tempo;
+
+      juju config loki-s3-bucket endpoint="http://minio-0.minio-endpoints.cos.svc.cluster.local:9000" bucket="loki";
+      juju config mimir-s3-bucket endpoint="http://minio-0.minio-endpoints.cos.svc.cluster.local:9000" bucket="mimir";
+      juju config tempo-s3-bucket endpoint="http://minio-0.minio-endpoints.cos.svc.cluster.local:9000" bucket="tempo";
+
+      juju run -m cos loki-s3-bucket/leader sync-s3-credentials access-key=user secret-key=password;
+      juju run -m cos mimir-s3-bucket/leader sync-s3-credentials access-key=user secret-key=password;
+      juju run -m cos tempo-s3-bucket/leader sync-s3-credentials access-key=user secret-key=password;
+      
+      sleep 30;
+    EOT
   }
 }
 ```
