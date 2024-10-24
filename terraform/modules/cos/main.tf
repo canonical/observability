@@ -32,7 +32,7 @@ module "ssc" {
 }
 
 module "tempo" {
-  source      = "git::https://github.com/canonical/observability//terraform/modules/tempo"
+  source      = "git::https://github.com/canonical/observability//terraform/modules/tempo?ref=feature/local_exec"
   model_name  = var.model_name
   channel     = var.channel
 }
@@ -107,19 +107,19 @@ resource "juju_integration" "loki-grafana-source" {
 }
 
 # Provided by Tempo
-#resource "juju_integration" "tempo-grafana-source" {
-#  model = var.model_name
+resource "juju_integration" "tempo-grafana-source" {
+  model = var.model_name
 
-#  application {
-#    name     = module.tempo.app_names.tempo_coordinator
-#    endpoint = module.tempo.provides.grafana_source
-#  }
+  application {
+    name     = module.tempo.app_names.tempo_coordinator
+    endpoint = module.tempo.provides.grafana_source
+  }
 
-#  application {
-#    name     = module.grafana.app_name
-#    endpoint = module.grafana.requires.grafana_source
-#  }
-#}
+  application {
+    name     = module.grafana.app_name
+    endpoint = module.grafana.requires.grafana_source
+  }
+}
 
 
 # Provided by Catalogue

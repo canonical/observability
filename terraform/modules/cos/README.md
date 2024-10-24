@@ -48,3 +48,43 @@ To deploy this module with its needed dependency, you can run `terraform apply -
 
 By default, this Terraform module will deploy each worker with `1` unit. To configure the module to run `x` units of any worker role, you can run `terraform apply -var="model_name=<MODEL_NAME>" -var="<ROLE>_units=<x>" -auto-approve`.
 See each ... for the recommended scale for each role.
+
+```hcl
+terraform {
+  required_version = ">= 1.5"
+  required_providers {
+    juju = {
+      source  = "juju/juju"
+    }
+  }
+}
+
+module "cos" {
+  source    	= "git::https://github.com/canonical/observability//terraform/modules/cos?ref=feature/local_exec"
+  model_name = var.model_name
+}
+
+# Assumes that model already exists
+variable "model_name" {
+  type    	= string
+}
+
+
+resource "juju_application" "minio" {
+  name = "minio"
+  # Coordinator requires s3
+  model = var.model_name
+  trust = true
+
+  charm {
+	name	= "minio"
+	channel = "latest/edge"
+  }
+  units = 1
+
+  config = {
+	access-key = "user"
+	secret-key = "password"
+  }
+}
+```
