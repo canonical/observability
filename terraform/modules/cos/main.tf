@@ -106,6 +106,22 @@ resource "juju_integration" "loki-grafana-source" {
   }
 }
 
+# Provided by Tempo
+#resource "juju_integration" "tempo-grafana-source" {
+#  model = var.model_name
+
+#  application {
+#    name     = module.tempo.app_names.tempo_coordinator
+#    endpoint = module.tempo.provides.grafana_source
+#  }
+
+#  application {
+#    name     = module.grafana.app_name
+#    endpoint = module.grafana.requires.grafana_source
+#  }
+#}
+
+
 # Provided by Catalogue
 
 resource "juju_integration" "grafana-catalogue" {
@@ -163,5 +179,33 @@ resource "juju_integration" "loki-ingress" {
   application {
     name     = module.loki.app_names.loki_coordinator
     endpoint = module.loki.requires.ingress
+  }
+}
+
+resource "null_resource" "s3fix" {
+
+  provisioner "local-exec" {
+    # There's currently no way to wait for the charm to be idle, hence the sleep
+    # https://github.com/juju/terraform-provider-juju/issues/202
+    command = <<-EOT
+      sleep 120;
+
+      juju ssh -m cos minio/leader curl https://dl.min.io/client/mc/release/linux-amd64/mc --create-dirs -o '/root/minio/mc';
+      juju ssh -m cos minio/leader chmod +x '/root/minio/mc';
+      juju ssh -m cos minio/leader /root/minio/mc alias set local http://minio-0.minio-endpoints.cos.svc.cluster.local:9000 user password;
+      juju ssh -m cos minio/leader /root/minio/mc mb local/mimir;
+      juju ssh -m cos minio/leader /root/minio/mc mb local/loki;
+      juju ssh -m cos minio/leader /root/minio/mc mb local/tempo;
+
+      juju config loki-s3-bucket endpoint="http://minio-0.minio-endpoints.cos.svc.cluster.local:9000" bucket="loki";
+      juju config mimir-s3-bucket endpoint="http://minio-0.minio-endpoints.cos.svc.cluster.local:9000" bucket="mimir";
+      juju config tempo-s3-bucket endpoint="http://minio-0.minio-endpoints.cos.svc.cluster.local:9000" bucket="tempo";
+
+      juju run -m cos loki-s3-bucket/leader sync-s3-credentials access-key=user secret-key=password;
+      juju run -m cos mimir-s3-bucket/leader sync-s3-credentials access-key=user secret-key=password;
+      juju run -m cos tempo-s3-bucket/leader sync-s3-credentials access-key=user secret-key=password;
+      
+      sleep 30"
+    EOT
   }
 }

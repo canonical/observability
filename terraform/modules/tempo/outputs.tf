@@ -11,6 +11,22 @@ output "app_names" {
       tempo_s3_integrator           = juju_application.s3_integrator.name,
     }
   )
+}
 
+output "requires" {
+  value = {
+    logging           = "logging",
+    ingress           = "ingress",
+    certificates      = "certificates",
+    send-remote-write = "send-remote-write",
+  }
+}
 
+output "provides" {
+  value = {
+    grafana_dashboard = "grafana-dashboard",
+    grafana_source    = "grafana-source",
+    metrics_endpoint  = "metrics-endpoint",
+    tracing           = "tracing",
+  }
 }
