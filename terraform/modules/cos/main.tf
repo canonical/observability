@@ -44,6 +44,13 @@ module "traefik" {
   channel    = var.channel
 }
 
+module "grafana_agent" {
+  source     = "git::https://github.com/canonical/grafana-agent-k8s-operator//feature/terraform?ref=feature/terraform"
+  app_name   = "grafana-agent"
+  model_name = var.model_name
+  channel    = var.channel
+}
+
 # -------------- # Integrations --------------
 
 # Provided by Mimir
@@ -182,3 +189,32 @@ resource "juju_integration" "loki-ingress" {
   }
 }
 
+# Grafana agent
+
+resource "juju_integration" "agent-loki-metrics" {
+  model = var.model_name
+
+  application {
+    name     = module.loki.app_names.loki_coordinator
+    endpoint = module.loki.provides.self_metrics_endpoint
+  }
+
+  application {
+    name     = module.grafana_agent.app_name
+    endpoint = module.grafana_agent.requires.metrics_endpoint
+  }
+}
+
+resource "juju_integration" "agent-mimir-metrics" {
+  model = var.model_name
+
+  application {
+    name     = module.mimir.app_names.mimir_coordinator
+    endpoint = module.mimir.provides.receive_remote_write
+  }
+
+  application {
+    name     = module.grafana_agent.app_name
+    endpoint = module.grafana_agent.requires.send_remote_write
+  }
+}
