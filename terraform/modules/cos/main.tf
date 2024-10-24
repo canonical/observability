@@ -45,7 +45,7 @@ module "traefik" {
 }
 
 module "grafana_agent" {
-  source     = "git::https://github.com/canonical/grafana-agent-k8s-operator//feature/terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/grafana-agent-k8s-operator//terraform?ref=feature/terraform"
   app_name   = "grafana-agent"
   model_name = var.model_name
   channel    = var.channel
