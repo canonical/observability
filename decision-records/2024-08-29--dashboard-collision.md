@@ -52,9 +52,10 @@ If both charms have a dashboard simply named "Overview", we have problems. Sugge
 3. Dashboard URL must be stable across dashboard updates (e.g. charm upgrades). Do not generate the UID from the hasing dashboard's entire contents, because it would break links to the dashboard.[^DbURL]
 4. UID length must be <= 40 (grafana limit).
 5. Juju admins, not charm authors, should have the final say on how dashboards are organized in sub-folders.
+6. Should be able to easily tell from which charm each dashboard came.
 
 ## Decision
-(2/P) + (4/R) + (6/P).
+(2/P) + (4/R) + (6/P) + (7/P).
 
 ## Alternatives considered
 Deduplication can be addressed on the provider (charm with dashboards) or the requrier side (grafana charm). In the following subsections, `P` and `R` stand for provider and requirer.
@@ -117,6 +118,10 @@ Benefits:
 - Solves problem 2 and allows solutions to have a unified folder (e.g., a `COS` folder for all of our charms).
 - Charm authors can organize dashboards in whatever tree structure they like, and charm lib will flatten or preserve it.
 
+### (7/P) Add juju topology to list of dashboard tags
+
+The topology should include charm name and app name, but not unit name.
+This would make it easy to tell from which charm each dashboard came.
 
 ## Appendix 1: grafana-dashboard relation schema
 ```bash
