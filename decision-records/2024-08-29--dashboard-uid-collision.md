@@ -66,12 +66,12 @@ Disadvantages:
 - To adhere to this new standard, would need to modify all existing dashboards.
 
 ### (2/P) Automatically overwrite UIDs with a prescribed naming pattern at deploy/relate time, on the provider side
-SHA1 is of length 40 (`len(hashlib.sha1(b"whatever").hexdigest()) == 40`), so calculate the dashboards UID from hashing (charm_name + rel_path of the dashboard file).
+SHA1 is of length 40 (`len(hashlib.sha1(b"whatever").hexdigest()) == 40`), so calculate the dashboards UID from hashing (charm_name + relative_path of the dashboard file).
 
 Benefits:
-- The combination of charm_name and rel_path is almost guaranteed to be unique across the ecosystem. Exceptions:
+- The combination of charm_name and relative_path is almost guaranteed to be unique across the ecosystem. Exceptions:
   - Problem (a)
-  - Local charm's name and dashboard rel_path collide with another charm.
+  - Local charm's name and dashboard relative_path collide with another charm.
 - Change will be automatically rolled out to everyone by updating the dashboards charm lib.
 
 Disadvantages:
