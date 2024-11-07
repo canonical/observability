@@ -40,7 +40,8 @@ This is likely to happen when charm authors manually modify UIDs, assuming their
 
 ## Requirements
 1. Dashboards must not have the same *uid* within installation.
-2. Dashboard URL must be stable across dashboard updates (e.g. charm upgrades). Do not generate the UID from the hasing dashboard's entire contents, because it would break links to the dashboard.[^DbURL]
+2. Dashboard URL must be stable across dashboard updates (e.g. charm upgrades). Do not generate the UID from hashing
+                                                                                                                                                                                                                                                                                                                                                                                                                             dashboard's entire contents, because it would break links to the dashboard.[^DbURL]
 3. UID length must be <= 40 (grafana limit).
 4. Should be able to easily tell from which charm each dashboard came.
 
