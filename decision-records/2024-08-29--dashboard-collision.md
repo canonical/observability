@@ -118,10 +118,10 @@ Benefits:
 - Solves problem 2 and allows solutions to have a unified folder (e.g., a `COS` folder for all of our charms).
 - Charm authors can organize dashboards in whatever tree structure they like, and charm lib will flatten or preserve it.
 
-### (7/P) Add juju topology to list of dashboard tags
+### (7/P) Add charm name to list of dashboard tags
 
-The topology should include charm name and app name, but not unit name.
-This would make it easy to tell from which charm each dashboard came.
+This would make it easy to tell from which charm each dashboard came. This is useful in finding the author of a buggy dashboard.
+The tag could look like this: `charm-name:rev`, if the charm revision is available to charm code.
 
 ## Appendix 1: grafana-dashboard relation schema
 ```bash
