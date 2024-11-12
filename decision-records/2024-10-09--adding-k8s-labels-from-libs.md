@@ -47,8 +47,8 @@ solution but it is a bad developer experience.
 
 ## Accepted Solution
 
-We should use annotations on the StatefulSet object as a way to store state. Thus we will have state which lives for the
-lifetime of the charm and does not rely on `use_juju_for_storage`. It also asks nothing extra from the charm developer.
+We should create a ConfigMap to be used as a way to store state. Thus we will have state which lives for the lifetime
+of the charm and does not rely on `use_juju_for_storage`. It also asks nothing extra from the charm developer.
 
 ## History
 
