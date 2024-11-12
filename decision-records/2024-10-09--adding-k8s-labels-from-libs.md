@@ -1,6 +1,6 @@
 # Adding k8s Labels From Libraries
 **Date:** 2024-07-16  
-**Authors:** @dstathis @ca-scribner
+**Authors:** @dstathis @ca-scribner @IbraAoad
 
 ## Context and Problem Statement
 
@@ -53,4 +53,4 @@ of the charm and does not rely on `use_juju_for_storage`. It also asks nothing e
 ## History
 
 I (@dstathis) ran in to this problem when I was about to code up the original solution. After asking the team about it,
-@ca-scribner came up with the accepted solution.
+@ca-scribner came up with a solution using annotations. Later @IbraAoad modified the solution to use ConfigMaps instead.
