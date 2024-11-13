@@ -302,3 +302,19 @@ resource "juju_integration" "agent-mimir-metrics" {
     endpoint = module.grafana_agent.requires.send_remote_write
   }
 }
+
+# Provided by Grafana
+
+resource "juju_integration" "grafana-tracing-grafana-agent-traicing-provider" {
+  model = var.model_name
+
+  application {
+    name     = module.grafana.app_name
+    endpoint = module.grafana.requires.tracing
+  }
+
+  application {
+    name     = module.grafana_agent.app_name
+    endpoint = module.grafana_agent.provides.tracing_provider
+  }
+}
