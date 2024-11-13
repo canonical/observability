@@ -19,37 +19,37 @@ module "mimir_coordinator" {
   channel    = var.channel
 }
 
-module "mimir_meta_read" {
+module "mimir_read" {
   source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.meta_read_name
+  app_name   = var.read_name
   model_name = var.model_name
   channel    = var.channel
   config = {
     role-read = true
   }
-  units = var.meta_read_units
+  units = var.read_units
 }
 
-module "mimir_meta_write" {
+module "mimir_write" {
   source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.meta_write_name
+  app_name   = var.write_name
   model_name = var.model_name
   channel    = var.channel
   config = {
     role-write = true
   }
-  units = var.meta_write_units
+  units = var.write_units
 }
 
-module "mimir_meta_backend" {
+module "mimir_backend" {
   source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.meta_backend_name
+  app_name   = var.backend_name
   model_name = var.model_name
   channel    = var.channel
   config = {
     role-backend = true
   }
-  units = var.meta_backend_units
+  units = var.backend_units
 }
 
 # -------------- # Integrations --------------
@@ -67,7 +67,7 @@ resource "juju_integration" "coordinator_to_s3_integrator" {
   }
 }
 
-resource "juju_integration" "coordinator_to_meta_read" {
+resource "juju_integration" "coordinator_to_read" {
   model = var.model_name
 
   application {
@@ -76,12 +76,12 @@ resource "juju_integration" "coordinator_to_meta_read" {
   }
 
   application {
-    name     = module.mimir_meta_read.app_name
+    name     = module.mimir_read.app_name
     endpoint = "mimir-cluster"
   }
 }
 
-resource "juju_integration" "coordinator_to_meta_write" {
+resource "juju_integration" "coordinator_to_write" {
   model = var.model_name
 
   application {
@@ -90,12 +90,12 @@ resource "juju_integration" "coordinator_to_meta_write" {
   }
 
   application {
-    name     = module.mimir_meta_write.app_name
+    name     = module.mimir_write.app_name
     endpoint = "mimir-cluster"
   }
 }
 
-resource "juju_integration" "coordinator_to_meta_backend" {
+resource "juju_integration" "coordinator_to_backend" {
   model = var.model_name
 
   application {
@@ -104,7 +104,7 @@ resource "juju_integration" "coordinator_to_meta_backend" {
   }
 
   application {
-    name     = module.mimir_meta_backend.app_name
+    name     = module.mimir_backend.app_name
     endpoint = "mimir-cluster"
   }
 }

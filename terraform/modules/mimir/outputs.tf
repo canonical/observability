@@ -3,9 +3,9 @@ output "app_names" {
     {
       mimir_s3_integrator = juju_application.s3_integrator.name,
       mimir_coordinator   = module.mimir_coordinator.app_name,
-      mimir_read          = module.mimir_meta_read.app_name,
-      mimir_write         = module.mimir_meta_write.app_name,
-      mimir_backend       = module.mimir_meta_backend.app_name,
+      mimir_read          = module.mimir_read.app_name,
+      mimir_write         = module.mimir_write.app_name,
+      mimir_backend       = module.mimir_backend.app_name,
     }
   )
 }
