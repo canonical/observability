@@ -83,6 +83,21 @@ resource "juju_integration" "mimir-grafana-source" {
   }
 }
 
+resource "juju_integration" "mimir-tracing-grafana-agent-traicing-provider" {
+  model = var.model_name
+
+  application {
+    name     = module.mimir.app_names.mimir_coordinator
+    endpoint = module.mimir.requires.tracing
+  }
+
+  application {
+    name     = module.grafana_agent.app_name
+    endpoint = module.grafana_agent.provides.tracing_provider
+  }
+}
+
+
 # Provided by Loki
 
 resource "juju_integration" "loki-grafana-dashboards-provider" {
@@ -138,6 +153,20 @@ resource "juju_integration" "loki-logging-grafana-agent-logging-consumer" {
   application {
     name     = module.grafana_agent.app_name
     endpoint = module.grafana_agent.requires.logging_consumer
+  }
+}
+
+resource "juju_integration" "loki-tracing-grafana-agent-traicing-provider" {
+  model = var.model_name
+
+  application {
+    name     = module.loki.app_names.loki_coordinator
+    endpoint = module.loki.requires.tracing
+  }
+
+  application {
+    name     = module.grafana_agent.app_name
+    endpoint = module.grafana_agent.provides.tracing_provider
   }
 }
 
