@@ -32,7 +32,7 @@ module "ssc" {
 }
 
 module "tempo" {
-  source      = "git::https://github.com/canonical/observability//terraform/modules/tempo"
+  source      = "git::https://github.com/canonical/observability//terraform/modules/tempo?ref=feature/local_exec"
   model_name  = var.model_name
   channel     = var.channel
 }
@@ -40,6 +40,13 @@ module "tempo" {
 module "traefik" {
   source     = "git::https://github.com/canonical/traefik-k8s-operator//terraform"
   app_name   = "traefik"
+  model_name = var.model_name
+  channel    = var.channel
+}
+
+module "grafana_agent" {
+  source     = "git::https://github.com/canonical/grafana-agent-k8s-operator//terraform?ref=feature/terraform"
+  app_name   = "grafana-agent"
   model_name = var.model_name
   channel    = var.channel
 }
@@ -106,6 +113,22 @@ resource "juju_integration" "loki-grafana-source" {
   }
 }
 
+# Provided by Tempo
+resource "juju_integration" "tempo-grafana-source" {
+  model = var.model_name
+
+  application {
+    name     = module.tempo.app_names.tempo_coordinator
+    endpoint = module.tempo.provides.grafana_source
+  }
+
+  application {
+    name     = module.grafana.app_name
+    endpoint = module.grafana.requires.grafana_source
+  }
+}
+
+
 # Provided by Catalogue
 
 resource "juju_integration" "grafana-catalogue" {
@@ -163,5 +186,35 @@ resource "juju_integration" "loki-ingress" {
   application {
     name     = module.loki.app_names.loki_coordinator
     endpoint = module.loki.requires.ingress
+  }
+}
+
+# Grafana agent
+
+resource "juju_integration" "agent-loki-metrics" {
+  model = var.model_name
+
+  application {
+    name     = module.loki.app_names.loki_coordinator
+    endpoint = module.loki.provides.self_metrics_endpoint
+  }
+
+  application {
+    name     = module.grafana_agent.app_name
+    endpoint = module.grafana_agent.requires.metrics_endpoint
+  }
+}
+
+resource "juju_integration" "agent-mimir-metrics" {
+  model = var.model_name
+
+  application {
+    name     = module.mimir.app_names.mimir_coordinator
+    endpoint = module.mimir.provides.receive_remote_write
+  }
+
+  application {
+    name     = module.grafana_agent.app_name
+    endpoint = module.grafana_agent.requires.send_remote_write
   }
 }
