@@ -113,6 +113,34 @@ resource "juju_integration" "loki-grafana-source" {
   }
 }
 
+resource "juju_integration" "loki-logging-consumer-grafana-agent-logging-provider" {
+  model = var.model_name
+
+  application {
+    name     = module.loki.app_names.loki_coordinator
+    endpoint = module.loki.requires.logging_consumer
+  }
+
+  application {
+    name     = module.grafana_agent.app_name
+    endpoint = module.grafana_agent.provides.logging_provider
+  }
+}
+
+resource "juju_integration" "loki-logging-grafana-agent-logging-consumer" {
+  model = var.model_name
+
+  application {
+    name     = module.loki.app_names.loki_coordinator
+    endpoint = module.loki.provides.logging
+  }
+
+  application {
+    name     = module.grafana_agent.app_name
+    endpoint = module.grafana_agent.requires.logging_consumer
+  }
+}
+
 # Provided by Tempo
 resource "juju_integration" "tempo-grafana-source" {
   model = var.model_name
@@ -128,6 +156,33 @@ resource "juju_integration" "tempo-grafana-source" {
   }
 }
 
+resource "juju_integration" "tempo-metrics_endpoint-grafana-agent-metrics_endpoint" {
+  model = var.model_name
+
+  application {
+    name     = module.tempo.app_names.tempo_coordinator
+    endpoint = module.tempo.provides.metrics_endpoint
+  }
+
+  application {
+    name     = module.grafana_agent.app_name
+    endpoint = module.grafana_agent.requires.metrics_endpoint
+  }
+}
+
+resource "juju_integration" "tempo-logging-grafana-agent-logging-provider" {
+  model = var.model_name
+
+  application {
+    name     = module.tempo.app_names.tempo_coordinator
+    endpoint = module.tempo.requires.logging
+  }
+
+  application {
+    name     = module.grafana_agent.app_name
+    endpoint = module.grafana_agent.provides.logging_provider
+  }
+}
 
 # Provided by Catalogue
 

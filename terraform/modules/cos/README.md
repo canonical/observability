@@ -1,6 +1,6 @@
 Terraform module for COS HA solution
 
-This is a Terraform module facilitating the deployment of COS HA solution, using the [Terraform juju provider](https://github.com/juju/terraform-provider-juju/). For more information, refer to the provider [documentation](https://registry.terraform.io/providers/juju/juju/latest/docs). 
+This is a Terraform module facilitating the deployment of COS HA solution, using the [Terraform juju provider](https://github.com/juju/terraform-provider-juju/). For more information, refer to the provider [documentation](https://registry.terraform.io/providers/juju/juju/latest/docs).
 
 The HA solution consists of the following Terraform modules:
 - [grafana-k8s](https://github.com/canonical/grafana-k8s-operator): Visualization, monitoring,and dashboards.
@@ -10,7 +10,7 @@ The HA solution consists of the following Terraform modules:
 
 This Terraform module deploys COS with Mimir and Loki in their microservices modes, and grafana, prometheus, and loki in monolithic mode.
 
-> [!NOTE]  
+> [!NOTE]
 > `s3-integrator` itself doesn't act as an S3 object storage system. For the HA solution to be functional, `s3-integrator` needs to point to an S3-like storage. See [this guide](https://discourse.charmhub.io/t/cos-lite-docs-set-up-minio/15211) to learn how to connect to an S3-like storage for traces.
 
 ## Requirements
@@ -44,7 +44,7 @@ Users should ensure that Terraform is aware of the `juju_model` dependency of th
 
 To deploy this module with its needed dependency, you can run `terraform apply -var="model_name=<MODEL_NAME>" -auto-approve`. This would deploy all COS HA solution modules in the same model.
 
-### High Availability 
+### High Availability
 
 By default, this Terraform module will deploy each worker with `1` unit. To configure the module to run `x` units of any worker role, you can run `terraform apply -var="model_name=<MODEL_NAME>" -var="<ROLE>_units=<x>" -auto-approve`.
 See each ... for the recommended scale for each role.
@@ -113,7 +113,7 @@ resource "null_resource" "s3fix" {
       juju run -m cos loki-s3-bucket/leader sync-s3-credentials access-key=user secret-key=password;
       juju run -m cos mimir-s3-bucket/leader sync-s3-credentials access-key=user secret-key=password;
       juju run -m cos tempo-s3-bucket/leader sync-s3-credentials access-key=user secret-key=password;
-      
+
       sleep 30;
     EOT
   }
