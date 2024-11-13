@@ -10,19 +10,16 @@ output "app_names" {
   )
 }
 
-output "requires" {
+output "endpoints" {
   value = {
+    # Requires
     alertmanager     = "alertmanager",
     certificates     = "certificates",
     ingress          = "ingress",
     logging_consumer = "logging-consumer",
     s3               = "s3",
     tracing          = "tracing",
-  }
-}
-
-output "provides" {
-  value = {
+    # Provides
     grafana_dashboards_provider = "grafana-dashboards-provider",
     grafana_source              = "grafana-source",
     logging                     = "logging",

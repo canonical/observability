@@ -11,6 +11,12 @@ output "app_names" {
       tempo_metrics_generator = module.tempo_metrics_generator.app_name,
     }
   )
+}
 
-
+output "endpoints" {
+  value = {
+    # Requires
+    # Provides
+    tempo_cluster = "tempo-cluster"
+  }
 }
