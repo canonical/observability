@@ -185,6 +185,21 @@ resource "juju_integration" "tempo-grafana-source" {
   }
 }
 
+
+resource "juju_integration" "tempo-tracing-grafana-agent-tracing" {
+  model = var.model_name
+
+  application {
+    name     = module.tempo.app_names.tempo_coordinator
+    endpoint = module.tempo.provides.tracing
+  }
+
+  application {
+    name     = module.grafana_agent.app_name
+    endpoint = module.grafana_agent.requires.tracing
+  }
+}
+
 resource "juju_integration" "tempo-metrics_endpoint-grafana-agent-metrics_endpoint" {
   model = var.model_name
 
