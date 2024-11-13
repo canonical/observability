@@ -45,7 +45,7 @@ module "traefik" {
 }
 
 module "grafana_agent" {
-  source     = "git::https://github.com/canonical/grafana-agent-k8s-operator//terraform?ref=feature/terraform"
+  source     = "git::https://github.com/canonical/grafana-agent-k8s-operator//terraform"
   app_name   = "grafana-agent"
   model_name = var.model_name
   channel    = var.channel
@@ -94,6 +94,21 @@ resource "juju_integration" "mimir-tracing-grafana-agent-traicing-provider" {
   application {
     name     = module.grafana_agent.app_name
     endpoint = module.grafana_agent.provides.tracing_provider
+  }
+}
+
+
+resource "juju_integration" "mimir-self_metrics_endpoint-grafana-agent-metrics_endpoint" {
+  model = var.model_name
+
+  application {
+    name     = module.mimir.app_names.mimir_coordinator
+    endpoint = module.mimir.provides.self_metrics_endpoint
+  }
+
+  application {
+    name     = module.grafana_agent.app_name
+    endpoint = module.grafana_agent.requires.metrics_endpoint
   }
 }
 
