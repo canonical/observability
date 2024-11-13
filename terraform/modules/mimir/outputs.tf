@@ -20,15 +20,17 @@ output "app_names" {
 
 output "endpoints" {
   value = {
-    certificates                = "certificates",
+    # Requires
+    certificates     = "certificates",
+    ingress          = "ingress",
+    logging_consumer = "logging-consumer",
+    s3               = "s3",
+    tracing          = "tracing",
+    # Provides
     grafana_dashboards_provider = "grafana-dashboards-provider",
     grafana_source              = "grafana-source",
-    ingress                     = "ingress",
-    logging_consumer            = "logging-consumer",
     mimir_cluster               = "mimir-cluster",
     receive_remote_write        = "receive-remote-write",
-    s3                          = "s3",
     self_metrics_endpoint       = "self-metrics-endpoint",
-    tracing                     = "tracing",
   }
 }

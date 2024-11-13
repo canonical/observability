@@ -12,17 +12,19 @@ output "app_names" {
 
 output "endpoints" {
   value = {
-    alertmanager                = "alertmanager",
-    certificates                = "certificates",
+    # Requires
+    alertmanager     = "alertmanager",
+    certificates     = "certificates",
+    ingress          = "ingress",
+    logging_consumer = "logging-consumer",
+    s3               = "s3",
+    tracing          = "tracing",
+    # Provides
     grafana_dashboards_provider = "grafana-dashboards-provider",
     grafana_source              = "grafana-source",
-    ingress                     = "ingress",
     logging                     = "logging",
-    logging_consumer            = "logging-consumer",
     loki_cluster                = "loki-cluster",
     receive_remote_write        = "receive-remote-write",
-    s3                          = "s3",
     self_metrics_endpoint       = "self-metrics-endpoint",
-    tracing                     = "tracing",
   }
 }
