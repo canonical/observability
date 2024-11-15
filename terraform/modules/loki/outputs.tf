@@ -28,3 +28,9 @@ output "endpoints" {
     self_metrics_endpoint       = "self-metrics-endpoint",
   }
 }
+
+output "bucket_name" {
+    value = {
+      bucket_name = "bucket_name",
+    }
+}
