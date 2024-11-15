@@ -18,6 +18,7 @@ output "endpoints" {
     logging_consumer = "logging-consumer",
     s3               = "s3",
     tracing          = "tracing",
+
     # Provides
     grafana_dashboards_provider = "grafana-dashboards-provider",
     grafana_source              = "grafana-source",
