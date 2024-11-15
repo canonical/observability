@@ -14,3 +14,19 @@ variable "use_tls" {
   type        = bool
   default     = true
 }
+
+variable "minio_app" {
+  description = "Minio user"
+  type        = string
+  default     = "minio"
+}
+
+variable "minio_user" {
+  description = "Minio user"
+  type        = string
+}
+
+variable "minio_password" {
+  description = "Minio Password"
+  type        = string
+}
