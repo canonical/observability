@@ -68,3 +68,15 @@ variable "query_frontend_units" {
     error_message = "The number of units must be greater than or equal to 1."
   }
 }
+
+variable "bucket_name" {
+  description = "Model name"
+  type        = string
+  default     = "tempo-bucket"
+}
+
+variable "s3_integrator_name" {
+  description = "Name of the Loki app with the write role"
+  type        = string
+  default     = "tempo-s3-integrator"
+}

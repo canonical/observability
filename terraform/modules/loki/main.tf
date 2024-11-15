@@ -1,6 +1,6 @@
 # TODO: Replace s3_integrator resource to use its remote terraform module once available
 resource "juju_application" "s3_integrator" {
-  name  = var.bucket_name
+  name  = var.s3_integrator_name
   model = var.model_name
   trust = true
 
