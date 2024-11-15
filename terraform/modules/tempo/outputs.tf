@@ -43,3 +43,8 @@ output "bucket_name" {
   value = var.bucket_name
   description = "The bucket name for Tempo"
 }
+
+output "s3_integrator_name" {
+  value       = var.tempo-s3-integrator
+  description = "Name of the s3-integrator for Tempo"
+}

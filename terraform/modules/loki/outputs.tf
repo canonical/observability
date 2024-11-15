@@ -33,3 +33,8 @@ output "bucket_name" {
   value = var.bucket_name
   description = "The bucket name for Loki"
 }
+
+output "s3_integrator_name" {
+  value       = var.loki-s3-integrator
+  description = "Name of the s3-integrator for Loki"
+}
