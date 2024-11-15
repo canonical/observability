@@ -9,6 +9,12 @@ variable "model_name" {
   type        = string
 }
 
+variable "bucket_name" {
+  description = "Model name"
+  type        = string
+  default     = "loki-s3-bucket"
+}
+
 # -------------- # App Names --------------
 
 variable "backend_name" {
