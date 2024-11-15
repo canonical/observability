@@ -88,7 +88,7 @@ resource "juju_integration" "mimir-tracing-grafana-agent-traicing-provider" {
 
   application {
     name     = module.mimir.app_names.mimir_coordinator
-    endpoint = module.mimir.requires.tracing
+    endpoint = module.mimir.endpoints.tracing
   }
 
   application {
@@ -103,7 +103,7 @@ resource "juju_integration" "mimir-self_metrics_endpoint-grafana-agent-metrics_e
 
   application {
     name     = module.mimir.app_names.mimir_coordinator
-    endpoint = module.mimir.provides.self_metrics_endpoint
+    endpoint = module.mimir.endpoints.self_metrics_endpoint
   }
 
   application {
@@ -148,7 +148,7 @@ resource "juju_integration" "loki-logging-consumer-grafana-agent-logging-provide
 
   application {
     name     = module.loki.app_names.loki_coordinator
-    endpoint = module.loki.requires.logging_consumer
+    endpoint = module.loki.endpoints.logging_consumer
   }
 
   application {
@@ -162,7 +162,7 @@ resource "juju_integration" "loki-logging-grafana-agent-logging-consumer" {
 
   application {
     name     = module.loki.app_names.loki_coordinator
-    endpoint = module.loki.provides.logging
+    endpoint = module.loki.endpoints.logging
   }
 
   application {
@@ -176,7 +176,7 @@ resource "juju_integration" "loki-tracing-grafana-agent-traicing-provider" {
 
   application {
     name     = module.loki.app_names.loki_coordinator
-    endpoint = module.loki.requires.tracing
+    endpoint = module.loki.endpoints.tracing
   }
 
   application {
@@ -196,7 +196,7 @@ resource "juju_integration" "tempo-grafana-source" {
 
   application {
     name     = module.grafana.app_name
-    endpoint = module.grafana.requires.grafana_source
+    endpoint = module.grafana.endpoints.grafana_source
   }
 }
 
@@ -310,7 +310,7 @@ resource "juju_integration" "agent-loki-metrics" {
 
   application {
     name     = module.loki.app_names.loki_coordinator
-    endpoint = module.loki.provides.self_metrics_endpoint
+    endpoint = module.loki.endpoints.self_metrics_endpoint
   }
 
   application {
@@ -324,7 +324,7 @@ resource "juju_integration" "agent-mimir-metrics" {
 
   application {
     name     = module.mimir.app_names.mimir_coordinator
-    endpoint = module.mimir.provides.receive_remote_write
+    endpoint = module.mimir.endpoints.receive_remote_write
   }
 
   application {
@@ -340,7 +340,7 @@ resource "juju_integration" "grafana-tracing-grafana-agent-traicing-provider" {
 
   application {
     name     = module.grafana.app_name
-    endpoint = module.grafana.requires.tracing
+    endpoint = module.grafana.endpoints.tracing
   }
 
   application {
