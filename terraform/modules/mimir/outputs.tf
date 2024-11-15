@@ -27,3 +27,8 @@ output "endpoints" {
     self_metrics_endpoint       = "self-metrics-endpoint",
   }
 }
+
+output "bucket_name" {
+  value = var.bucket_name
+  description = "The bucket name for Mimir"
+}

@@ -38,3 +38,8 @@ output "endpoints" {
     tempo_cluster = "tempo-cluster"
   }
 }
+
+output "bucket_name" {
+  value = var.bucket_name
+  description = "The bucket name for Tempo"
+}
