@@ -14,6 +14,7 @@ variable "bucket_name" {
   type        = string
   default     = "mimir-bucket"
 }
+
 # -------------- # App Names --------------
 
 variable "read_name" {

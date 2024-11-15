@@ -1,3 +1,5 @@
+# -------------- # Applications --------------
+
 module "catalogue" {
   source     = "git::https://github.com/canonical/catalogue-k8s-operator//terraform"
   app_name   = "catalogue"
@@ -13,13 +15,13 @@ module "grafana" {
 }
 
 module "loki" {
-  source     = "git::https://github.com/canonical/observability//terraform/modules/loki"
+  source     = "git::https://github.com/canonical/observability//terraform/modules/loki?ref=self-monitoring"
   model_name = var.model_name
   channel    = var.channel
 }
 
 module "mimir" {
-  source     = "git::https://github.com/canonical/observability//terraform/modules/mimir"
+  source     = "git::https://github.com/canonical/observability//terraform/modules/mimir?ref=self-monitoring"
   model_name = var.model_name
   channel    = var.channel
 }
@@ -32,7 +34,7 @@ module "ssc" {
 }
 
 module "tempo" {
-  source     = "git::https://github.com/canonical/observability//terraform/modules/tempo"
+  source     = "git::https://github.com/canonical/observability//terraform/modules/tempo?ref=self-monitoring"
   model_name = var.model_name
   channel    = var.channel
 }
@@ -50,6 +52,25 @@ module "grafana_agent" {
   model_name = var.model_name
   channel    = var.channel
 }
+
+resource "juju_application" "minio" {
+  # Coordinator requires s3
+  name  = var.minio_app
+  model = var.model_name
+  trust = true
+
+  charm {
+	name    = "minio"
+	channel = "latest/edge"
+  }
+  units = 1
+
+  config = {
+	access-key = var.minio_user
+	secret-key = var.minio_password
+  }
+}
+
 
 # -------------- # Integrations --------------
 
