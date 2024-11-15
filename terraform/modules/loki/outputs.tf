@@ -35,6 +35,6 @@ output "bucket_name" {
 }
 
 output "s3_integrator_name" {
-  value       = var.loki-s3-integrator
+  value       = var.s3_integrator_name
   description = "Name of the s3-integrator for Loki"
 }
