@@ -109,7 +109,7 @@ resource "juju_integration" "mimir-tracing-grafana-agent-traicing-provider" {
 
   application {
     name     = module.mimir.app_names.mimir_coordinator
-    endpoint = module.mimir.endpoints.tracing
+    endpoint = module.mimir.endpoints.charm_tracing
   }
 
   application {
@@ -197,7 +197,7 @@ resource "juju_integration" "loki-tracing-grafana-agent-traicing-provider" {
 
   application {
     name     = module.loki.app_names.loki_coordinator
-    endpoint = module.loki.endpoints.tracing
+    endpoint = module.loki.endpoints.charm_tracing
   }
 
   application {
