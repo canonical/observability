@@ -60,14 +60,14 @@ resource "juju_application" "minio" {
   trust = true
 
   charm {
-	name    = "minio"
-	channel = "latest/edge"
+    name    = "minio"
+    channel = "latest/edge"
   }
   units = 1
 
   config = {
-	access-key = var.minio_user
-	secret-key = var.minio_password
+    access-key = var.minio_user
+    secret-key = var.minio_password
   }
 }
 
