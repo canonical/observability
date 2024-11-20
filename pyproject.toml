@@ -1,0 +1,104 @@
+[build-system]
+requires = ["hatchling", "PyYAML", "typing-extensions"]
+build-backend = "hatchling.build"
+
+[project]
+name = "observability-test-helpers"
+version = "0.0.1"
+authors = [
+  { name="sed-i", email="82407168+sed-i@users.noreply.github.com" },
+]
+description = "Test helpers for observability tests"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.8"
+dependencies = [
+  "ops",
+  "requests",
+  "cosl",
+  "tenacity",
+  "minio",
+]
+classifiers = [
+    "Programming Language :: Python :: 3.8",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Topic :: Utilities",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Development Status :: 4 - Beta",
+    "Typing :: Typed",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/canonical/observability"
+"Bug Tracker" = "https://github.com/canonical/observability/issues"
+
+[package]
+include = ["py.typed"]
+
+# Testing tools configuration
+[tool.coverage.run]
+branch = true
+parallel = true
+omit = ["tests/**", "lib/**"]
+
+[tool.coverage.report]
+show_missing = true
+
+# Formatting tools configuration
+[tool.black]
+line-length = 99
+target-version = ["py38"]
+
+# Linting tools configuration
+[tool.ruff]
+line-length = 99
+extend-exclude = ["__pycache__", "*.egg_info"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "C", "N", "D", "I001"]
+extend-ignore = [
+  "D203",
+  "D204",
+  "D213",
+  "D215",
+  "D400",
+  "D404",
+  "D406",
+  "D407",
+  "D408",
+  "D409",
+  "D413",
+  "E402",
+]
+ignore = ["E501", "D107"]
+per-file-ignores = {"tests/*" = ["D100","D101","D102","D103","D104"]}
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.lint.pep8-naming]
+# Allow Pydantic's `@validator` decorator to trigger class method treatment.
+classmethod-decorators = ["classmethod", "pydantic.validator"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/test-helpers"]
+
+
+[tool.pyright]
+include = ["src"]
+extraPaths = ["lib", "src/test-helpers"]
+pythonVersion = "3.8"
+pythonPlatform = "All"
+typeCheckingMode = "strict"
+reportIncompatibleMethodOverride = false
+reportImportCycles = false
+reportTypeCommentUsage = false
+
+[tool.codespell]
+skip = ".git,.tox,build,lib,venv*,.mypy_cache"
+ignore-words-list = "assertIn"
