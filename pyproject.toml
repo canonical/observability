@@ -86,12 +86,12 @@ max-complexity = 15
 classmethod-decorators = ["classmethod", "pydantic.validator"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/test-helpers"]
+packages = ["src/test_helpers"]
 
 
 [tool.pyright]
 include = ["src"]
-extraPaths = ["lib", "src/test-helpers"]
+extraPaths = ["lib", "src/test_helpers"]
 pythonVersion = "3.8"
 pythonPlatform = "All"
 typeCheckingMode = "strict"
