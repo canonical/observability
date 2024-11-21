@@ -28,5 +28,6 @@ jobs:
           if [ -f tox.ini ]; then
             tox -vve lint
           else
+            sudo snap install --classic astral-uv
             make lint
           fi

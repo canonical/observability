@@ -70,7 +70,8 @@ jobs:
           cd ${{ inputs.charm-path }}
           if [ -f tox.ini ]; then
             tox -vve integration
-          else  
+          else
+            sudo snap install --classic astral-uv
             make unit
           fi
       - name: Dump logs

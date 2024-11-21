@@ -27,6 +27,7 @@ jobs:
           cd ${{ inputs.charm-path }}
           if [ -f tox.ini ]; then
             tox -e unit
-          else  
+          else
+            sudo snap install --classic astral-uv
             make unit
           fi
