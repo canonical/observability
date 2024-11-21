@@ -72,7 +72,7 @@ jobs:
             tox -vve integration
           else
             sudo snap install --classic astral-uv
-            make unit
+            make integration
           fi
       - name: Dump logs
         if: failure()

@@ -64,7 +64,7 @@ jobs:
           charmcraft-channel: "${{ inputs.charmcraft-channel }}"
   static-analysis:
     name: Static Analysis
-    uses: canonical/observability/.github/workflows/_charm-static-analysis.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-static-analysis.yaml@feature/uv-ci-make
     with:
       charm-path: "${{ inputs.charm-path }}"
   linting:
@@ -79,7 +79,7 @@ jobs:
       charm-path: "${{ inputs.charm-path }}"
   scenario-test:
     name: Scenario Tests
-    uses: canonical/observability/.github/workflows/_charm-tests-scenario.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-tests-scenario.yaml@feature/uv-ci-make
     with:
       charm-path: "${{ inputs.charm-path }}"
   integration-test:

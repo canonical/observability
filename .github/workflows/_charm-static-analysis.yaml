@@ -39,4 +39,11 @@ jobs:
       - name: Install dependencies
         run: python3 -m pip install tox
       - name: Run static analysis (charm)
-        run: cd ${{ inputs.charm-path }} && tox -vve static-charm
+        run: |
+          cd ${{ inputs.charm-path }}
+          if [ -f tox.ini ]; then
+            tox -vve static-charm
+          else
+            sudo snap install --classic astral-uv
+            make static
+          fi
