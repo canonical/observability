@@ -66,7 +66,13 @@ jobs:
           microk8s-addons: "hostpath-storage dns metallb:${{ inputs.ip-range || steps.ip_range.outputs.ip_range }}"
           charmcraft-channel: "${{ inputs.charmcraft-channel }}"
       - name: Run integration tests
-        run: cd ${{ inputs.charm-path }} && tox -vve integration
+        run: |
+          cd ${{ inputs.charm-path }}
+          if [ -f tox.ini ]; then
+            tox -vve integration
+          else  
+            make unit
+          fi
       - name: Dump logs
         if: failure()
         uses: canonical/charming-actions/dump-logs@main

@@ -23,4 +23,10 @@ jobs:
       - name: Install dependencies
         run: python3 -m pip install tox
       - name: Run linters
-        run: cd ${{ inputs.charm-path }} && tox -vve lint
+        run: |
+          cd ${{ inputs.charm-path }}
+          if [ -f tox.ini ]; then
+            tox -vve lint
+          else
+            make lint
+          fi
