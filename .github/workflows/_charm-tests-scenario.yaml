@@ -23,7 +23,6 @@ jobs:
       - name: Install dependencies
         run: python -m pip install tox
       - name: Run tests
-        run: cd ${{ inputs.charm-path }}
         run: |
           cd ${{ inputs.charm-path }}
           if [ -f tox.ini ]; then
