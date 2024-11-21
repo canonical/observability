@@ -18,6 +18,7 @@ dependencies = [
   "cosl",
   "tenacity",
   "minio",
+  "juju"
 ]
 classifiers = [
     "Programming Language :: Python :: 3.8",
