@@ -6,7 +6,7 @@
 import logging
 import subprocess
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Dict
 
 import yaml
 from juju.application import Application
@@ -139,9 +139,7 @@ def get_content(
     return UnitRelationData(unit_name, endpoint, leader, app_data, unit_data)
 
 
-def get_databags(
-    local_unit, local_endpoint, remote_unit, remote_endpoint, model
-) -> tuple[Any, Any, Any]:
+def get_databags(local_unit, local_endpoint, remote_unit, remote_endpoint, model):
     """Get the databags of local unit and its leadership status.
 
     Given a remote unit and the remote endpoint name.
