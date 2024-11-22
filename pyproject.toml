@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "observability-test-helpers"
 version = "0.0.1"
 authors = [
-  { name="sed-i", email="82407168+sed-i@users.noreply.github.com" },
+  { name="mmkay", email="232859+mmkay@users.noreply.github.com" },
 ]
 description = "Test helpers for observability tests"
 readme = "README.md"
@@ -27,7 +27,7 @@ classifiers = [
     "Topic :: Utilities",
     "Intended Audience :: Developers",
     "Intended Audience :: System Administrators",
-    "Development Status :: 4 - Beta",
+    "Development Status :: 2 - Pre-Alpha",
     "Typing :: Typed",
 ]
 
