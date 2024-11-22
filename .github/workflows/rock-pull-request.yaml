@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo snap install concierge --classic
-          concierge prepare -p microk8s
+          sudo concierge prepare -p microk8s
           pip install git+https://github.com/lucabello/noctua
       - name: Pack and test the rocks
         run: |
