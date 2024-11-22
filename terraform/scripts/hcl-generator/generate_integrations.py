@@ -4,6 +4,7 @@ import hcl2
 import os
 import argparse
 from pathlib import Path
+import json
 
 OUTPUTS_TF_FILE = "outputs.tf"
 
@@ -67,25 +68,21 @@ class HCLGenerator(object):
         requires_formatted = self.format_keys(requires)
         provides_formatted = self.format_keys(provides)
 
-        # Prepare the output string
-        output = 'output "endpoints" {\n  value = {\n'
+        output = {"endpoints": {"value": {}}}
 
         # Add requires
-        output += "    # Requires\n"
         for key, value in requires_formatted.items():
-            output += f'    {key:<20} = "{value}",\n'
+            output["endpoints"]["value"][value] = value
 
         # Add provides
-        output += "    # Provides\n"
         for key, value in provides_formatted.items():
-            output += f'    {key:<20} = "{value}",\n'
+            output["endpoints"]["value"][value] = value
 
-        output += "  }\n}"
         # TODO: Create a function for `terraform format` of the output
         return output
 
     def write_hcl_file(self, hcl_content):
-        """Parse the YAML file and return the data"""
+        """Write the YAML file from the generated hcl content. Only overwrite the endpoints values."""
         
         self.create_file_with_parents()
 
@@ -94,9 +91,17 @@ class HCLGenerator(object):
 
         if read_obj:
             print("WE HAD CONTENTS")
+            outputs = read_obj["output"]
+            for output in outputs:
+                if output.get("endpoints", {}):
+                    # overwrite it
+                    output["endpoints"] = hcl_content["endpoints"]
+            hcl_content = outputs
         
+        print(f"HCL: {hcl_content}")
+
         with open(self.outputs_tf, "w") as file:
-            file.write(hcl_content)
+            file.write(hcl_data)
 
 
 def main():
