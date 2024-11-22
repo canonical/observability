@@ -19,9 +19,10 @@ jobs:
           files: "**/rockcraft.yaml"
       - name: Install dependencies
         run: |
+          sudo apt install -y pipx
           sudo snap install concierge --classic
           sudo concierge prepare -p microk8s
-          pip install git+https://github.com/lucabello/noctua
+          sudo pipx install git+https://github.com/lucabello/noctua
       - name: Pack and test the rocks
         run: |
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
