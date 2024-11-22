@@ -53,24 +53,11 @@ module "grafana_agent" {
   channel    = var.channel
 }
 
-resource "juju_application" "minio" {
-  # Coordinator requires s3
-  name  = var.minio_app
-  model = var.model_name
-  trust = true
-
-  charm {
-    name    = "minio"
-    channel = "latest/edge"
-  }
-  units = 1
-
-  config = {
-    access-key = var.minio_user
-    secret-key = var.minio_password
-  }
+module "s3" {
+  source     = "git::https://github.com/canonical/grafana-agent-k8s-operator//terraform/s3?ref=self-monitoring"
+  model_name = var.model_name
+  channel    = var.channel
 }
-
 
 # -------------- # Integrations --------------
 
