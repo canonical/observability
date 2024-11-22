@@ -1,7 +1,7 @@
 resource "null_resource" "s3fix" {
   triggers = {
-    model_name   = var.model_name
-    minio_app    = var.minio_app
+    model_name = var.model_name
+    minio_app  = var.minio_app
   }
   provisioner "local-exec" {
     command = <<-EOT
