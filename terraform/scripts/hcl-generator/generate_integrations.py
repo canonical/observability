@@ -68,16 +68,20 @@ class HCLGenerator(object):
         requires_formatted = self.format_keys(requires)
         provides_formatted = self.format_keys(provides)
 
-        output = {"endpoints": {"value": {}}}
+        # Prepare the output string
+        output = 'output "endpoints" {\n  value = {\n'
 
         # Add requires
+        output += "    # Requires\n"
         for key, value in requires_formatted.items():
-            output["endpoints"]["value"][value] = value
+            output += f'    {key:<20} = "{value}",\n'
 
         # Add provides
+        output += "    # Provides\n"
         for key, value in provides_formatted.items():
-            output["endpoints"]["value"][value] = value
+            output += f'    {key:<20} = "{value}",\n'
 
+        output += "  }\n}"
         # TODO: Create a function for `terraform format` of the output
         return output
 
@@ -100,8 +104,14 @@ class HCLGenerator(object):
         
         print(f"HCL: {hcl_content}")
 
+        # TODO: We need a way to programmatically take in the values from the file
+        #  which has the form [{output_app}, {output_endpoints}]
+        #  we need to convert this format to a simple interface like
+        #    {app_name: {}, endpoints: {}, ...}
+        #    then we can update the content and create a function which creates a string from the dict
+        #    approximating HCL syntax which can then be linted with tf check diff
         with open(self.outputs_tf, "w") as file:
-            file.write(hcl_data)
+            file.write(hcl_content)
 
 
 def main():
