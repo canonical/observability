@@ -4,7 +4,22 @@ name: Pull Request
 on:
   workflow_call:
 
+
 jobs:
-  test-build:
-    name: Test rock build
-    uses: canonical/observability/.github/workflows/_rock-build-test.yaml@main
+  test:
+    name: Test the rock
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Setup requirements
+        run: |
+          snap install concierge --classic
+          concierge prepare -p microk8s
+          pip install git+https://github.com/lucabello/noctua
+      - name: Pack the rock
+        run: |
+          cd ${{ inputs.rock-path }} && rockcraft pack --output test.rock
+      - name: Test the rock
+        run: |
+          noctua rock test ${{ inputs.rock-path }}/test.rock --goss-file=goss.yaml --one-shot
