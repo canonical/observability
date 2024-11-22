@@ -54,7 +54,7 @@ module "grafana_agent" {
 }
 
 module "s3" {
-  source     = "git::https://github.com/canonical/grafana-agent-k8s-operator//terraform/s3?ref=self-monitoring"
+  source     = "git::https://github.com/canonical/observability//terraform/modules/s3?ref=self-monitoring"
   model_name = var.model_name
   channel    = var.channel
 }
