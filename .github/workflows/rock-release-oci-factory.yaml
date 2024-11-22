@@ -69,49 +69,13 @@ jobs:
         id: update-releases
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: |
-          # Get the tags already in OCI Factory
-          existing_tags="$(jq -r 'to_entries[] | .key' $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/_releases.json | sed 's/-22.04//')"
-          # Get the versions from the rocks that have been modified
-          modified_tags="$(echo ${{ steps.changed-files.outputs.all_changed_and_modified_files }} | tr ' ' '\n' | sed s@/rockcraft.yaml@@)"
-          # Merge the two to make a list of all the versions that will be in OCI Factory with
-          # the PR that is being opened in this workflow
-          all_tags="$existing_tags\n$modified_tags"
-          today="$(date)"
-          echo "now_epoch=$(date -d now +%s)" >> $GITHUB_OUTPUT  # to create a unique branch name on the fork
-          end_of_life="$(date -d "$today+3 months" +%Y-%m-%d)"
-          yq -i ".upload = []" $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/image.yaml
-          for file in ${{ steps.changed-files.outputs.all_changed_and_modified_files }}; do
-            # For each rock version, build the `upload:` element for image.yaml as a json
-            # Example: {"source": "canonical/prometheus-rock", "commit": "...", ...}
-            patch_tag=""; minor_tag=""; major_tag=""
-            tag_json_format='"%s-22.04": {"end-of-life": "%sT00:00:00Z", "risks":["stable"]}'
-            # Parse the rock version from the rockcraft.yaml
-            rock_version=$(yq -r '.version' $GITHUB_WORKSPACE/rock/$file)
-            # Always tag with patch
-            patch_tag=$(printf "$tag_json_format" "$rock_version" "$end_of_life")
-            # If rock_version is the latest tag among the ones with equal major.minor, apply major.minor
-            rock_major_minor=$(echo $rock_version | sed -E "s/([0-9]+\.[0-9]+).*/\1/")
-            same_major_minor=$(printf "%s\n%s" "$all_tags" "$rock_version" | grep "$rock_major_minor")
-            if [[ $(echo "$same_major_minor" | sort -V | tail -n1) == "$rock_version" ]]; then
-              minor_tag=$(printf ",$tag_json_format" "$rock_major_minor" "$end_of_life")
-            fi
-            # If rock_version is the latest among the ones with equal major, apply major
-            rock_major=$(echo $rock_version | sed -E "s/([0-9]+).*/\1/")
-            same_major=$(printf "%s\n%s" "$all_tags" "$rock_version" | grep "$rock_major")
-            if [[ $(echo "$same_major" | sort -V | tail -n1) == "$rock_version" ]]; then
-              major_tag=$(printf ",$tag_json_format" "$rock_major" "$end_of_life")
-            fi
-            # Build the final JSON object to update image.yaml
-            rock_tags=$(printf '{%s%s%s}' "$patch_tag" "$minor_tag" "$major_tag")
-            upload_item_format='{"source":"%s","commit":"%s","directory":"%s","release":%s}'
-            upload_item=$(printf "$upload_item_format" \
-              "canonical/${{ inputs.rock-name }}-rock" \
-              "${{ steps.commit-sha.outputs.commit_sha }}" \
-              "$rock_version" \
-              "$rock_tags" \
-            )
-            yq -i ".upload += $upload_item" $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/image.yaml
-          done
+          pip install git+https://github.com/lucabello/noctua
+          versions="$(echo ${{ steps.changed-files.outputs.all_changed_and_modified_files }} | tr ' ' '\n' | grep rockcraft.yaml | sed 's@/rockcraft.yaml@@g')"
+          noctua rock manifest "${{ github.repository }}" \
+            --commit="${{ steps.commit-sha.outputs.commit_sha }}" \
+            --base=22.04 \
+            $(echo $versions | sed -E 's/(\S+)/--version \1/g' | tr '\n' ' ') \  # build the --version flags
+            > $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/image.yaml
 
       - name: Commit to the fork
         id: fork-commit

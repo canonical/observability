@@ -8,7 +8,11 @@ on:
         type: boolean
         default: false
         required: true
-
+      track:
+        type: choice
+        description: Track on which to run the promotion train
+        options:
+          - latest
 jobs:
   promote:
     name: Promote Charm
@@ -52,52 +56,7 @@ jobs:
             echo "charm_path=$CHARM_PATH" >> $GITHUB_OUTPUT;
           fi
 
-      - name: Check which tracks already have a release
-        id: check-tracks
-        env:
-          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+      - name: Run the promotion train
         run: |
-          sudo snap install charmcraft --classic
-          cd ${{ steps.read-charm-path.outputs.charm_path }}
-          charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
-          status=$(charmcraft status "$charm_name" --format=json)
-          to_stable=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/stable") | .status' | head -n1)
-          to_candidate=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/candidate") | .status' | head -n1)
-          to_beta=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/beta") | .status' | head -n1)
-          echo "to_stable=$to_stable" >> $GITHUB_OUTPUT
-          echo "to_candidate=$to_candidate" >> $GITHUB_OUTPUT
-          echo "to_beta=$to_beta" >> $GITHUB_OUTPUT
-
-      - name: (dry run) Print promotions
-        if: ${{ inputs.dry-run }}
-        run: |
-          echo "${{ matrix.charm-repo }} would promote the following channels:"
-          if [[ "${{ steps.check-tracks.outputs.to_stable }}" == "open" ]]; then echo "- latest/candidate --> latest/stable"; fi
-          if [[ "${{ steps.check-tracks.outputs.to_candidate }}" == "open" ]]; then echo "- latest/beta --> latest/candidate"; fi
-          if [[ "${{ steps.check-tracks.outputs.to_beta }}" == "open" ]]; then echo "- latest/edge --> latest/beta"; fi
-
-      - name: Promote charm - latest/candidate --> latest/stable
-        if: ${{ !inputs.dry-run && steps.check-tracks.outputs.to_stable == 'open' }}
-        uses: canonical/charming-actions/promote-charm@2.6.0
-        with:
-          charm-path: ${{ steps.read-charm-path.outputs.charm_path }}
-          credentials: ${{ secrets.CHARMHUB_TOKEN }}
-          origin-channel: latest/candidate
-          destination-channel: latest/stable
-
-      - name: Promote charm - latest/beta --> latest/candidate
-        if: ${{ !inputs.dry-run && steps.check-tracks.outputs.to_candidate == 'open' }}
-        uses: canonical/charming-actions/promote-charm@2.6.0
-        with:
-          charm-path: ${{ steps.read-charm-path.outputs.charm_path }}
-          credentials: ${{ secrets.CHARMHUB_TOKEN }}
-          origin-channel: latest/beta
-          destination-channel: latest/candidate
-      - name: Promote charm - latest/edge --> latest/beta
-        if: ${{ !inputs.dry-run && steps.check-tracks.outputs.to_beta == 'open' }}
-        uses: canonical/charming-actions/promote-charm@2.6.0
-        with:
-          charm-path: ${{ steps.read-charm-path.outputs.charm_path }}
-          credentials: ${{ secrets.CHARMHUB_TOKEN }}
-          origin-channel: latest/edge
-          destination-channel: latest/beta
+          pip install git+https://github.com/lucabello/noctua
+          noctua charm promote-train --track=${{ inputs.track }}
