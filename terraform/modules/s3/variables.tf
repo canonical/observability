@@ -30,3 +30,18 @@ variable "mc_binary_url" {
   type        = string
   default     = "https://dl.min.io/client/mc/release/linux-amd64/mc"
 }
+
+variable "loki" {
+  description = "Loki module outputs"
+  type        = any
+}
+
+variable "mimir" {
+  description = "Mimir module outputs"
+  type        = any
+}
+
+variable "tempo" {
+  description = "Tempo module outputs"
+  type        = any
+}

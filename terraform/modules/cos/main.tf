@@ -54,9 +54,16 @@ module "grafana_agent" {
 }
 
 module "s3" {
-  source     = "git::https://github.com/canonical/observability//terraform/modules/s3?ref=self-monitoring"
-  model_name = var.model_name
-  channel    = var.channel
+  source     = "git::https://github.com/canonical/observability//terraform/modules/s3"
+
+  model_name     = var.model_name
+  channel        = var.channel
+  minio_user     = var.minio_user
+  minio_password = var.minio_password
+
+  loki  = module.loki
+  mimir = module.mimir
+  tempo = module.tempo
 }
 
 # -------------- # Integrations --------------
