@@ -4,6 +4,11 @@ variable "channel" {
   default     = "latest/edge"
 }
 
+variable "model_name" {
+  description = "Model name"
+  type        = string
+}
+
 variable "minio_app" {
   description = "Minio user"
   type        = string
