@@ -19,11 +19,11 @@ jobs:
           files: "**/rockcraft.yaml"
       - name: Install dependencies
         run: |
-          sudo apt install -y pipx
+          sudo snap install astral-uv --classic
           sudo snap install concierge --classic
           sudo concierge prepare -p microk8s
           sudo microk8s enable registry
-          sudo pipx install git+https://github.com/lucabello/noctua
+          sudo uv tool install git+https://github.com/lucabello/noctua
       - name: Pack and test the rocks
         run: |
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
