@@ -72,7 +72,7 @@ variable "query_frontend_units" {
 variable "bucket_name" {
   description = "Model name"
   type        = string
-  default     = "tempo-bucket"
+  default     = "tempo"
 }
 
 variable "s3_integrator_name" {

@@ -12,7 +12,7 @@ variable "model_name" {
 variable "bucket_name" {
   description = "Model name"
   type        = string
-  default     = "loki-bucket"
+  default     = "loki"
 }
 
 # -------------- # App Names --------------
