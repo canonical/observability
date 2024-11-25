@@ -7,12 +7,14 @@ import json
 import logging
 import os
 from pathlib import Path
+from typing import Optional
 
 import requests
 from pytest_operator.plugin import OpsTest
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from .common import S3_INTEGRATOR, deploy_and_configure_minio
+from .common import S3_INTEGRATOR, deploy_and_configure_minio, S3_APP_NAME
+from .juju import Juju, WorkloadStatus
 
 WORKER_NAME = "tempo-worker"
 APP_NAME = "tempo"
@@ -25,6 +27,7 @@ protocols_endpoints = {
 }
 
 logger = logging.getLogger(__name__)
+
 
 
 def tempo_coordinator_charm_and_channel():
@@ -49,32 +52,32 @@ def tempo_worker_charm_and_channel():
     return "tempo-worker-k8s", "edge"
 
 
-async def deploy_tempo_cluster(ops_test: OpsTest, tempo_app=APP_NAME):
+async def deploy_tempo_cluster(model: Optional[str] = None, tempo_app: str = APP_NAME):
     """Deploys tempo in its HA version together with minio and s3-integrator."""
+
+    juju = Juju(model=model)
     tempo_worker_charm_url, worker_channel = tempo_worker_charm_and_channel()
     tempo_coordinator_charm_url, coordinator_channel = tempo_coordinator_charm_and_channel()
-    await ops_test.model.deploy(
-        tempo_worker_charm_url, application_name=WORKER_NAME, channel=worker_channel, trust=True
-    )
-    await ops_test.model.deploy(
+    juju.deploy(tempo_worker_charm_url, alias=WORKER_NAME, channel=worker_channel, trust=True)
+    juju.deploy(
         tempo_coordinator_charm_url,
-        application_name=tempo_app,
+        alias=tempo_app,
         channel=coordinator_channel,
         trust=True,
     )
-    await ops_test.model.deploy(S3_INTEGRATOR, channel="edge")
+    # TODO minio deployment should be extracted so that more than 1 HA charm can use the same minio instance
+    # then tempo_cluster would deploy its own s3_integrator and create the required bucket (prob via calling a common method)
+    juju.deploy(S3_INTEGRATOR, alias=S3_APP_NAME, channel="edge")
 
-    await ops_test.model.integrate(tempo_app + ":s3", S3_INTEGRATOR + ":s3-credentials")
-    await ops_test.model.integrate(tempo_app + ":tempo-cluster", WORKER_NAME + ":tempo-cluster")
+    juju.integrate(tempo_app + ":s3", S3_APP_NAME + ":s3-credentials")
+    juju.integrate(tempo_app + ":tempo-cluster", WORKER_NAME + ":tempo-cluster")
 
-    await deploy_and_configure_minio(ops_test)
-    async with ops_test.fast_forward():
-        await ops_test.model.wait_for_idle(
-            apps=[tempo_app, WORKER_NAME, S3_INTEGRATOR],
-            status="active",
-            timeout=2000,
-            idle_period=30,
-        )
+    deploy_and_configure_minio(model)
+    juju.wait(
+        stop=lambda status: status.all_workloads([tempo_app, WORKER_NAME, S3_INTEGRATOR], WorkloadStatus.active),
+        timeout=2000,
+        soak=30,
+    )
 
 
 def get_traces(tempo_host: str, service_name="tracegen-otlp_http", tls=True):

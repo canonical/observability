@@ -6,7 +6,7 @@
 import logging
 import subprocess
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, Optional
 
 import yaml
 from juju.application import Application
@@ -14,8 +14,9 @@ from juju.unit import Unit
 from minio import Minio
 from pytest_operator.plugin import OpsTest
 
-logger = logging.getLogger(__name__)
+from scripts.src.test_helpers.juju import Juju, WorkloadStatus
 
+logger = logging.getLogger(__name__)
 
 _JUJU_KEYS = ("egress-subnets", "ingress-address", "private-address")
 _JUJU_DATA_CACHE = {}
@@ -25,6 +26,7 @@ MINIO = "minio"
 BUCKET_NAME = "tempo"
 SECRET_KEY = "secretkey"
 S3_INTEGRATOR = "s3-integrator"
+S3_APP_NAME = "s3"
 
 
 def get_unit_info(unit_name: str, model: str = None) -> dict:
@@ -84,17 +86,17 @@ def purge(data: dict) -> None:
 
 
 def get_relation_by_endpoint(
-    relations: dict, local_endpoint: str, remote_endpoint: str, remote_obj: dict
+        relations: dict, local_endpoint: str, remote_endpoint: str, remote_obj: dict
 ) -> dict:
     """Find a matching endpoint relation. Returns a single entry and throws an error if there are none / more than 1."""
     matches = [
         r
         for r in relations
         if (
-            (r["endpoint"] == local_endpoint and r["related-endpoint"] == remote_endpoint)
-            or (r["endpoint"] == remote_endpoint and r["related-endpoint"] == local_endpoint)
-        )
-        and remote_obj in r["related-units"]
+                   (r["endpoint"] == local_endpoint and r["related-endpoint"] == remote_endpoint)
+                   or (r["endpoint"] == remote_endpoint and r["related-endpoint"] == local_endpoint)
+           )
+           and remote_obj in r["related-units"]
     ]
     if not matches:
         raise ValueError(
@@ -123,7 +125,7 @@ class UnitRelationData:
 
 
 def get_content(
-    obj: str, other_obj, include_default_juju_keys: bool = False, model: str = None
+        obj: str, other_obj, include_default_juju_keys: bool = False, model: str = None
 ) -> UnitRelationData:
     """Get the content of the databag of `obj`, as seen from `other_obj`."""
     unit_name, endpoint = obj.split(":")
@@ -167,11 +169,11 @@ class RelationData:
 
 
 def get_relation_data(
-    *,
-    provider_endpoint: str,
-    requirer_endpoint: str,
-    include_default_juju_keys: bool = False,
-    model: str = None,
+        *,
+        provider_endpoint: str,
+        requirer_endpoint: str,
+        include_default_juju_keys: bool = False,
+        model: str = None,
 ) -> RelationData:
     """Get relation databags for a juju relation.
 
@@ -226,42 +228,51 @@ async def get_unit_address(ops_test: OpsTest, app_name, unit_no) -> str:
     return unit["address"]
 
 
-async def deploy_and_configure_minio(ops_test: OpsTest) -> None:
-    """Deploy and set up minio and s3-integrator needed for s3-like storage backend in the HA charms."""
+def deploy_and_configure_minio(model: Optional[str] = None) -> None:
+    """Deploy and set up minio and s3-integrator needed for s3-like storage backend in the HA charms.
+    :param model:
+    """
+    juju = Juju(model=model)
     config = {
         "access-key": ACCESS_KEY,
         "secret-key": SECRET_KEY,
     }
-    await ops_test.model.deploy(MINIO, channel="edge", trust=True, config=config)
-    await ops_test.model.wait_for_idle(apps=[MINIO], status="active", timeout=2000)
-    minio_addr = await get_unit_address(ops_test, MINIO, "0")
+    juju.deploy(MINIO, channel="edge", trust=True, config=config)
+    juju.wait(
+        stop=lambda status: status.workload_status(MINIO)[f"{MINIO}/0"] == WorkloadStatus.active,
+        timeout=2000
+    )
+    minio_addr = juju.status().get_unit_ips(MINIO)[f"{MINIO}/0"]
 
+    # TODO we shouldn't create a bucket here, rather in the HA charm. this should just deploy minio
+    create_bucket(minio_addr)
+
+    # configure s3-integrator
+
+    juju.application_config_set(
+        S3_APP_NAME,
+        {
+            "endpoint": f"{MINIO}-0.{MINIO}-endpoints.{model}.svc.cluster.local:9000",
+            "bucket": BUCKET_NAME,
+        }
+    )
+
+    action_result = juju.run(S3_APP_NAME, "sync-s3-credentials", params=config)
+
+    assert action_result["status"] == "completed"
+
+
+def create_bucket(minio_addr: str, bucket_name: str = BUCKET_NAME):
     mc_client = Minio(
         f"{minio_addr}:9000",
         access_key="accesskey",
         secret_key="secretkey",
         secure=False,
     )
-
     # create tempo bucket
-    found = mc_client.bucket_exists(BUCKET_NAME)
+    found = mc_client.bucket_exists(bucket_name)
     if not found:
-        mc_client.make_bucket(BUCKET_NAME)
-
-    # configure s3-integrator
-    s3_integrator_app: Application = ops_test.model.applications[S3_INTEGRATOR]
-    s3_integrator_leader: Unit = s3_integrator_app.units[0]
-
-    await s3_integrator_app.set_config(
-        {
-            "endpoint": f"minio-0.minio-endpoints.{ops_test.model.name}.svc.cluster.local:9000",
-            "bucket": BUCKET_NAME,
-        }
-    )
-
-    action = await s3_integrator_leader.run_action("sync-s3-credentials", **config)
-    action_result = await action.wait()
-    assert action_result.status == "completed"
+        mc_client.make_bucket(bucket_name)
 
 
 async def get_application_ip(ops_test: OpsTest, app_name: str) -> str:
