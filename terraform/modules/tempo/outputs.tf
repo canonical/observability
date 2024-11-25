@@ -13,29 +13,20 @@ output "app_names" {
   )
 }
 
-output "requires" {
+output "endpoints" {
   value = {
+    # Requires
     logging           = "logging",
     ingress           = "ingress",
     certificates      = "certificates",
     send-remote-write = "send-remote-write",
-  }
-}
 
-output "provides" {
-  value = {
+    # Provides
+    tempo_cluster     = "tempo-cluster"
     grafana_dashboard = "grafana-dashboard",
     grafana_source    = "grafana-source",
     metrics_endpoint  = "metrics-endpoint",
     tracing           = "tracing",
-  }
-}
-
-output "endpoints" {
-  value = {
-    # Requires
-    # Provides
-    tempo_cluster = "tempo-cluster"
   }
 }
 
