@@ -54,8 +54,7 @@ module "grafana_agent" {
 }
 
 module "s3" {
-  source     = "git::https://github.com/canonical/observability//terraform/modules/s3"
-
+  source         = "git::https://github.com/canonical/observability//terraform/modules/s3"
   model_name     = var.model_name
   channel        = var.channel
   minio_user     = var.minio_user
