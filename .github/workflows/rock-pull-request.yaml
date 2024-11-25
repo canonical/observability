@@ -31,7 +31,7 @@ jobs:
             current_wd=$(pwd) && cd ${file%/*}
             rockcraft pack
             test_rock=$(find . -name "*.rock")
-            noctua rock test $test_rock --goss-file=../goss.yaml --one-shot
+            noctua rock test $test_rock --goss-file=../goss.yaml --one-shot --ci
             rockcraft clean && rm test.rock
             cd $current_wd
           done
