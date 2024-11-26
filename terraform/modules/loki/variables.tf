@@ -10,7 +10,7 @@ variable "model_name" {
 }
 
 variable "bucket_name" {
-  description = "Model name"
+  description = "Bucket name"
   type        = string
   default     = "loki"
 }
