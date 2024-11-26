@@ -32,16 +32,16 @@ variable "mc_binary_url" {
 }
 
 variable "loki" {
-  description = "Loki module outputs"
+  description = "Configuration outputs from the Loki module, including bucket and integrator details."
   type        = any
 }
 
 variable "mimir" {
-  description = "Mimir module outputs"
+  description = "Configuration outputs from the Mimir module, including bucket and integrator details."
   type        = any
 }
 
 variable "tempo" {
-  description = "Tempo module outputs"
+  description = "Configuration outputs from the Tempo module, including bucket and integrator details."
   type        = any
 }
