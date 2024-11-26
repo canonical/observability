@@ -15,13 +15,13 @@ module "grafana" {
 }
 
 module "loki" {
-  source     = "git::https://github.com/canonical/observability//terraform/modules/loki?ref=self-monitoring"
+  source     = "git::https://github.com/canonical/observability//terraform/modules/loki"
   model_name = var.model_name
   channel    = var.channel
 }
 
 module "mimir" {
-  source     = "git::https://github.com/canonical/observability//terraform/modules/mimir?ref=self-monitoring"
+  source     = "git::https://github.com/canonical/observability//terraform/modules/mimir"
   model_name = var.model_name
   channel    = var.channel
 }
@@ -34,7 +34,7 @@ module "ssc" {
 }
 
 module "tempo" {
-  source     = "git::https://github.com/canonical/observability//terraform/modules/tempo?ref=self-monitoring"
+  source     = "git::https://github.com/canonical/observability//terraform/modules/tempo"
   model_name = var.model_name
   channel    = var.channel
 }
@@ -205,7 +205,7 @@ resource "juju_integration" "tempo-grafana-source" {
 
   application {
     name     = module.tempo.app_names.tempo_coordinator
-    endpoint = module.tempo.provides.grafana_source
+    endpoint = module.tempo.endpoints.grafana_source
   }
 
   application {
@@ -220,7 +220,7 @@ resource "juju_integration" "tempo-tracing-grafana-agent-tracing" {
 
   application {
     name     = module.tempo.app_names.tempo_coordinator
-    endpoint = module.tempo.provides.tracing
+    endpoint = module.tempo.endpoints.tracing
   }
 
   application {
@@ -234,7 +234,7 @@ resource "juju_integration" "tempo-metrics_endpoint-grafana-agent-metrics_endpoi
 
   application {
     name     = module.tempo.app_names.tempo_coordinator
-    endpoint = module.tempo.provides.metrics_endpoint
+    endpoint = module.tempo.endpoints.metrics_endpoint
   }
 
   application {
@@ -248,7 +248,7 @@ resource "juju_integration" "tempo-logging-grafana-agent-logging-provider" {
 
   application {
     name     = module.tempo.app_names.tempo_coordinator
-    endpoint = module.tempo.requires.logging
+    endpoint = module.tempo.endpoints.logging
   }
 
   application {

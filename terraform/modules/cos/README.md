@@ -91,7 +91,7 @@ resource "juju_application" "minio" {
 }
 
 
-resource "null_resource" "s3fix" {
+resource "null_resource" "s3management" {
 
   provisioner "local-exec" {
     # There's currently no way to wait for the charm to be idle, hence the sleep
