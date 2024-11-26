@@ -16,20 +16,22 @@ resource "juju_application" "minio" {
   }
 }
 
-resource "null_resource" "s3fix" {
+resource "null_resource" "s3management" {
   triggers = {
-    model_name = var.model_name
-    minio_app  = var.minio_app
+    # model_name = var.model_name
+    always_run = timestamp()
   }
   provisioner "local-exec" {
+    environment = {
+      MINIO_USER     = var.minio_user
+      MINIO_PASSWORD = var.minio_password
+    }
     command = <<-EOT
-      bash "${path.module}/scripts/s3fix.sh" \
+      bash "${path.module}/scripts/s3management.sh" \
         --model-name ${var.model_name} \
         --minio-app ${var.minio_app} \
         --mc-binary-url ${var.mc_binary_url} \
         --minio-url "http://${var.minio_app}-0.${var.minio_app}-endpoints.${var.model_name}.svc.cluster.local:9000" \
-        --minio-user ${var.minio_user} \
-        --minio-password ${var.minio_password} \
         --loki-bucket ${var.loki.bucket_name} \
         --mimir-bucket ${var.mimir.bucket_name} \
         --tempo-bucket ${var.tempo.bucket_name} \
