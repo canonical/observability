@@ -18,12 +18,18 @@ module "loki" {
   source     = "git::https://github.com/canonical/observability//terraform/modules/loki"
   model_name = var.model_name
   channel    = var.channel
+  backend_units = var.loki_backend_units
+  read_units    = var.loki_read_units
+  write_units   = var.loki_write_units
 }
 
 module "mimir" {
   source     = "git::https://github.com/canonical/observability//terraform/modules/mimir"
   model_name = var.model_name
   channel    = var.channel
+  backend_units = var.mimir_backend_units
+  read_units    = var.mimir_read_units
+  write_units   = var.mimir_write_units
 }
 
 module "ssc" {
@@ -37,6 +43,12 @@ module "tempo" {
   source     = "git::https://github.com/canonical/observability//terraform/modules/tempo"
   model_name = var.model_name
   channel    = var.channel
+  compactor_units         = var.tempo_compactor_units
+  distributor_units       = var.tempo_distributor_units
+  ingester_units          = var.tempo_ingester_units
+  metrics_generator_units = var.tempo_metrics_generator_units
+  querier_units           = var.tempo_querier_units
+  query_frontend_units    = var.tempo_query_frontend_units
 }
 
 module "traefik" {
