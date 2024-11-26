@@ -69,7 +69,7 @@ module "s3" {
 
 # Provided by Mimir
 
-resource "juju_integration" "mimir-grafana-dashboards-provider" {
+resource "juju_integration" "mimir_grafana_dashboards_provider" {
   model = var.model_name
 
   application {
@@ -83,7 +83,7 @@ resource "juju_integration" "mimir-grafana-dashboards-provider" {
   }
 }
 
-resource "juju_integration" "mimir-grafana-source" {
+resource "juju_integration" "mimir_grafana_source" {
   model = var.model_name
 
   application {
@@ -97,7 +97,7 @@ resource "juju_integration" "mimir-grafana-source" {
   }
 }
 
-resource "juju_integration" "mimir-tracing-grafana-agent-traicing-provider" {
+resource "juju_integration" "mimir_tracing_grafana_agent_traicing_provider" {
   model = var.model_name
 
   application {
@@ -112,7 +112,7 @@ resource "juju_integration" "mimir-tracing-grafana-agent-traicing-provider" {
 }
 
 
-resource "juju_integration" "mimir-self_metrics_endpoint-grafana-agent-metrics_endpoint" {
+resource "juju_integration" "mimir_self_metrics_endpoint_grafana_agent_metrics_endpoint" {
   model = var.model_name
 
   application {
@@ -129,7 +129,7 @@ resource "juju_integration" "mimir-self_metrics_endpoint-grafana-agent-metrics_e
 
 # Provided by Loki
 
-resource "juju_integration" "loki-grafana-dashboards-provider" {
+resource "juju_integration" "loki_grafana_dashboards_provider" {
   model = var.model_name
 
   application {
@@ -143,7 +143,7 @@ resource "juju_integration" "loki-grafana-dashboards-provider" {
   }
 }
 
-resource "juju_integration" "loki-grafana-source" {
+resource "juju_integration" "loki_grafana_source" {
   model = var.model_name
 
   application {
@@ -157,7 +157,7 @@ resource "juju_integration" "loki-grafana-source" {
   }
 }
 
-resource "juju_integration" "loki-logging-consumer-grafana-agent-logging-provider" {
+resource "juju_integration" "loki_logging_consumer_grafana_agent_logging_provider" {
   model = var.model_name
 
   application {
@@ -171,7 +171,7 @@ resource "juju_integration" "loki-logging-consumer-grafana-agent-logging-provide
   }
 }
 
-resource "juju_integration" "loki-logging-grafana-agent-logging-consumer" {
+resource "juju_integration" "loki_logging_grafana_agent_logging_consumer" {
   model = var.model_name
 
   application {
@@ -185,7 +185,7 @@ resource "juju_integration" "loki-logging-grafana-agent-logging-consumer" {
   }
 }
 
-resource "juju_integration" "loki-tracing-grafana-agent-traicing-provider" {
+resource "juju_integration" "loki_tracing_grafana_agent_traicing_provider" {
   model = var.model_name
 
   application {
@@ -200,7 +200,7 @@ resource "juju_integration" "loki-tracing-grafana-agent-traicing-provider" {
 }
 
 # Provided by Tempo
-resource "juju_integration" "tempo-grafana-source" {
+resource "juju_integration" "tempo_grafana_source" {
   model = var.model_name
 
   application {
@@ -215,7 +215,7 @@ resource "juju_integration" "tempo-grafana-source" {
 }
 
 
-resource "juju_integration" "tempo-tracing-grafana-agent-tracing" {
+resource "juju_integration" "tempo_tracing_grafana_agent_tracing" {
   model = var.model_name
 
   application {
@@ -229,7 +229,7 @@ resource "juju_integration" "tempo-tracing-grafana-agent-tracing" {
   }
 }
 
-resource "juju_integration" "tempo-metrics_endpoint-grafana-agent-metrics_endpoint" {
+resource "juju_integration" "tempo_metrics_endpoint_grafana_agent_metrics_endpoint" {
   model = var.model_name
 
   application {
@@ -243,7 +243,7 @@ resource "juju_integration" "tempo-metrics_endpoint-grafana-agent-metrics_endpoi
   }
 }
 
-resource "juju_integration" "tempo-logging-grafana-agent-logging-provider" {
+resource "juju_integration" "tempo_logging_grafana_agent_logging_provider" {
   model = var.model_name
 
   application {
@@ -257,7 +257,7 @@ resource "juju_integration" "tempo-logging-grafana-agent-logging-provider" {
   }
 }
 
-resource "juju_integration" "tempo-send-remote-write_mimir-receive-remote-write" {
+resource "juju_integration" "tempo_send_remote_write_mimir_receive_remote_write" {
   model = var.model_name
 
   application {
@@ -273,7 +273,7 @@ resource "juju_integration" "tempo-send-remote-write_mimir-receive-remote-write"
 
 # Provided by Catalogue
 
-resource "juju_integration" "grafana-catalogue" {
+resource "juju_integration" "grafana_catalogue" {
   model = var.model_name
 
   application {
@@ -289,7 +289,7 @@ resource "juju_integration" "grafana-catalogue" {
 
 # Provided by Traefik
 
-resource "juju_integration" "catalogue-ingress" {
+resource "juju_integration" "catalogue_ingress" {
   model = var.model_name
 
   application {
@@ -303,7 +303,7 @@ resource "juju_integration" "catalogue-ingress" {
   }
 }
 
-resource "juju_integration" "grafana-ingress" {
+resource "juju_integration" "grafana_ingress" {
   model = var.model_name
 
   application {
@@ -317,7 +317,7 @@ resource "juju_integration" "grafana-ingress" {
   }
 }
 
-resource "juju_integration" "loki-ingress" {
+resource "juju_integration" "loki_ingress" {
   model = var.model_name
 
   application {
@@ -333,7 +333,7 @@ resource "juju_integration" "loki-ingress" {
 
 # Grafana agent
 
-resource "juju_integration" "agent-loki-metrics" {
+resource "juju_integration" "agent_loki_metrics" {
   model = var.model_name
 
   application {
@@ -347,7 +347,7 @@ resource "juju_integration" "agent-loki-metrics" {
   }
 }
 
-resource "juju_integration" "agent-mimir-metrics" {
+resource "juju_integration" "agent_mimir_metrics" {
   model = var.model_name
 
   application {
@@ -363,7 +363,7 @@ resource "juju_integration" "agent-mimir-metrics" {
 
 # Provided by Grafana
 
-resource "juju_integration" "grafana-tracing-grafana-agent-traicing-provider" {
+resource "juju_integration" "grafana_tracing_grafana_agent_traicing_provider" {
   model = var.model_name
 
   application {
