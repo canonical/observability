@@ -23,8 +23,26 @@ The module offers the following configurable inputs:
 
 | Name | Type | Description | Required |
 | - | - | - | - |
-| `channel`| string | Channel that the charms are deployed from | latest/edge |
-| `model_name`| string | Name of the model that the charm is deployed on |  |
+| `channel` | string | Channel that the charms are deployed from | latest/edge |
+| `model_name` | string | Name of the model that the charm is deployed on |  |
+| `use_tls` | bool | Specify whether to use TLS or not for coordinator-worker communication |
+| `minio_user` | string | User for MinIO |
+| `minio_password` | string | Password for MinIO |
+| `loki_backend_units` | number | Number of Loki worker units with backend role |
+| `loki_backend_units` | number | Number of Loki worker units with backend role |
+| `loki_read_units` | number | Number of Loki worker units with read role |
+| `loki_write_units` | number | Number of Loki worker units with write role |
+| `mimir_backend_units` | number | Number of Mimir worker units with backend role |
+| `mimir_read_units` | number | Number of Mimir worker units with read role |
+| `mimir_write_units` | number | Number of Mimir worker units with write role |
+| `tempo_compactor_units` | number | Number of Tempo worker units with compactor role |
+| `tempo_distributor_units` | number | Number of Tempo worker units with distributor role |
+| `tempo_ingester_units` | number | Number of Tempo worker units with ingester role |
+| `tempo_metrics_generator_units` | number | Number of Tempo worker units with metrics_generator role |
+| `tempo_querier_units` | number | Number of Tempo worker units with querier role |
+| `tempo_query_frontend_units` | number | Number of Tempo worker units with query_frontend role |
+
+
 
 ### Outputs
 Upon application, the module exports the following outputs:
@@ -46,8 +64,13 @@ To deploy this module with its needed dependency, you can run `terraform apply -
 
 ### High Availability
 
-By default, this Terraform module will deploy each worker with `1` unit. To configure the module to run `x` units of any worker role, you can run `terraform apply -var="model_name=<MODEL_NAME>" -var="<ROLE>_units=<x>" -auto-approve`.
-See each ... for the recommended scale for each role.
+By default, this Terraform module will deploy each worker with `1` unit. If you want to scale each Loki, Mimir or Tempo worker unit please check the variables available for that purpose in `variables.tf`. For instance to deploy 3 units of each Loki worker, you can run:
+
+```shell
+terraform apply -var='minio_password=Password' -var='minio_user=User' -var='model_name=test'\
+-var='loki_backend_units=3' -var='loki_read_units=3' -var='loki_write_units=3'
+```
+
 
 ### Sample deployment
 
@@ -62,13 +85,13 @@ terraform {
 }
 
 module "cos" {
-  source    	= "git::https://github.com/canonical/observability//terraform/modules/cos"
+  source     = "git::https://github.com/canonical/observability//terraform/modules/cos"
   model_name = var.model_name
 }
 
 # Assumes that model already exists
 variable "model_name" {
-  type    	= string
+  type    = string
 }
 
 
