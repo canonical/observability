@@ -23,4 +23,5 @@ variable "minio_user" {
 variable "minio_password" {
   description = "Password for MinIO"
   type        = string
+  sensitive   = true
 }
