@@ -257,6 +257,20 @@ resource "juju_integration" "tempo-logging-grafana-agent-logging-provider" {
   }
 }
 
+resource "juju_integration" "tempo-send-remote-write_mimir-receive-remote-write" {
+  model = var.model_name
+
+  application {
+    name     = module.tempo.app_names.tempo_coordinator
+    endpoint = module.tempo.endpoints.send-remote-write
+  }
+
+  application {
+    name     = module.mimir.app_names.mimir_coordinator
+    endpoint = module.mimir.endpoints.receive_remote_write
+  }
+}
+
 # Provided by Catalogue
 
 resource "juju_integration" "grafana-catalogue" {
