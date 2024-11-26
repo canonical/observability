@@ -380,7 +380,7 @@ resource "juju_integration" "grafana_tracing_grafana_agent_traicing_provider" {
 
   application {
     name     = module.grafana.app_name
-    endpoint = module.grafana.endpoints.tracing
+    endpoint = module.grafana.endpoints.charm_tracing
   }
 
   application {
