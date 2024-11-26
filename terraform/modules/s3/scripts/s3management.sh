@@ -7,14 +7,16 @@ MODEL_NAME=""
 MINIO_APP=""
 MC_BINARY_URL=""
 MINIO_URL=""
-MINIO_USER=""
-MINIO_PASSWORD=""
+MINIO_USER="${MINIO_USER:-}"
+MINIO_PASSWORD="${MINIO_PASSWORD:-}"
 LOKI_BUCKET=""
 MIMIR_BUCKET=""
 TEMPO_BUCKET=""
 LOKI_INTEGRATOR=""
 MIMIR_INTEGRATOR=""
 TEMPO_INTEGRATOR=""
+
+MC_BINARY="/root/minio/mc"
 
 # Parse arguments
 while [[ "$#" -gt 0 ]]; do
@@ -36,6 +38,13 @@ while [[ "$#" -gt 0 ]]; do
   shift
 done
 
+# Credentials validation
+if [[ -z "$MINIO_USER" || -z "$MINIO_PASSWORD" ]]; then
+  echo "Error: MINIO_USER and MINIO_PASSWORD must be set either as arguments or environment variables."
+  exit 1
+fi
+
+
 # Functions
 wait_for_app() {
   local app="$1"
@@ -43,12 +52,28 @@ wait_for_app() {
   juju wait-for application "$app" -m "$MODEL_NAME" --timeout 20m
 }
 
+bucket_exists() {
+  local bucket_name="$1"
+  juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" "$MC_BINARY" ls local/ | grep -q "$bucket_name"
+}
+
+mc_exists() {
+  echo "Checking if mc is already downlaoded..."
+  juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" ls "$MC_BINARY"
+}
+
 configure_s3() {
   local bucket_name="$1"
   local integrator="$2"
 
-  echo "Creating bucket $bucket_name..."
-  juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" /root/minio/mc mb local/"$bucket_name"
+
+  echo "Checking if bucket $bucket_name exists..."
+  if bucket_exists "$bucket_name"; then
+    echo "Bucket $bucket_name already exists. Skipping creation."
+  else
+    echo "Creating bucket $bucket_name..."
+    juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" "$MC_BINARY" mb local/"$bucket_name"
+  fi
 
   echo "Configuring $integrator..."
   juju config "$integrator" endpoint="$MINIO_URL" bucket="$bucket_name"
@@ -58,10 +83,16 @@ configure_s3() {
 }
 
 # Main execution
-echo "Downloading MinIO client..."
-juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" curl "$MC_BINARY_URL" --create-dirs -o '/root/minio/mc'
-juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" chmod +x '/root/minio/mc'
-juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" /root/minio/mc alias set local "$MINIO_URL" "$MINIO_USER" "$MINIO_PASSWORD"
+
+if mc_exists; then
+  echo "MinIO client is already downloaded. Skipping download."
+else
+  echo "Downloading MinIO client..."
+  juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" curl "$MC_BINARY_URL" --create-dirs -o "$MC_BINARY"
+fi
+
+juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" chmod +x "$MC_BINARY"
+juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" "$MC_BINARY" alias set local "$MINIO_URL" "$MINIO_USER" "$MINIO_PASSWORD"
 
 # Wait for MinIO app
 wait_for_app "$MINIO_APP"
