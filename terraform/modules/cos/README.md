@@ -77,11 +77,31 @@ terraform apply -var='minio_password=Password' -var='minio_user=User' -var='mode
 In orrder to deploy COS with just one unit per worker charm create a `main.rf` file with the following content.
 
 ```hcl
-module "cos-deploy" {
+# COS module that deploy the whole Canonical Observability Stack
+module "cos" {
   source         = "git::https://github.com/canonical/observability//terraform/modules/cos"
   model_name     = var.model_name
   minio_password = var.minio_password
   minio_user     = var.minio_user
+}
+
+# S3 module that deploy the Object Storage MinIO required by COS
+module "minio" {
+  source         = "git::https://github.com/canonical/observability//terraform/modules/minio"
+  model_name     = var.model_name
+  channel        = var.channel
+  minio_user     = var.minio_user
+  minio_password = var.minio_password
+
+  loki  = module.cos.loki
+  mimir = module.cos.mimir
+  tempo = module.cos.tempo
+}
+
+variable "channel" {
+  description = "Charms channel"
+  type        = string
+  default     = "latest/edge"
 }
 
 variable "model_name" {
