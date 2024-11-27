@@ -48,8 +48,10 @@ fi
 # Functions
 wait_for_app() {
   local app="$1"
+  local status="${2:-active}"
+
   echo "Waiting for application $app in model $MODEL_NAME..."
-  juju wait-for application "$app" -m "$MODEL_NAME" --timeout 20m
+  juju wait-for application "$app" -m "$MODEL_NAME" --query="status=='$status'" --timeout 20m
 }
 
 bucket_exists() {
@@ -75,6 +77,8 @@ configure_s3() {
     juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" "$MC_BINARY" mb local/"$bucket_name"
   fi
 
+  wait_for_app "$integrator" "blocked"
+
   echo "Configuring $integrator..."
   juju config "$integrator" endpoint="$MINIO_URL" bucket="$bucket_name"
 
@@ -82,20 +86,23 @@ configure_s3() {
   juju run -m "$MODEL_NAME" "$integrator/leader" sync-s3-credentials access-key="$MINIO_USER" secret-key="$MINIO_PASSWORD"
 }
 
-# Main execution
+configure_minio() {
+  # Wait for MinIO app
+  wait_for_app "$MINIO_APP"
 
-if mc_exists; then
-  echo "MinIO client is already downloaded. Skipping download."
-else
-  echo "Downloading MinIO client..."
-  juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" curl "$MC_BINARY_URL" --create-dirs -o "$MC_BINARY"
-fi
+  if mc_exists; then
+    echo "MinIO client is already downloaded. Skipping download."
+  else
+    echo "Downloading MinIO client..."
+    juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" curl "$MC_BINARY_URL" --create-dirs -o "$MC_BINARY"
+  fi
 
-juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" chmod +x "$MC_BINARY"
-juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" "$MC_BINARY" alias set local "$MINIO_URL" "$MINIO_USER" "$MINIO_PASSWORD"
+  juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" chmod +x "$MC_BINARY"
+  juju ssh -m "$MODEL_NAME" "$MINIO_APP/leader" "$MC_BINARY" alias set local "$MINIO_URL" "$MINIO_USER" "$MINIO_PASSWORD"
+}
 
-# Wait for MinIO app
-wait_for_app "$MINIO_APP"
+# Configure MinIO
+configure_minio
 
 # Configure buckets and sync credentials
 configure_s3 "$LOKI_BUCKET" "$LOKI_INTEGRATOR"

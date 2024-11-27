@@ -40,6 +40,4 @@ resource "null_resource" "s3management" {
         --tempo-integrator ${var.tempo.s3_integrator_name}
     EOT
   }
-
-  depends_on = [var.mimir, var.loki, var.tempo]
 }
