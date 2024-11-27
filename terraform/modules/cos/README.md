@@ -72,14 +72,39 @@ terraform apply -var='minio_password=Password' -var='minio_user=User' -var='mode
 ```
 
 
-### Sample deployment terraform file
+### Minimal sample deployment.
+
+In orrder to deploy COS with just one unit per worker charm create a `main.rf` file with the following content.
 
 ```hcl
 module "cos-deploy" {
   source         = "git::https://github.com/canonical/observability//terraform/modules/cos"
   model_name     = var.model_name
-  channel        = var.channel
   minio_password = var.minio_password
   minio_user     = var.minio_user
 }
+
+variable "model_name" {
+  description = "Model name"
+  type        = string
+}
+variable "minio_user" {
+  description = "User for MinIO"
+  type        = string
+}
+
+variable "minio_password" {
+  description = "Password for MinIO"
+  type        = string
+  sensitive   = true
+}
+```
+
+
+Then execute:
+
+```shell
+$ tofu init
+
+$ tofu apply -var='minio_password=Password' -var='minio_user=User' -var='model_name=test'
 ```
