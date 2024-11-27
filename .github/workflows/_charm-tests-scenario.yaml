@@ -24,7 +24,7 @@ jobs:
         run: |
           python -m pip install tox
           sudo snap install --classic astral-uv
-          sudo apt install just
+          sudo apt-get install -y just
       - name: Run tests
         run: |
           cd ${{ inputs.charm-path }}

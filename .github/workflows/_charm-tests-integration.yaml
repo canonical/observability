@@ -68,7 +68,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo snap install --classic astral-uv
-          sudo apt install just
+          sudo apt-get install -y just
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}

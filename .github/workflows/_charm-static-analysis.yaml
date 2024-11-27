@@ -24,7 +24,7 @@ jobs:
         run: |
           python3 -m pip install tox
           sudo snap install --classic astral-uv
-          sudo apt install just
+          sudo apt-get install -y just
       - name: Run static analysis for /lib for 3.8
         run: |
           cd ${{ inputs.charm-path }}
@@ -45,7 +45,7 @@ jobs:
         run: |
           python3 -m pip install tox
           sudo snap install --classic astral-uv
-          sudo apt install just
+          sudo apt-get install -y just
       - name: Run static analysis (charm)
         run: |
           cd ${{ inputs.charm-path }}
