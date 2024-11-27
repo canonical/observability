@@ -22,18 +22,18 @@ installations, which causes some problems in different scenarios.
 
 This ADR addresses **uid** collisions.
 
-#### (a) Two charms on different revisions
+#### Problem (a): Two charms on different revisions
 
 `charm(rev1, dashboard v1) <--> grafana <--> charm(rev2, dashboard v2)`
 
 Unless manually modified, `dashboard v1` and `dashboard v2` have the same *title* and *uid*, which will cause problems in Grafana.
 
-#### (b) New dashboard created by cloning an existing dashboard, neglecting to modify the UID
+#### Problem (b): New dashboard created by cloning an existing dashboard, neglecting to modify the UID
 
 A common way to create a new dashboard is to clone and modify dashboard (local or from the grafana marketplace).
 If the UID isn't modified (need to remeber to do it manually), then we'll end up with a UID collision (but the revision would be auto-incremented by the grafana UI, if saved and exported using grafana).
 
-#### (c) Unrelated dashboards that coincidentally happen to have the same UID
+#### Problem (c): Unrelated dashboards that coincidentally happen to have the same UID
 
 This is likely to happen when charm authors manually modify UIDs, assuming their (naive :) modification produced a unique ID (in the ecosystem!).
 
@@ -46,7 +46,11 @@ This is likely to happen when charm authors manually modify UIDs, assuming their
 4. Should be able to easily tell from which charm each dashboard came.
 
 ## Decision
-(2/P) + (4/R) + (5/P) + (6).
+Implement all of:
+- Automatically overwrite UIDs with a prescribed naming pattern at deploy/relate time, on the provider side
+- On rev-collision, keep only the latest dashboard revision
+- Add charm name to list of dashboard tags
+- Update best practices doc to include workload tag
 
 ## Alternatives considered
 Deduplication can be addressed on the provider (charm with dashboards) or the requrier side (grafana charm).
@@ -90,7 +94,7 @@ Similar benefits and disadvantages to doing it on the provider side.
 If we received a "newer dashboard" from a higher revision of a charm, we'd only keep the latest dashboard.
 
 Benefits:
-- A workaround for problem 1a.
+- A workaround for problem (a).
 
 Disadvantages:
 - When different charm revisions are related to grafana, will be able to see only the newest dashboard, which may be incompatible with the set of metrics exposed by the older revision.

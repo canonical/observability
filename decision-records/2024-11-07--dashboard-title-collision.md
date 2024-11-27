@@ -36,7 +36,7 @@ to avoid potential title collisions.
 2. Juju admins, not charm authors, should have the final say on how dashboards are organized in sub-folders.
 
 ## Decision
-(2/P).
+Let charm authors or admins specify the folder name under which grafana should place its dashboards.
 
 ## Alternatives considered
 Deduplication can be addressed on the provider (charm with dashboards) or the requrier side (grafana charm).
@@ -52,14 +52,23 @@ dashboards.
 
 ### (2/P) Let charm authors or admins specify the folder name under which grafana should place its dashboards
 
-This alternative relies on charm authors configuring their charms accordingly. The default behavior would be either the "General" folder (as it is right now) or a folder named after the charm name.
-We could add a constructor arg for the name of the folder. Charm authors can choose whether to expose it as a config option. The constructor arg(s) could offer the following functionality:
+This alternative relies on charm authors configuring their charms accordingly. The default behavior would be either the
+"General" folder (as it is right now) or a folder named after the charm name.
+We could add a constructor arg for the name of the folder. Charm authors can choose whether to expose it as a config
+option. The constructor arg(s) could offer the following functionality:
 - Default value is charm name
-- Charm author could `preserve=True`, so that the tree structure of dashboards in the charm is preserved on grafana side as well. In any case, it will be nested under the toplevel value (which could be just `"."`, or `""`).
+- Charm author could `preserve=True`, so that the tree structure of dashboards in the charm is preserved on grafana side
+  as well. In any case, it will be nested under the toplevel value (which could be just `"."`, or `""`).
+
+When this config option is changed, the Grafana charm would need to rearrange the dashboards tree accordingly.
 
 Benefits:
 - Allows solutions to have a unified folder (e.g., a `COS` folder for all of our charms).
 - Charm authors can organize dashboards in whatever tree structure they like, and charm lib will flatten or preserve it.
+
+Disadvantages:
+- This availability of this functionality to juju admins would depend on the charm author's willingness to expose this
+  as a config option.
 
 ## Appendix 1: grafana-dashboard relation schema
 ```bash
