@@ -10,7 +10,7 @@ on:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,7 +24,7 @@ jobs:
         run: |
           python3 -m pip install tox
           sudo snap install --classic astral-uv
-          sudo apt-get install -y just
+          sudo apt install -y just
       - name: Run linters
         run: |
           cd ${{ inputs.charm-path }}
