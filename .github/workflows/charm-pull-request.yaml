@@ -68,7 +68,7 @@ jobs:
     needs:
       - ci-ignore
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@feature/uv-ci-make
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@feature/uv-ci-just
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}

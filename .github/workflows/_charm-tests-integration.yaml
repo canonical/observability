@@ -68,10 +68,11 @@ jobs:
       - name: Install dependencies
         run: |
           sudo snap install --classic astral-uv
+          sudo apt install just
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
-          [ -f tox.ini ] && tox -vve integration || make integration
+          [ -f tox.ini ] && tox -vve integration || just integration
       - name: Dump logs
         if: failure()
         uses: canonical/charming-actions/dump-logs@main

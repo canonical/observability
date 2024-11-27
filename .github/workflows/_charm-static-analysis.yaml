@@ -21,16 +21,14 @@ jobs:
         with:
           python-version: 3.8
       - name: Install dependencies
-        run: python3 -m pip install tox
+        run: |
+          python3 -m pip install tox
+          sudo snap install --classic astral-uv
+          sudo apt install just
       - name: Run static analysis for /lib for 3.8
         run: |
           cd ${{ inputs.charm-path }}
-          if [ -f tox.ini ]; then
-            tox -vve static-lib
-          else
-            sudo snap install --classic astral-uv
-            make static
-          fi
+          [ -f tox.ini ] && tox -vve static-lib || just static
   static-charm:
     name: Static Analysis of Charm
     runs-on: ubuntu-latest
@@ -47,7 +45,8 @@ jobs:
         run: |
           python3 -m pip install tox
           sudo snap install --classic astral-uv
+          sudo apt install just
       - name: Run static analysis (charm)
         run: |
           cd ${{ inputs.charm-path }}
-          [ -f tox.ini ] && tox -vve static-charm || make static
+          [ -f tox.ini ] && tox -vve static-charm || just static

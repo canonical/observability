@@ -64,22 +64,22 @@ jobs:
           charmcraft-channel: "${{ inputs.charmcraft-channel }}"
   static-analysis:
     name: Static Analysis
-    uses: canonical/observability/.github/workflows/_charm-static-analysis.yaml@feature/uv-ci-make
+    uses: canonical/observability/.github/workflows/_charm-static-analysis.yaml@feature/uv-ci-just
     with:
       charm-path: "${{ inputs.charm-path }}"
   linting:
     name: Linting
-    uses: canonical/observability/.github/workflows/_charm-linting.yaml@feature/uv-ci-make
+    uses: canonical/observability/.github/workflows/_charm-linting.yaml@feature/uv-ci-just
     with:
       charm-path: "${{ inputs.charm-path }}"
   unit-test:
     name: Unit Tests
-    uses: canonical/observability/.github/workflows/_charm-tests-unit.yaml@feature/uv-ci-make
+    uses: canonical/observability/.github/workflows/_charm-tests-unit.yaml@feature/uv-ci-just
     with:
       charm-path: "${{ inputs.charm-path }}"
   scenario-test:
     name: Scenario Tests
-    uses: canonical/observability/.github/workflows/_charm-tests-scenario.yaml@feature/uv-ci-make
+    uses: canonical/observability/.github/workflows/_charm-tests-scenario.yaml@feature/uv-ci-just
     with:
       charm-path: "${{ inputs.charm-path }}"
   integration-test:
@@ -89,7 +89,7 @@ jobs:
       - linting
       - unit-test
       - scenario-test
-    uses: canonical/observability/.github/workflows/_charm-tests-integration.yaml@feature/uv-ci-make
+    uses: canonical/observability/.github/workflows/_charm-tests-integration.yaml@feature/uv-ci-just
     with:
       charm-path: "${{ inputs.charm-path }}"
       provider: "${{ inputs.provider }}"

@@ -24,7 +24,8 @@ jobs:
         run: |
           python3 -m pip install tox
           sudo snap install --classic astral-uv
+          sudo apt install just
       - name: Run linters
         run: |
           cd ${{ inputs.charm-path }}
-          [ -f tox.ini ] && tox -vve lint || make lint
+          [ -f tox.ini ] && tox -vve lint || just lint
