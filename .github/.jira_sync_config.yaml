@@ -9,9 +9,6 @@ settings:
     - team-core
     - team-mesh
     - team-tracing
-
-  labels:
-    - 25.04
       
   add_gh_comment: false
   sync_description: false
