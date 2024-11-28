@@ -27,4 +27,4 @@ jobs:
       - name: Run tests
         run: |
           cd ${{ inputs.charm-path }}
-          [ -f tox.ini ] && tox -e scenario || just scenario || echo "Skipping scenario..."
+          [ -f tox.ini ] && tox -e scenario || make scenario || echo "Skipping scenario..."
