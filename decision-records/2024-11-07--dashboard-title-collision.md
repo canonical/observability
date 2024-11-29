@@ -38,7 +38,7 @@ to avoid potential title collisions.
 ## Decision
 Let charm authors or admins specify the folder name under which grafana should place its dashboards.
 
-## Alternatives considered
+## Considered options
 Deduplication can be addressed on the provider (charm with dashboards) or the requrier side (grafana charm).
 In the following subsections, `P` and `R` stand for provider and requirer.
 

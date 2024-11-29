@@ -52,7 +52,7 @@ Implement all of:
 - Add charm name to list of dashboard tags
 - Update best practices doc to include workload tag
 
-## Alternatives considered
+## Considered options
 Deduplication can be addressed on the provider (charm with dashboards) or the requrier side (grafana charm).
 In the following subsections, `P` and `R` stand for provider and requirer.
 
