@@ -37,6 +37,8 @@ to avoid potential title collisions.
 
 ## Decision
 Let charm authors or admins specify the folder name under which grafana should place its dashboards.
+We prefer to implement this on the provider side (grafana is requirer), so it's up to the charm author to expose this
+functionality as a config option. If they choose to expose it, then the juju admin would indeed have the final say.
 
 ## Considered options
 Deduplication can be addressed on the provider (charm with dashboards) or the requrier side (grafana charm).
