@@ -16,7 +16,26 @@ output "app_names" {
 output "endpoints" {
   value = {
     # Requires
+    logging           = "logging",
+    ingress           = "ingress",
+    certificates      = "certificates",
+    send-remote-write = "send-remote-write",
+
     # Provides
-    tempo_cluster = "tempo-cluster"
+    tempo_cluster     = "tempo-cluster"
+    grafana_dashboard = "grafana-dashboard",
+    grafana_source    = "grafana-source",
+    metrics_endpoint  = "metrics-endpoint",
+    tracing           = "tracing",
   }
+}
+
+output "bucket_name" {
+  value       = var.bucket_name
+  description = "The bucket name for Tempo"
+}
+
+output "s3_integrator_name" {
+  value       = var.s3_integrator_name
+  description = "Name of the s3-integrator for Tempo"
 }

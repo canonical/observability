@@ -18,7 +18,7 @@ output "endpoints" {
     ingress          = "ingress",
     logging_consumer = "logging-consumer",
     s3               = "s3",
-    tracing          = "tracing",
+    charm_tracing    = "charm-tracing",
     # Provides
     grafana_dashboards_provider = "grafana-dashboards-provider",
     grafana_source              = "grafana-source",
@@ -27,4 +27,14 @@ output "endpoints" {
     receive_remote_write        = "receive-remote-write",
     self_metrics_endpoint       = "self-metrics-endpoint",
   }
+}
+
+output "bucket_name" {
+  value       = var.bucket_name
+  description = "The bucket name for Loki"
+}
+
+output "s3_integrator_name" {
+  value       = var.s3_integrator_name
+  description = "Name of the s3-integrator for Loki"
 }

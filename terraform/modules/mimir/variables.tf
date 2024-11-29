@@ -9,6 +9,12 @@ variable "model_name" {
   type        = string
 }
 
+variable "bucket_name" {
+  description = "Model name"
+  type        = string
+  default     = "mimir"
+}
+
 # -------------- # App Names --------------
 
 variable "read_name" {
@@ -29,6 +35,11 @@ variable "backend_name" {
   default     = "mimir-backend"
 }
 
+variable "s3_integrator_name" {
+  description = "Name of the Loki app with the write role"
+  type        = string
+  default     = "mimir-s3-integrator"
+}
 # -------------- # Units Per App --------------
 
 variable "read_units" {
