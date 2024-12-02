@@ -69,9 +69,14 @@ variable "query_frontend_units" {
   }
 }
 
-variable "use_tls" {
-  description = "Specify whether to use TLS or not for coordinator-worker communication. By default, TLS is enabled through self-signed-certificates"
-  type        = bool
-  default     = true
+variable "bucket_name" {
+  description = "Model name"
+  type        = string
+  default     = "tempo"
 }
 
+variable "s3_integrator_name" {
+  description = "Name of the Loki app with the write role"
+  type        = string
+  default     = "tempo-s3-integrator"
+}

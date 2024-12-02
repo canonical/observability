@@ -71,17 +71,9 @@ module "tempo_metrics_generator" {
   units = var.metrics_generator_units
 }
 
-module "ssc" {
-  count      = var.use_tls ? 1 : 0
-  source     = "git::https://github.com/canonical/self-signed-certificates-operator//terraform"
-  model_name = var.model_name
-  channel    = var.channel
-}
-
 # TODO: Replace s3_integrator resource to use its remote terraform module once available
 resource "juju_application" "s3_integrator" {
-  name = "s3-integrator"
-
+  name  = var.s3_integrator_name
   model = var.model_name
   trust = true
 
@@ -106,21 +98,6 @@ resource "juju_integration" "coordinator_to_s3_integrator" {
   application {
     name     = module.tempo_coordinator.app_name
     endpoint = "s3"
-  }
-}
-
-resource "juju_integration" "coordinator_to_ssc" {
-  count = var.use_tls ? 1 : 0
-  model = var.model_name
-
-  application {
-    name     = module.tempo_coordinator.app_name
-    endpoint = "certificates"
-  }
-
-  application {
-    name     = module.ssc[0].app_name
-    endpoint = "certificates"
   }
 }
 

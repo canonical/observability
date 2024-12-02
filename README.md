@@ -15,7 +15,10 @@ This repository holds all of our **reusable workflows**, in the `.github/workflo
 
 ### Base Workflows
 
-The **`issues.yaml`** workflow is used in all of our repositories to propagate GitHub issues to Jira; both opening and closing an issue will cause the related Jira issue to be (respectively) created or closed.
+Issues are synced by the [gh-jira-sync-bot](https://github.com/canonical/gh-jira-sync-bot/blob/main/README.md), and further enriched by a *Jira Automation*.
+
+The bot configuration lives in [.github/.jira_sync_config.yaml](https://github.com/canonical/observability/blob/main/.github/.jira_sync_config.yaml); *carefully* read the README to configure it. This 
+takes care of most things, except the Jira labels, which are added by the *Jira automation*.
 
 ### Charm Workflows
 
