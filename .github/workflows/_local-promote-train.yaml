@@ -58,7 +58,7 @@ jobs:
           fi
       - name: Install dependencies
         run: |
-          sudo snap install astral-uv
+          sudo snap install astral-uv --classic
           # Install noctua
           uv tool update-shell
           uv tool install git+https://github.com/lucabello/noctua
