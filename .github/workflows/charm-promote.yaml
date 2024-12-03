@@ -53,9 +53,9 @@ jobs:
         run: |
           # Read the charm name from charmcraft.yaml / metadata.yaml
           cd ${{ inputs.charm-path }}
-          charm_name=$((yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
+          charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
           if [[ $charm_name = "" ]]; then echo "Error: can't extract the charm name." && exit 1; fi
           # Run `noctua charm promote`
           export CHARMHUB_TOKEN="${{ secrets.CHARMHUB_TOKEN }}"
           noctua charm promote "$charm_name" \
-            --from=${{ github.event.inputs.track }}/${{ env.promote-from }}
+            --from=${{ inputs.track }}/${{ env.promote-from }}
