@@ -47,6 +47,7 @@ jobs:
           version: "latest"
       - name: Install dependencies
         run: |
+          sudo snap install charmcraft --classic
           # Install noctua
           uv tool install git+https://github.com/lucabello/noctua
       - name: Promote charm
