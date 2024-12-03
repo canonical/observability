@@ -43,7 +43,7 @@ rephrase it as part of the triage.
 
   > fix(charm-tracing): call the `setup` function whenever something is being set up
   
-  The valid prefixes are:
+  The valid types are:
     - feature
     - chore
     - fix
