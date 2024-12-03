@@ -56,11 +56,15 @@ jobs:
           else
             echo "charm_path=$CHARM_PATH" >> $GITHUB_OUTPUT;
           fi
+
+      - name: Install a specific version of uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
       - name: Install dependencies
         run: |
-          sudo snap install astral-uv --classic
           # Install noctua
-          uv tool update-shell
           uv tool install git+https://github.com/lucabello/noctua
 
       - name: Check which tracks already have a release
