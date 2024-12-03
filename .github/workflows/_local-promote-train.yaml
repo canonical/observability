@@ -1,0 +1,103 @@
+name: Promote Train
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Dry-run (only print promotions)"
+        type: boolean
+        default: false
+        required: true
+
+jobs:
+  promote:
+    name: Promote Charm
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        charm-repo:
+          - alertmanager-k8s-operator
+          - avalanche-k8s-operator
+          - blackbox-exporter-k8s-operator
+          - catalogue-k8s-operator
+          - cos-configuration-k8s-operator
+          - cos-proxy-operator
+          - grafana-agent-k8s-operator
+          - grafana-agent-operator
+          - grafana-k8s-operator
+          - istio-beacon-k8s-operator
+          - istio-ingress-k8s-operator
+          - istio-k8s-operator
+          - karma-alertmanager-proxy-k8s-operator
+          - karma-k8s-operator
+          - loki-coordinator-k8s-operator
+          - loki-k8s-operator
+          - loki-worker-k8s-operator
+          - mimir-coordinator-k8s-operator
+          - mimir-worker-k8s-operator
+          - prometheus-k8s-operator
+          - prometheus-pushgateway-k8s-operator
+          - prometheus-scrape-config-k8s-operator
+          - prometheus-scrape-target-k8s-operator
+          - tempo-coordinator-k8s-operator
+          - tempo-worker-k8s-operator
+          - traefik-k8s-operator
+    steps:
+      - name: Checkout the charm repository
+        uses: actions/checkout@v4
+        with:
+          repository: canonical/${{ matrix.charm-repo }}
+      - name: Read the charm path from the Promote workflow
+        id: read-charm-path
+        run: |
+          CHARM_PATH=$(yq -r .jobs.promote.with.charm-path .github/workflows/promote.yaml)
+          if [[ "$CHARM_PATH" == "null" ]]; then
+            echo "charm_path=." >> $GITHUB_OUTPUT;
+          else
+            echo "charm_path=$CHARM_PATH" >> $GITHUB_OUTPUT;
+          fi
+
+      - name: Install a specific version of uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Install dependencies
+        run: |
+          sudo snap install charmcraft --classic
+          # Install noctua
+          uv tool install git+https://github.com/lucabello/noctua
+
+      - name: Check which tracks already have a release
+        id: check-tracks
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+        run: |
+          sudo snap install charmcraft --classic
+          cd ${{ steps.read-charm-path.outputs.charm_path }}
+          charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
+          status=$(charmcraft status "$charm_name" --format=json)
+          to_stable=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/stable") | .status' | head -n1)
+          to_candidate=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/candidate") | .status' | head -n1)
+          to_beta=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/beta") | .status' | head -n1)
+          echo "charm_name=$charm_name" >> $GITHUB_OUTPUT
+          echo "to_stable=$to_stable" >> $GITHUB_OUTPUT
+          echo "to_candidate=$to_candidate" >> $GITHUB_OUTPUT
+          echo "to_beta=$to_beta" >> $GITHUB_OUTPUT
+
+      - name: (dry run) Print promotions
+        if: ${{ inputs.dry-run }}
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+        run: |
+          noctua charm promote-train "${{ steps.check-tracks.outputs.charm_name }}" \
+            --track=latest --dry-run
+
+      - name: Run the promote train
+        if: ${{ !inputs.dry-run && steps.check-tracks.outputs.to_stable == 'open' }}
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+        run: |
+          noctua charm promote-train "${{ steps.check-tracks.outputs.charm_name }}" \
+            --track=latest
+

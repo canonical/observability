@@ -1,10 +1,10 @@
-name: Build ROCK and release dev tag to GHCR
+name: Build rock and release dev tag to GHCR
 
 on:
   workflow_call:
     inputs:
       rock-name:
-        description: "Name of the application for which to build the ROCK"
+        description: "Name of the application for which to build the rock"
         required: true
         type: string
     secrets:
@@ -28,14 +28,15 @@ jobs:
     - name: Setup LXD
       uses: canonical/setup-lxd@v0.1.1
       with:
-        channel: latest/stable
+        # LTS version. using latest/stable causes issues with rockcraft pack (error with mount/umount)
+        channel: 5.21/stable
 
     - name: Install dependencies
       run: |
         sudo snap install yq
         sudo snap install --classic --channel edge rockcraft
 
-    - name: Build ROCK
+    - name: Build rock
       run: |
         rockcraft_dir="${{ steps.find-latest.outputs.latest-dir }}"
         current_wd=$(pwd) && cd $rockcraft_dir
@@ -45,7 +46,7 @@ jobs:
         digest=$(skopeo inspect oci-archive:$(realpath ./${{ inputs.rock-name }}_*.rock) --format '{{.Digest}}')
         echo "digest=${digest#*:}" >> "$GITHUB_OUTPUT"
 
-    - name: Upload ROCK to ghcr.io
+    - name: Upload rock to ghcr.io
       run: |
         sudo skopeo --insecure-policy copy oci-archive:$(realpath ./${{ inputs.rock-name }}_*.rock) docker://ghcr.io/canonical/${{ inputs.rock-name }}:dev --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
 
@@ -61,7 +62,7 @@ jobs:
       with:
         name: ${{ inputs.rock-name }}-sbom
         path: "${{ inputs.rock-name}}.sbom.json"
-    - name: Upload locally built ROCK artifact
+    - name: Upload locally built rock artifact
       uses: actions/upload-artifact@v3
       with:
         name: ${{ inputs.rock-name }}-rock

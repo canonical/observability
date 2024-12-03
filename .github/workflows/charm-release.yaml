@@ -8,6 +8,11 @@ on:
         default: '.'
         required: false
         type: string
+      release-tag-prefix:
+        description: "Tag prefix to use for the tag of the GitHub release."
+        default: ''
+        required: false
+        type: string
       artifact:
         description: "Name of artifact to download before building. Must contain the file artifact.tar.gz."
         default: ''
@@ -31,6 +36,12 @@ on:
         required: false
         description: |
           Whether or not to also build the charm for arm64. Defaults to false.
+      charmcraft-channel:
+        type: string
+        default: "3.x/candidate"
+        required: false
+        description: |
+          The snap channel from which to install Charmcraft.
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -50,6 +61,7 @@ jobs:
       charm-path: "${{ inputs.charm-path }}"
       provider: "${{ inputs.provider }}"
       ip-range: "${{ inputs.ip-range }}"
+      charmcraft-channel: ${{ inputs.charmcraft-channel }}
   release-charm:
     name: Release Charm and Libraries
     needs:
@@ -59,6 +71,7 @@ jobs:
     with:
       artifact: "${{ inputs.artifact }}"
       charm-path: "${{ inputs.charm-path }}"
+      release-tag-prefix: "${{ inputs.release-tag-prefix }}"
       build-for-arm: ${{ inputs.build-for-arm }}
   release-libs:
     name: Release any bumped charm library
@@ -75,7 +88,7 @@ jobs:
       - name: Release libraries
         run: |
           # Install Charmcraft
-          sudo snap install charmcraft --classic --channel latest/stable
+          sudo snap install charmcraft --classic --channel ${{ inputs.charmcraft-channel }}
           cd $GITHUB_WORKSPACE/charm/${{ inputs.charm-path }}
           # Get the charm name
           charm_name=$((yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)

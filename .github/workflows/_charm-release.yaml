@@ -7,6 +7,11 @@ on:
         type: string
         required: false
         default: .
+      release-tag-prefix:
+        description: "Tag prefix to use for the tag of the GitHub release."
+        default: ''
+        required: false
+        type: string
       artifact:
         description: "Name of artifact to download before building. Must contain the file artifact.tar.gz."
         default: ''
@@ -18,7 +23,12 @@ on:
         required: false
         description: >
           Whether or not to build the charm for arm64. Defaults to false.
-        
+      charmcraft-channel:
+        type: string
+        default: "3.x/candidate"
+        required: false
+        description: |
+          The snap channel from which to install Charmcraft.
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -51,9 +61,9 @@ jobs:
         id: builder
         run: |
           sudo snap install jq
-          sudo snap install charmcraft --classic
-          charmcraft pack --project-dir ${{ inputs.charm-path }}
-          export CHARMS=$(ls ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
+          sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
+          (cd ${{ inputs.charm-path }}; charmcraft pack)
+          export CHARMS=$(basename -a ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
           echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
       - name: Store charms
         uses: actions/upload-artifact@v3
@@ -89,12 +99,12 @@ jobs:
           sudo snap install jq
           sudo snap install lxd
           sudo lxd init --auto
-          sudo snap install charmcraft --classic
+          sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
       - name: Build charm(s)
         id: builder
         run: |    
-          charmcraft pack --project-dir ${{ inputs.charm-path }}
-          export CHARMS=$(ls ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
+          (cd ${{ inputs.charm-path }}; charmcraft pack)
+          export CHARMS=$(basename -a ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
           echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
       - name: Store charms
         uses: actions/upload-artifact@v3
@@ -133,6 +143,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: charms
+          path: "${{ github.workspace }}/${{ inputs.charm-path }}"
       - name: Upload charm to charmhub
         uses: canonical/charming-actions/upload-charm@2.5.0-rc
         with:
@@ -140,17 +151,22 @@ jobs:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           channel: "${{ steps.channel.outputs.name }}"
           built-charm-path: "${{ matrix.path }}"
+          charm-path: "${{ inputs.charm-path }}"
+          tag-prefix: "${{ inputs.release-tag-prefix }}"
+          charmcraft-channel: "${{ inputs.charmcraft-channel }}"
           # We set destructive mode to false, otherwise runner's OS would have to match
           # charm's 'build-on' OS.
           destructive-mode: false
   release-arm-to-charmhub:
     name: Release arm64 to CharmHub
-    runs-on: ubuntu-22.04
+    # needs to be run on arm or the oci image will resolve to the amd64 one.
+    runs-on: Ubuntu_ARM64_4C_16G_01
     needs:
       - build-arm
     strategy:
       matrix: 
         path: ${{ fromjson(needs.build-arm.outputs.charms) }}
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -163,6 +179,14 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: charms-arm
+          path: "${{ github.workspace }}/${{ inputs.charm-path }}"
+      - name: Set up Docker
+        run: |
+          sudo snap install docker
+          sudo addgroup --system docker
+          sudo adduser $USER docker
+          newgrp docker <<< "sudo snap disable docker"
+          newgrp docker <<< "sudo snap enable docker"
       - name: Upload charm to charmhub
         uses: canonical/charming-actions/upload-charm@2.5.0-rc
         with:
@@ -170,6 +194,9 @@ jobs:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           channel: "${{ steps.channel.outputs.name }}"
           built-charm-path: "${{ matrix.path }}"
+          charm-path: "${{ inputs.charm-path }}"
+          tag-prefix: "${{ inputs.release-tag-prefix }}"
+          charmcraft-channel: "${{ inputs.charmcraft-channel }}"
           # We set destructive mode to false, otherwise runner's OS would have to match
           # charm's 'build-on' OS.
           destructive-mode: false

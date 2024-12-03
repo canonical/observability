@@ -1,4 +1,4 @@
-name: Open a PR to OCI Factory when a new ROCK is merged to main
+name: Open a PR to OCI Factory when a new rock is merged to main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -8,7 +8,7 @@ on:
   workflow_call:
     inputs:
       rock-name:
-        description: "Name of the application for which to build the ROCK"
+        description: "Name of the application for which to build the rock"
         required: true
         type: string
     secrets:
@@ -21,10 +21,10 @@ permissions:
 
 jobs:
   release-oci-factory:
-    name: Add the new ROCK
+    name: Add the new rock
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the ROCK source
+      - name: Checkout the rock source
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
@@ -62,6 +62,9 @@ jobs:
           repository: observability-noctua-bot/oci-factory
           token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
 
+      # Install the same yq version that is used in oci-factory
+      - run: sudo snap install yq --channel=v4/stable
+
       - name: Update releases in image.yaml
         id: update-releases
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
@@ -75,14 +78,14 @@ jobs:
           all_tags="$existing_tags\n$modified_tags"
           today="$(date)"
           echo "now_epoch=$(date -d now +%s)" >> $GITHUB_OUTPUT  # to create a unique branch name on the fork
-          end_of_life="$(date -d "$today+1 year" +%Y-%m-%d)"
+          end_of_life="$(date -d "$today+3 months" +%Y-%m-%d)"
           yq -i ".upload = []" $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/image.yaml
           for file in ${{ steps.changed-files.outputs.all_changed_and_modified_files }}; do
-            # For each ROCK version, build the `upload:` element for image.yaml as a json
+            # For each rock version, build the `upload:` element for image.yaml as a json
             # Example: {"source": "canonical/prometheus-rock", "commit": "...", ...}
             patch_tag=""; minor_tag=""; major_tag=""
             tag_json_format='"%s-22.04": {"end-of-life": "%sT00:00:00Z", "risks":["stable"]}'
-            # Parse the ROCK version from the rockcraft.yaml
+            # Parse the rock version from the rockcraft.yaml
             rock_version=$(yq -r '.version' $GITHUB_WORKSPACE/rock/$file)
             # Always tag with patch
             patch_tag=$(printf "$tag_json_format" "$rock_version" "$end_of_life")
