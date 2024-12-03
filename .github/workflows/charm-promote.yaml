@@ -51,12 +51,13 @@ jobs:
           # Install noctua
           uv tool install git+https://github.com/lucabello/noctua
       - name: Promote charm
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
         run: |
           # Read the charm name from charmcraft.yaml / metadata.yaml
           cd ${{ inputs.charm-path }}
           charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
           if [[ $charm_name = "" ]]; then echo "Error: can't extract the charm name." && exit 1; fi
           # Run `noctua charm promote`
-          export CHARMHUB_TOKEN="${{ secrets.CHARMHUB_TOKEN }}"
           noctua charm promote "$charm_name" \
             --from=${{ inputs.track }}/${{ env.promote-from }}

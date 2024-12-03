@@ -64,6 +64,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo snap install charmcraft --classic
           # Install noctua
           uv tool install git+https://github.com/lucabello/noctua
 
@@ -86,13 +87,16 @@ jobs:
 
       - name: (dry run) Print promotions
         if: ${{ inputs.dry-run }}
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
         run: |
-          export CHARMHUB_TOKEN="${{ secrets.CHARMHUB_TOKEN }}"
           noctua charm promote-train "${{ steps.check-tracks.outputs.charm_name }}" \
             --track=latest --dry-run
 
       - name: Run the promote train
         if: ${{ !inputs.dry-run && steps.check-tracks.outputs.to_stable == 'open' }}
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
         run: |
           noctua charm promote-train "${{ steps.check-tracks.outputs.charm_name }}" \
             --track=latest
