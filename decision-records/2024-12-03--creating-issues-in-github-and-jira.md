@@ -41,7 +41,12 @@ rephrase it as part of the triage.
 
   for example:
 
-  > bug(charm-tracing): call the `setup` function whenever something is being set up
+  > fix(charm-tracing): call the `setup` function whenever something is being set up
+  
+  The valid prefixes are:
+    - feature
+    - chore
+    - fix
 
 ## Considered alternatives
 
