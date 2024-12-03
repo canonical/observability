@@ -17,6 +17,12 @@ on:
           It can be either a subnet(IP/mask) or a range (<IP1>-<IP2>)
         required: false
         default: null
+      charmcraft-channel:
+        type: string
+        default: "3.x/candidate"
+        required: false
+        description: |
+          The snap channel from which to install Charmcraft.
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -55,6 +61,7 @@ jobs:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           charm-path: "${{ inputs.charm-path }}"
+          charmcraft-channel: "${{ inputs.charmcraft-channel }}"
   static-analysis:
     name: Static Analysis
     uses: canonical/observability/.github/workflows/_charm-static-analysis.yaml@main
@@ -87,6 +94,7 @@ jobs:
       charm-path: "${{ inputs.charm-path }}"
       provider: "${{ inputs.provider }}"
       ip-range: ${{ inputs.ip-range }}
+      charmcraft-channel: ${{ inputs.charmcraft-channel }}
   codeql:
     name: CodeQL analysis
     needs:

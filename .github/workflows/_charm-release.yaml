@@ -23,7 +23,12 @@ on:
         required: false
         description: >
           Whether or not to build the charm for arm64. Defaults to false.
-        
+      charmcraft-channel:
+        type: string
+        default: "3.x/candidate"
+        required: false
+        description: |
+          The snap channel from which to install Charmcraft.
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -56,7 +61,7 @@ jobs:
         id: builder
         run: |
           sudo snap install jq
-          sudo snap install charmcraft --classic
+          sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
           (cd ${{ inputs.charm-path }}; charmcraft pack)
           export CHARMS=$(basename -a ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
           echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
@@ -94,7 +99,7 @@ jobs:
           sudo snap install jq
           sudo snap install lxd
           sudo lxd init --auto
-          sudo snap install charmcraft --classic
+          sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
       - name: Build charm(s)
         id: builder
         run: |    
@@ -148,6 +153,7 @@ jobs:
           built-charm-path: "${{ matrix.path }}"
           charm-path: "${{ inputs.charm-path }}"
           tag-prefix: "${{ inputs.release-tag-prefix }}"
+          charmcraft-channel: "${{ inputs.charmcraft-channel }}"
           # We set destructive mode to false, otherwise runner's OS would have to match
           # charm's 'build-on' OS.
           destructive-mode: false
@@ -160,6 +166,7 @@ jobs:
     strategy:
       matrix: 
         path: ${{ fromjson(needs.build-arm.outputs.charms) }}
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -173,6 +180,13 @@ jobs:
         with:
           name: charms-arm
           path: "${{ github.workspace }}/${{ inputs.charm-path }}"
+      - name: Set up Docker
+        run: |
+          sudo snap install docker
+          sudo addgroup --system docker
+          sudo adduser $USER docker
+          newgrp docker <<< "sudo snap disable docker"
+          newgrp docker <<< "sudo snap enable docker"
       - name: Upload charm to charmhub
         uses: canonical/charming-actions/upload-charm@2.5.0-rc
         with:
@@ -182,6 +196,7 @@ jobs:
           built-charm-path: "${{ matrix.path }}"
           charm-path: "${{ inputs.charm-path }}"
           tag-prefix: "${{ inputs.release-tag-prefix }}"
+          charmcraft-channel: "${{ inputs.charmcraft-channel }}"
           # We set destructive mode to false, otherwise runner's OS would have to match
           # charm's 'build-on' OS.
           destructive-mode: false

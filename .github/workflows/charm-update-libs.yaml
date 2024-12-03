@@ -7,6 +7,22 @@ on:
         default: '.'
         required: false
         type: string
+      commit-username:
+        description: "The username to use for committing the updates on the charm libraries"
+        default: 'Noctua'
+        required: false
+        type: string
+      commit-email:
+        description: "The email address to use for committing the updates on the charm libraries"
+        default: 'webops+observability-noctua-bot@canonical.com'
+        required: false
+        type: string
+      charmcraft-channel:
+        type: string
+        default: "3.x/candidate"
+        required: false
+        description: |
+          The snap channel from which to install Charmcraft.
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -46,7 +62,7 @@ jobs:
 
       - name: Check for major library updates
         run: |
-          sudo snap install charmcraft --classic --channel latest/stable
+          sudo snap install charmcraft --classic --channel "${{ inputs.charmcraft-channel }}"
           cd "$GITHUB_WORKSPACE/${{ inputs.charm-path }}"
           # Get the charm name
           charm_name=$((yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
@@ -118,8 +134,8 @@ jobs:
         with:
           token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
           commit-message: "chore: update charm libraries"
-          committer: "Noctua <webops+observability-noctua-bot@canonical.com>"
-          author: "Noctua <webops+observability-noctua-bot@canonical.com>"
+          committer: "${{ inputs.commit-username }} <${{ inputs.commit-email }}>"
+          author: "${{ inputs.commit-username }} <${{ inputs.commit-email }}>"
           title: "chore: update charm libraries"
           body: |
             Automated action to fetch the latest minor and major versions of all charm libraries used by this charm. The branch of this PR 

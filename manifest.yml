@@ -109,6 +109,18 @@ repos:
     track: main
     url: git@github.com:canonical/script-exporter-operator.git
 
+  - path: ../tempo-k8s-operator
+    track: main
+    url: git@github.com:canonical/tempo-k8s-operator.git
+
+  - path: ../tempo-worker-k8s-operator
+    track: main
+    url: git@github.com:canonical/tempo-worker-k8s-operator.git
+
+  - path: ../tempo-coordinator-k8s-operator
+    track: main
+    url: git@github.com:canonical/tempo-coordinator-k8s-operator.git
+
   - path: ../traefik-k8s-operator
     track: main
     url: git@github.com:canonical/traefik-k8s-operator.git
@@ -116,6 +128,18 @@ repos:
   - path: ../traefik-route-k8s-operator
     track: main
     url: git@github.com:canonical/traefik-route-k8s-operator.git
+
+  - path: ../istio-k8s-operator
+    track: main
+    url: git@github.com:canonical/istio-k8s-operator.git
+
+  - path: ../istio-beacon-k8s-operator
+    track: main
+    url: git@github.com:canonical/istio-beacon-k8s-operator.git
+
+  - path: ../istio-ingress-k8s-operator
+    track: main
+    url: git@github.com:canonical/istio-ingress-k8s-operator.git
 
   # rocks
   - path: ../alertmanager-rock
@@ -145,6 +169,10 @@ repos:
   - path: ../s3proxy-rock
     track: main
     url: git@github.com:canonical/s3proxy-rock.git
+
+  - path: ../tempo-rock
+    track: main
+    url: git@github.com:canonical/tempo-rock.git
 
   - path: ../traefik-rock
     track: main

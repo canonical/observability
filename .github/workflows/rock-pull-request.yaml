@@ -4,7 +4,34 @@ name: Pull Request
 on:
   workflow_call:
 
+
 jobs:
-  test-build:
-    name: Test rock build
-    uses: canonical/observability/.github/workflows/_rock-build-test.yaml@main
+  test:
+    name: Test the rock
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Determine any rockcraft.yaml changed in the PR
+        id: changed-files
+        uses: tj-actions/changed-files@v43
+        with:
+          files: "**/rockcraft.yaml"
+      - name: Install dependencies
+        run: |
+          sudo snap install astral-uv --classic
+          sudo snap install concierge --classic
+          sudo concierge prepare -p microk8s
+          sudo microk8s enable registry
+      - name: Pack and test the rocks
+        run: |
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "Testing version ${file%/*}"
+            current_wd=$(pwd) && cd ${file%/*}
+            rockcraft pack
+            test_rock=$(find . -name "*.rock")
+            uvx --from=git+https://github.com/lucabello/noctua \
+              noctua rock test $test_rock --goss-file=../goss.yaml --one-shot --ci
+            rockcraft clean && rm $test_rock
+            cd $current_wd
+          done
