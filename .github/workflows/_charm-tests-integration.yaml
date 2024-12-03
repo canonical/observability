@@ -65,13 +65,8 @@ jobs:
           microk8s-group: snap_microk8s
           microk8s-addons: "hostpath-storage dns metallb:${{ inputs.ip-range || steps.ip_range.outputs.ip_range }}"
           charmcraft-channel: "${{ inputs.charmcraft-channel }}"
-      - name: Install dependencies
-        run: |
-          sudo snap install --classic astral-uv
       - name: Run integration tests
-        run: |
-          cd ${{ inputs.charm-path }}
-          [ -f tox.ini ] && tox -vve integration || make integration
+        run: cd ${{ inputs.charm-path }} && tox -vve integration
       - name: Dump logs
         if: failure()
         uses: canonical/charming-actions/dump-logs@main
