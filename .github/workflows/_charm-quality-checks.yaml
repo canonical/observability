@@ -23,6 +23,10 @@ on:
         required: false
         description: |
           The snap channel from which to install Charmcraft.
+      workflow-runner:
+        type: string
+        description: The runner type to use for integration tests.
+        default: '["ubuntu-latest"]'
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -95,6 +99,7 @@ jobs:
       provider: "${{ inputs.provider }}"
       ip-range: ${{ inputs.ip-range }}
       charmcraft-channel: ${{ inputs.charmcraft-channel }}
+      workflow-runner: '${{ inputs.workflow-runner }}'
   codeql:
     name: CodeQL analysis
     needs:
