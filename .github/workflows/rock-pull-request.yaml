@@ -20,18 +20,36 @@ jobs:
       - name: Install dependencies
         run: |
           sudo snap install astral-uv --classic
+          # TODO: install goss
           sudo snap install concierge --classic
           sudo concierge prepare -p microk8s
           sudo microk8s enable registry
       - name: Pack and test the rocks
         run: |
+          # For all the rocks modified in the PR
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            # Initialize variables
             echo "Testing version ${file%/*}"
-            current_wd=$(pwd) && cd ${file%/*}
+            repository_name=$(basename "${{ github.repository }}")
+            rock_folder="${file%/*}"
+            rock_version=$(basename $rock_folder)
+            image_tag=${rock_version//./-}
+            current_wd=$(pwd) && cd $rock_folder
+            # Pack the rock
             rockcraft pack
-            test_rock=$(find . -name "*.rock")
-            uvx --from=git+https://github.com/lucabello/noctua \
-              noctua rock test $test_rock --goss-file=../goss.yaml --one-shot --ci
+            packed_rock=$(find . -name "*.rock")
+            # Push it to the local microk8s registry
+            image_uri="localhost:32000/${repository_name}:${rock_version//./-}"
+            rockcraft.skopeo --insecure-policy copy --dest-tls-verify=false \
+              "oci-archive:${packed_rock}" \
+              "docker://${image_uri}"
+            # Run the image in a pod
+            pod_name="${repository_name}-${rock_version//./-}"
+            kubectl run "${pod_name}" --image="${image_uri}"
+            # Validate the rock with Goss
+            POD_IP="" # TODO: get pod IP from kubectl and use it in goss.yaml
+            goss validate --gossfile=../goss.yaml
+            # Cleanup
             rockcraft clean && rm $test_rock
             cd $current_wd
           done
