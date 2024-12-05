@@ -19,6 +19,7 @@ jobs:
           files: "**/rockcraft.yaml"
       - name: Install dependencies
         run: |
+          # We need the microk8s *classic* snap because `kgoss` needs access to the /tmp directory
           sudo snap install microk8s --channel=1.31/stable --classic
           sudo microk8s enable registry
           # FIXME: install via the goss snap when available
