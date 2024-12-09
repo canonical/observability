@@ -26,10 +26,10 @@ jobs:
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             rock_folder="$(dirname $file)"
             rock_version="$(basename $rock_folder)"
-            versions="$versions\n$rock_version"
+            versions="${versions# } $rock_version"
           done
           # Format the list of versions to export on $GITHUB_OUTPUT: ["1.0", "1.1"]
-          versions_list="$(echo "$versions" | jq -r -ncR '[inputs | select(length>0)]')"
+          versions_list="$(echo $versions | jq -rcR 'split(" ")')
           echo "versions=$versions_list"
           echo "versions=$versions_list" >> $GITHUB_OUTPUT
 
