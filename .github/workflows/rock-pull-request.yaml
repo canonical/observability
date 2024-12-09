@@ -27,8 +27,8 @@ jobs:
             rock_version="$(dirname $file)"
             versions="${versions# } $rock_version"
           done
-          # Format the list of versions to export on $GITHUB_OUTPUT: ["1.0", "1.1"]
-          versions_list="$(echo $versions | jq -rcR 'split(" ")')"
+          # # Format the list of versions to export on $GITHUB_OUTPUT: ["1.0", "1.1"]
+          # versions_list="$(echo $versions | jq -rcR 'split(" ")')"
           echo "versions=$versions_list"
           echo "versions=$versions_list" >> $GITHUB_OUTPUT
 
@@ -57,7 +57,7 @@ jobs:
           chmod +rx /usr/local/bin/kgoss
       - name: Pack and test the rocks
         run: |
-          for version in ${{ fromJSON(needs.changes.outputs.versions) }}; do
+          for version in ${{ needs.changes.outputs.versions }}; do
             just pack "$version"
             just test "$version"
             just clean "$version"
