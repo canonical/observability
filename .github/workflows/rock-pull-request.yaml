@@ -19,11 +19,10 @@ jobs:
           files: "**/rockcraft.yaml"
       - name: Install dependencies
         run: |
-          sudo snap install rockcraft --classic
-          # We need the microk8s *classic* snap because `kgoss` needs access to the /tmp directory
-          sudo snap install microk8s --channel=1.31/stable --classic
+          sudo snap install concierge --classic
+          # We need the kubectl *classic* snap because `kgoss` needs access to the /tmp directory
+          sudo concierge prepare -p microk8s --extra-snaps rockcraft,just,kubectl
           sudo microk8s enable registry
-          sudo snap install just --classic
           # FIXME: install via the goss snap when available
           goss_base_url="https://github.com/goss-org/goss/releases/latest/download"
           curl -L ${goss_base_url}/goss-linux-amd64 -o /usr/local/bin/goss
