@@ -28,7 +28,7 @@ jobs:
           curl -L ${goss_base_url}/goss-linux-amd64 -o /usr/local/bin/goss
           chmod +rx /usr/local/bin/goss
           curl -L ${goss_base_url}/kgoss -o /usr/local/bin/kgoss
-          echo "/usr/local/bin" >> $GITHUB_PATH
+          chmod +rx /usr/local/bin/kgoss
       - name: Pack and test the rocks
         run: |
           # For all the rocks modified in the PR
