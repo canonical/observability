@@ -56,6 +56,8 @@ jobs:
         id: update-releases
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: |
+          # Get the commit SHA for the rock repo
+          sha="$(cd rock && git rev-parse HEAD && cd ..)"
           files="$(echo ${{ steps.changed-files.outputs.all_changed_and_modified_files }})"
           versions="$(echo $files | sed 's@/rockcraft.yaml@@g')"  # space-separated versions
           # Build the --version flags for noctua
@@ -63,7 +65,7 @@ jobs:
           # Generate the manifest via noctua
           uvx --from=git+https://github.com/lucabello/noctua noctua rock manifest \
             "${{ github.repository }}" \
-            --commit="${{ steps.commit-sha.outputs.commit_sha }}" \
+            --commit="$sha" \
             --base=24.04 \
             $versions_flags \
             > $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/image.yaml
