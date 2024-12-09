@@ -61,3 +61,4 @@ jobs:
             just pack "$version"
             just test "$version"
             just clean "$version"
+          done
