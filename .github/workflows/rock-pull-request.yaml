@@ -23,7 +23,6 @@ jobs:
           sudo snap install concierge --classic
           sudo concierge prepare -p microk8s
           sudo microk8s enable registry
-          sudo uv tool install git+https://github.com/lucabello/noctua
       - name: Pack and test the rocks
         run: |
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
@@ -31,7 +30,8 @@ jobs:
             current_wd=$(pwd) && cd ${file%/*}
             rockcraft pack
             test_rock=$(find . -name "*.rock")
-            noctua rock test $test_rock --goss-file=../goss.yaml --one-shot --ci
+            uvx --from=git+https://github.com/lucabello/noctua \
+              noctua rock test $test_rock --goss-file=../goss.yaml --one-shot --ci
             rockcraft clean && rm $test_rock
             cd $current_wd
           done
