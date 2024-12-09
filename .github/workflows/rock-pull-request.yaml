@@ -25,9 +25,9 @@ jobs:
           sudo snap install just --classic
           # FIXME: install via the goss snap when available
           goss_base_url="https://github.com/goss-org/goss/releases/latest/download"
-          curl -L ${goss_base_url}/goss-linux-amd64 -o /usr/local/bin/goss
-          chmod +rx /usr/local/bin/goss
-          curl -L ${goss_base_url}/kgoss -o /usr/local/bin/kgoss
+          curl -L ${goss_base_url}/goss-linux-amd64 -o /usr/bin/goss
+          chmod +rx /usr/bin/goss
+          curl -L ${goss_base_url}/kgoss -o /usr/bin/kgoss
       - name: Pack and test the rocks
         run: |
           # For all the rocks modified in the PR
