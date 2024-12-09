@@ -28,7 +28,7 @@ jobs:
             versions="${versions# } $rock_version"
           done
           # Format the list of versions to export on $GITHUB_OUTPUT: ["1.0", "1.1"]
-          versions_list="$(echo $versions | jq -rcR 'split(" ")')
+          versions_list="$(echo $versions | jq -rcR 'split(" ")')"
           echo "versions=$versions_list"
           echo "versions=$versions_list" >> $GITHUB_OUTPUT
 
