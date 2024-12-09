@@ -57,5 +57,5 @@ jobs:
           chmod +rx /usr/local/bin/kgoss
       - name: Pack and test the rocks
         run: |
-          just pack "{{ matrix.rock-version }}"
-          just test "{{ matrix.rock-version }}"
+          just pack "${{ matrix.rock-version }}"
+          just test "${{ matrix.rock-version }}"
