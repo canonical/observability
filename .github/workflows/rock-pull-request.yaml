@@ -6,9 +6,11 @@ on:
 
 
 jobs:
-  test:
-    name: Test the rock
+  changes:
+    name: Determine which rocks have been changed
     runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.changed-versions.outputs.versions }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -17,6 +19,29 @@ jobs:
         uses: tj-actions/changed-files@v43
         with:
           files: "**/rockcraft.yaml"
+      - name: Extract the versions
+        id: changed-versions
+        run: |
+          versions=""
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            rock_folder="$(dirname $file)"
+            rock_version="$(basename $rock_folder)"
+            versions="$versions\n$rock_version"
+          done
+          # Format the list of versions to export on $GITHUB_OUTPUT: ["1.0", "1.1"]
+          versions_list="$(echo "$versions" | jq -r -ncR '[inputs | select(length>0)]')"
+          echo "versions=$versions_list"
+          echo "versions=$versions_list" >> $GITHUB_OUTPUT
+
+  tests:
+    name: Test the rock
+    runs-on: ubuntu-latest
+    needs: [changes]
+    strategy:
+      fail-fast: false
+      matrix:
+        rock-version: ${{ fromJSON(needs.changes.outputs.versions) }}
+    steps:
       - name: Install dependencies
         run: |
           sudo snap install concierge --classic
@@ -31,15 +56,5 @@ jobs:
           chmod +rx /usr/local/bin/kgoss
       - name: Pack and test the rocks
         run: |
-          # For all the rocks modified in the PR
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            # Initialize variables
-            echo "Testing version ${file%/*}"
-            rock_folder="${file%/*}"
-            rock_version="$(basename $rock_folder)"
-            just pack "$rock_version"
-            just test "$rock_version"
-            pushd "$rock_folder"
-            rockcraft clean && rm "*.rock"
-            popd
-          done
+          just pack "{{ matrix.rock-version }}"
+          just test "{{ matrix.rock-version }}"
