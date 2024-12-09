@@ -22,6 +22,7 @@ jobs:
           # We need the microk8s *classic* snap because `kgoss` needs access to the /tmp directory
           sudo snap install microk8s --channel=1.31/stable --classic
           sudo microk8s enable registry
+          sudo snap install just
           # FIXME: install via the goss snap when available
           goss_base_url="https://github.com/goss-org/goss/releases/latest/download"
           curl -L ${goss_base_url}/goss-linux-amd64 -o /usr/local/bin/goss
@@ -34,19 +35,10 @@ jobs:
             # Initialize variables
             echo "Testing version ${file%/*}"
             rock_folder="${file%/*}"
-            rock_version=$(basename $rock_folder)
-            current_wd=$(pwd) && cd $rock_folder
-            # Pack the rock
-            rockcraft pack
-            packed_rock=$(find . -name "*.rock")
-            # Push it to the local microk8s registry
-            image_uri="localhost:32000/rock:${rock_version}"
-            rockcraft.skopeo --insecure-policy copy --dest-tls-verify=false \
-              "oci-archive:${packed_rock}" \
-              "docker://${image_uri}"
-            # Validate the rock with kgoss (run it in a pod and validate)
-            GOSS_FILES_PATH=".." kgoss run -i ${image_uri}
-            # Cleanup
-            rockcraft clean && rm $test_rock
-            cd $current_wd
+            rock_version="$(basename $rock_folder)"
+            just pack "$rock_version"
+            just test "$rock_version"
+            pushd "$rock_folder"
+            rockcraft clean && rm "*.rock"
+            popd
           done
