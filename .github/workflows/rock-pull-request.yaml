@@ -33,6 +33,7 @@ jobs:
     name: Tests
     runs-on: ubuntu-24.04
     needs: [changes]
+    if: needs.changes.outputs.versions != ""
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
