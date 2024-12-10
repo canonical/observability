@@ -17,46 +17,26 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: Find the *latest* rockcraft.yaml
-      id: find-latest
-      run: |
-        latest_rockcraft_file=$(find $GITHUB_WORKSPACE -name "rockcraft.yaml" | sort -V | tail -n1)
-        rockcraft_dir=$(dirname ${latest_rockcraft_file#\./})
-        echo "latest-dir=$rockcraft_dir" >> $GITHUB_OUTPUT
-
-    - name: Setup LXD
-      uses: canonical/setup-lxd@v0.1.1
-      with:
-        # LTS version. using latest/stable causes issues with rockcraft pack (error with mount/umount)
-        channel: 5.21/stable
-
     - name: Install dependencies
       run: |
-        sudo snap install yq
-        sudo snap install --classic --channel edge rockcraft
-
+        sudo snap install concierge --classic
+        sudo concierge prepare -p microk8s --extra-snaps just,yq
+        # Install Syft
+        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh \
+          | sh -s -- -b /usr/local/bin
     - name: Build rock
       run: |
-        rockcraft_dir="${{ steps.find-latest.outputs.latest-dir }}"
-        current_wd=$(pwd) && cd $rockcraft_dir
-        rockcraft pack --verbose
-        cd $current_wd
-        cp $rockcraft_dir/${{ inputs.rock-name }}_*.rock $current_wd
-        digest=$(skopeo inspect oci-archive:$(realpath ./${{ inputs.rock-name }}_*.rock) --format '{{.Digest}}')
-        echo "digest=${digest#*:}" >> "$GITHUB_OUTPUT"
-
+        latest_version=$(find . -maxdepth 1 -type d | sort -V | tail -n1 | sed 's@./@@')
+        just pack "$latest_version"
+        cp "$latest_version/*.rock" .
     - name: Upload rock to ghcr.io
       run: |
-        sudo skopeo --insecure-policy copy oci-archive:$(realpath ./${{ inputs.rock-name }}_*.rock) docker://ghcr.io/canonical/${{ inputs.rock-name }}:dev --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
-
-    - name: Install Syft
-      run: |
-        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-
+        sudo skopeo --insecure-policy copy \
+          oci-archive:$(realpath ./*.rock) \
+          docker://ghcr.io/canonical/${{ inputs.rock-name }}:dev \
+          --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
     - name: Create SBOM
       run: syft $(realpath ./${{ inputs.rock-name }}_*.rock) -o spdx-json=${{ inputs.rock-name }}.sbom.json
-
     - name: Upload SBOM
       uses: actions/upload-artifact@v3
       with:
