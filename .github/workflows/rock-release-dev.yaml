@@ -37,7 +37,9 @@ jobs:
           docker://ghcr.io/canonical/${{ inputs.rock-name }}:dev \
           --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
     - name: Create SBOM
-      run: syft $(realpath ./${{ inputs.rock-name }}_*.rock) -o spdx-json=${{ inputs.rock-name }}.sbom.json
+      run: |
+        latest_version=$(find . -maxdepth 1 -type d | sort -V | tail -n1 | sed 's@./@@')
+        syft $(realpath ./$latest_version/${{ inputs.rock-name }}_*.rock) -o spdx-json=${{ inputs.rock-name }}.sbom.json
     - name: Upload SBOM
       uses: actions/upload-artifact@v3
       with:
