@@ -50,9 +50,9 @@ jobs:
           repository: observability-noctua-bot/oci-factory
           token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
       - name: Install dependencies
+        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: |
-          sudo snap install yq --channel=v4/stable  # version used in oci-factory
-          sudo snap install astral-uv  # used to run noctua
+          sudo snap install astral-uv --classic  # used to run noctua
       - name: Update releases in image.yaml
         id: update-releases
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
