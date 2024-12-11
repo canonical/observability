@@ -28,9 +28,10 @@ jobs:
       run: |
         latest_version=$(find . -maxdepth 1 -type d | sort -V | tail -n1 | sed 's@./@@')
         just pack "$latest_version"
-        cp "$latest_version/*.rock" .
     - name: Upload rock to ghcr.io
       run: |
+        latest_version=$(find . -maxdepth 1 -type d | sort -V | tail -n1 | sed 's@./@@')
+        cd "$latest_version"
         sudo skopeo --insecure-policy copy \
           oci-archive:$(realpath ./*.rock) \
           docker://ghcr.io/canonical/${{ inputs.rock-name }}:dev \
