@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Determine any rockcraft.yaml changed in the PR
+      - name: Find rockcraft.yaml changes
         id: changed-files
         uses: tj-actions/changed-files@v43
         with:
@@ -33,7 +33,7 @@ jobs:
     name: Tests
     runs-on: ubuntu-24.04
     needs: [changes]
-    if: needs.changes.outputs.versions != ""
+    if: needs.changes.outputs.versions != ''
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
