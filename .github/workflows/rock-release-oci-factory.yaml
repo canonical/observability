@@ -57,8 +57,9 @@ jobs:
         id: update-releases
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: |
+          cd rock
           # Get the commit SHA for the rock repo
-          sha="$(cd rock && git rev-parse HEAD && cd ..)"
+          sha="$(git rev-parse HEAD)"
           files="$(echo ${{ steps.changed-files.outputs.all_changed_and_modified_files }})"
           versions="$(echo $files | sed 's@/rockcraft.yaml@@g')"  # space-separated versions
           # Build the --version flags for noctua
