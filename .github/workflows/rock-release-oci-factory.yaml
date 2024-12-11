@@ -86,7 +86,13 @@ jobs:
           GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
         run: |
           cd $GITHUB_WORKSPACE/oci-factory
-          gh pr create --repo canonical/oci-factory \
-            --head observability-noctua-bot:update-${{ steps.update-releases.outputs.now_epoch }} \
-            --title "chore: Add new ${{ inputs.rock-name }} releases" \
-            --body "This is an automatic PR opened by the Observability Noctua bot."
+          PR_URL="$(gh pr list --repo canonical/oci-fatory --head observability-noctua-bot:update-${{ steps.update-releases.outputs.now_epoch }})"
+          if [[ -n "${PR_URL}" ]]; then
+            echo "PR already exists: ${PR_URL}"
+            exit 0
+          else
+            gh pr create --repo canonical/oci-factory \
+              --head observability-noctua-bot:update-${{ steps.update-releases.outputs.now_epoch }} \
+              --title "chore: Add new ${{ inputs.rock-name }} releases" \
+              --body "This is an automatic PR opened by the Observability Noctua bot."
+          fi
