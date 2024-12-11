@@ -1,37 +1,58 @@
 name: Pull Request
-# quality checks to make sure the change won't break things
 
 on:
   workflow_call:
 
 
 jobs:
-  test:
-    name: Test the rock
-    runs-on: ubuntu-latest
+  changes:
+    name: Determine modified rocks
+    runs-on: ubuntu-24.04
+    outputs:
+      versions: ${{ steps.changed-versions.outputs.versions }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Determine any rockcraft.yaml changed in the PR
+      - name: Find rockcraft.yaml changes
         id: changed-files
         uses: tj-actions/changed-files@v43
         with:
           files: "**/rockcraft.yaml"
+      - name: Extract the versions
+        id: changed-versions
+        run: |
+          versions=""
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            rock_version="$(dirname $file)"
+            versions="${versions# } $rock_version"
+          done
+          echo "versions=$versions"
+          echo "versions=$versions" >> $GITHUB_OUTPUT
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-24.04
+    needs: [changes]
+    if: needs.changes.outputs.versions != ''
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Install dependencies
         run: |
-          sudo snap install astral-uv --classic
           sudo snap install concierge --classic
-          sudo concierge prepare -p microk8s
+          # We need the kubectl (classic) snap because `kgoss` needs access to the /tmp directory
+          sudo concierge prepare -p microk8s --extra-snaps rockcraft,just,kubectl
           sudo microk8s enable registry
+          # FIXME: install via the goss snap when available
+          goss_base_url="https://github.com/goss-org/goss/releases/latest/download"
+          curl -L ${goss_base_url}/goss-linux-amd64 -o /usr/local/bin/goss
+          chmod +rx /usr/local/bin/goss
+          curl -L ${goss_base_url}/kgoss -o /usr/local/bin/kgoss
+          chmod +rx /usr/local/bin/kgoss
       - name: Pack and test the rocks
         run: |
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            echo "Testing version ${file%/*}"
-            current_wd=$(pwd) && cd ${file%/*}
-            rockcraft pack
-            test_rock=$(find . -name "*.rock")
-            uvx --from=git+https://github.com/lucabello/noctua \
-              noctua rock test $test_rock --goss-file=../goss.yaml --one-shot --ci
-            rockcraft clean && rm $test_rock
-            cd $current_wd
+          for version in ${{ needs.changes.outputs.versions }}; do
+            just pack "$version"
+            just test "$version"
+            just clean "$version"
           done
