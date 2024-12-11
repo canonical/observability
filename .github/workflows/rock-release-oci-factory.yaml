@@ -58,6 +58,8 @@ jobs:
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: |
           cd rock
+          # Export current time to create a unique branch name for the fork
+          echo "now_epoch=$(date -d now +%s)" >> $GITHUB_OUTPUT
           # Get the commit SHA for the rock repo
           sha="$(git rev-parse HEAD)"
           files="$(echo ${{ steps.changed-files.outputs.all_changed_and_modified_files }})"
