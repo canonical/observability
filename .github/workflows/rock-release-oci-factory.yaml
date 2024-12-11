@@ -27,13 +27,14 @@ jobs:
       - name: Checkout the rock repository
         uses: actions/checkout@v4
         with:
+          path: rock
           fetch-depth: 2 # Needed to check modified files
       - name: Get the changed rockcraft.yaml files
         id: changed-files
         uses: tj-actions/changed-files@v43
         with:
-          files: '**/rockcraft.yaml'
           path: rock
+          files: '**/rockcraft.yaml'
       - name: Sync the OCI Factory fork
         id: fork-sync
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
