@@ -41,12 +41,12 @@ jobs:
         latest_version=$(find . -maxdepth 1 -type d | sort -V | tail -n1 | sed 's@./@@')
         syft $(realpath ./$latest_version/${{ inputs.rock-name }}_*.rock) -o spdx-json=${{ inputs.rock-name }}.sbom.json
     - name: Upload SBOM
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.rock-name }}-sbom
         path: "${{ inputs.rock-name}}.sbom.json"
     - name: Upload locally built rock artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.rock-name }}-rock
         path: "${{ inputs.rock-name }}_*.rock"
