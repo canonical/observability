@@ -82,7 +82,7 @@ jobs:
         id: channels
         run: |
           if [[ -n "${{ inputs.juju-channel }}" ]]; then
-            echo "juju-channel=${{ inputs.juju_channel }}" >> $GITHUB_OUTPUT
+            echo "juju-channel=${{ inputs.juju-channel }}" >> $GITHUB_OUTPUT
           elif [[ "${BRANCH_NAME#refs/heads/}" == "track/v0" ]]; then
             echo "juju-channel=3.1/stable" >> $GITHUB_OUTPUT
           else
@@ -95,7 +95,7 @@ jobs:
       - ci-ignore
       - channels
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@feature/v1
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}
