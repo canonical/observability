@@ -85,12 +85,11 @@ jobs:
       - ci-ignore
       - channels
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}
       provider: ${{ inputs.provider }}
-      ip-range: ${{ inputs.ip-range }}
       charmcraft-channel: ${{ inputs.charmcraft-channel }}
       juju-channel: ${{ needs.channels.outputs.juju-channel }}
 
