@@ -66,11 +66,12 @@ jobs:
   channels:
     runs-on: ubuntu-latest
     outputs:
-      juju-channel:: ${{}}
+      juju-channel:: ${{ steps.channels.outputs.juju-channel }}
     env:
       BRANCH_NAME: ${{ github.base_ref || github.ref_name }} 
     steps:
       - name: Determine Juju version
+        id: channels
         run: |
           if [[ "${BRANCH_NAME#refs/heads/}" == "track/v0" ]]; then
             echo "juju-channel=3.1/stable" >> $GITHUB_OUTPUT
