@@ -8,21 +8,19 @@ on:
         required: false
       provider:
         type: string
-        description: "The provider to choose for either machine or k8s tests ('lxd' or 'microk8s')"
+        description: "The provider to choose for integration tests ('machine' or 'microk8s')"
         required: true
-      ip-range:
-        type: string
-        description: |
-          The IP range in the address pool for the load balancer to use.
-          It can be either a subnet(IP/mask) or a range (<IP1>-<IP2>)
-        required: false
-        default: null
       charmcraft-channel:
         type: string
         default: "3.x/candidate"
         required: false
         description: |
           The snap channel from which to install Charmcraft.
+      juju-channel:
+        type: string
+        required: true
+        description: |
+          The snap channel from which to install Juju.
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -44,6 +42,26 @@ jobs:
     uses: canonical/Inclusive-naming/.github/workflows/woke.yaml@main
     with:
       fail-on-error: "true"
+  codeql:
+    name: CodeQL analysis
+    runs-on: ubuntu-latest
+    needs:
+      - static-analysis
+      - linting
+      - unit-test
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: python
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
   lib-check:
     name: Check libraries
     runs-on: ubuntu-latest
@@ -53,8 +71,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
       - name: Check charm libraries # Make sure our charm libraries are updated
         uses: canonical/charming-actions/check-libraries@2.5.0-rc
         with:
@@ -62,45 +78,107 @@ jobs:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           charm-path: "${{ inputs.charm-path }}"
           charmcraft-channel: "${{ inputs.charmcraft-channel }}"
-  static-analysis:
-    name: Static Analysis
-    uses: canonical/observability/.github/workflows/_charm-static-analysis.yaml@main
-    with:
-      charm-path: "${{ inputs.charm-path }}"
   linting:
     name: Linting
-    uses: canonical/observability/.github/workflows/_charm-linting.yaml@main
-    with:
-      charm-path: "${{ inputs.charm-path }}"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Lint
+        run: |
+          sudo snap install astral-uv --classic
+          cd "${{ inputs.charm-path }}"
+          uvx tox -e lint
+  static-analysis:
+    name: Static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Static analysis
+        run: |
+          sudo snap install astral-uv --classic
+          cd "${{ inputs.charm-path }}"
+          uvx tox -e static
   unit-test:
-    name: Unit Tests
-    uses: canonical/observability/.github/workflows/_charm-tests-unit.yaml@main
-    with:
-      charm-path: "${{ inputs.charm-path }}"
-  scenario-test:
-    name: Scenario Tests
-    uses: canonical/observability/.github/workflows/_charm-tests-scenario.yaml@main
-    with:
-      charm-path: "${{ inputs.charm-path }}"
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Unit tests
+        run: |
+          sudo snap install astral-uv --classic
+          cd "${{ inputs.charm-path }}"
+          uvx tox -e unit
+  pack-charm:
+    name: Pack the charm
+    runs-on: ubuntu-latest
+    needs:
+      - static-analysis
+      - linting
+      - unit-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup LXD
+        uses: canonical/setup-lxd@main
+      - name: Install charmcraft
+        run: sudo snap install charmcraft --classic
+      - name: Run charmcraft pack
+        run: |
+          cd "${{ inputs.charm-path }}"
+          charmcraft pack -v
+      - name: Upload charm artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: charm
+          path: ${{ inputs.charm-path }}/*.charm
+
+  integration-matrix:
+    name: Define Integration tests matrix
+    runs-on: ubuntu-latest
+    needs: [pack-charm]
+    outputs:
+      suites: ${{ steps.suites.outputs.suites }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Generate matrix list
+        id: suites
+        run: |
+          list="$(find tests/integration -name 'test_*.py' | jq -r -ncR '[inputs]')"
+          echo "suites=$list"
+          echo "suites=$list" >> $GITHUB_OUTPUT
+          
   integration-test:
     name: Integration Tests
-    needs:
-      - static-analysis
-      - linting
-      - unit-test
-      - scenario-test
-    uses: canonical/observability/.github/workflows/_charm-tests-integration.yaml@main
-    with:
-      charm-path: "${{ inputs.charm-path }}"
-      provider: "${{ inputs.provider }}"
-      ip-range: ${{ inputs.ip-range }}
-      charmcraft-channel: ${{ inputs.charmcraft-channel }}
-  codeql:
-    name: CodeQL analysis
-    needs:
-      - static-analysis
-      - linting
-      - unit-test
-    uses: canonical/observability/.github/workflows/_charm-codeql-analysis.yml@main
-    with:
-      charm-path: "${{ inputs.charm-path }}"
+    runs-on: ubuntu-latest
+    needs: [pack-charm, integration-matrix]
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: ${{ fromJSON(needs.integration-matrix.outputs.suites) }}
+    env:
+      CONCIERGE_JUJU_CHANNEL: ${{ inputs.juju-channel }}
+      CONCIERGE_MICROK8S_CHANNEL: 1.31-strict/stable
+      CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install concierge --classic
+          sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv
+      - name: Download charm artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: charm
+          path: ${{ inputs.charm-path }}
+      - name: Run integration tests
+        run: |
+          cd ${{ inputs.charm-path }}
+          charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | tail -n1)"
+          export CHARM_PATH="$(realpath $charm_relative_path)"
+          uvx tox -e integration
+

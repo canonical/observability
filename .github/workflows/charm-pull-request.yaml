@@ -13,19 +13,18 @@ on:
         default: 'microk8s'
         required: false
         type: string
-      ip-range:
-        type: string
-        description: |
-          The IP range in the address pool for the load balancer to use.
-          It can be either a subnet(IP/mask) or a range (<IP1>-<IP2>)
-        required: false
-        default: null
       charmcraft-channel:
         type: string
         default: "3.x/candidate"
         required: false
         description: |
           The snap channel from which to install Charmcraft.
+      juju-channel:
+        type: string
+        required: false
+        description: |
+          The snap channel from which to install Juju.
+          Overrides the default branch-dependant selection of the Juju version.
     secrets:
        CHARMHUB_TOKEN:
          required: false
@@ -44,7 +43,7 @@ jobs:
 
       - name: Determine changed files in the PR
         id: changed-files
-        uses: tj-actions/changed-files@v43
+        uses: tj-actions/changed-files@v45
         with:
           files_ignore: |
             README.md
@@ -63,15 +62,37 @@ jobs:
           echo "Modified files: ${{ steps.changed-files.outputs.all_modified_files }}"
           echo "any_modified=${{ steps.changed-files.outputs.any_modified }}" >> $GITHUB_OUTPUT
 
+  channels:
+    name: Select snap channels
+    runs-on: ubuntu-latest
+    needs: [ci-ignore]
+    outputs:
+      juju-channel: ${{ steps.channels.outputs.juju-channel }}
+    env:
+      BRANCH_NAME: ${{ github.base_ref || github.ref_name }} 
+    steps:
+      - name: Determine Juju version
+        id: channels
+        run: |
+          if [[ -n "${{ inputs.juju-channel }}" ]]; then
+            echo "juju-channel=${{ inputs.juju-channel }}" >> $GITHUB_OUTPUT
+          elif [[ "${BRANCH_NAME#refs/heads/}" == "track/v0" ]]; then
+            echo "juju-channel=3.1/stable" >> $GITHUB_OUTPUT
+          else
+            echo "juju-channel=3.6/stable" >> $GITHUB_OUTPUT
+          fi
+
   quality-checks:
     name: Quality Checks
     needs:
       - ci-ignore
+      - channels
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@feature/v1
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}
       provider: ${{ inputs.provider }}
-      ip-range: ${{ inputs.ip-range }}
       charmcraft-channel: ${{ inputs.charmcraft-channel }}
+      juju-channel: ${{ needs.channels.outputs.juju-channel }}
+
