@@ -66,7 +66,7 @@ jobs:
   channels:
     runs-on: ubuntu-latest
     outputs:
-      juju-channel:: ${{ steps.channels.outputs.juju-channel }}
+      juju-channel: ${{ steps.channels.outputs.juju-channel }}
     env:
       BRANCH_NAME: ${{ github.base_ref || github.ref_name }} 
     steps:
