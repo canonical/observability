@@ -26,6 +26,12 @@ on:
         required: false
         description: |
           The snap channel from which to install Charmcraft.
+      juju-channel:
+        type: string
+        required: false
+        description: |
+          The snap channel from which to install Juju.
+          Overrides the default branch-dependant selection of the Juju version.
     secrets:
        CHARMHUB_TOKEN:
          required: false
@@ -64,7 +70,9 @@ jobs:
           echo "any_modified=${{ steps.changed-files.outputs.any_modified }}" >> $GITHUB_OUTPUT
 
   channels:
+    name: Select snap channels
     runs-on: ubuntu-latest
+    needs: [ci-ignore]
     outputs:
       juju-channel: ${{ steps.channels.outputs.juju-channel }}
     env:
@@ -73,7 +81,9 @@ jobs:
       - name: Determine Juju version
         id: channels
         run: |
-          if [[ "${BRANCH_NAME#refs/heads/}" == "track/v0" ]]; then
+          if [[ -n "${{ inputs.juju-channel }}" ]]; then
+            echo "juju-channel=${{ inputs.juju_channel }}" >> $GITHUB_OUTPUT
+          elif [[ "${BRANCH_NAME#refs/heads/}" == "track/v0" ]]; then
             echo "juju-channel=3.1/stable" >> $GITHUB_OUTPUT
           else
             echo "juju-channel=3.6/stable" >> $GITHUB_OUTPUT
