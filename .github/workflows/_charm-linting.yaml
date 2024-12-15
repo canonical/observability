@@ -27,4 +27,8 @@ jobs:
       - name: Run linters
         run: |
           cd ${{ inputs.charm-path }}
-          [ -f tox.ini ] && tox -vve lint || make lint
+          if [ -f tox.ini ]; then
+              tox -vve lint
+          else
+              make lint
+          fi

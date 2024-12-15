@@ -71,7 +71,11 @@ jobs:
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
-          [ -f tox.ini ] && tox -vve integration || make integration
+          if [ -f tox.ini ]; then
+              tox -vve integration
+          else
+              make integration
+          fi
       - name: Dump logs
         if: failure()
         uses: canonical/charming-actions/dump-logs@main

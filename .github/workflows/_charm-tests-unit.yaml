@@ -27,4 +27,8 @@ jobs:
       - name: Run tests
         run: |
           cd ${{ inputs.charm-path }}
-          [ -f tox.ini ] && tox -e unit || make unit
+          if [ -f tox.ini ]; then
+              tox -e unit
+          else
+              make unit
+          fi
