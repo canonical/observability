@@ -27,8 +27,11 @@ jobs:
       - name: Run linters
         run: |
           cd ${{ inputs.charm-path }}
+          test_type="lint"
           if [ -f tox.ini ]; then
-              tox -vve lint
+            tox -vve "$test_type"  # If the tox.ini file exists, run Tox
           else
-              make lint
+            if grep -q -E "^\s*${test_type}:" Makefile; then
+              make $test_type  # If the test type exists, run it with Make
+            fi
           fi

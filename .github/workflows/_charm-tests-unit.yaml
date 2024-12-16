@@ -27,8 +27,11 @@ jobs:
       - name: Run tests
         run: |
           cd ${{ inputs.charm-path }}
+          test_type="unit"
           if [ -f tox.ini ]; then
-              tox -e unit
+            tox -e "$test_type"  # If the tox.ini file exists, run Tox
           else
-              make unit
+            if grep -q -E "^\s*${test_type}:" Makefile; then
+              make $test_type  # If the test type exists, run it with Make
+            fi
           fi
