@@ -40,7 +40,8 @@ module "ssc" {
 }
 
 module "tempo" {
-  source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo"
+  # TODO: remove ref before merging
+  source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo?ref=TAP-158"
   model_name              = var.model_name
   channel                 = var.channel
   compactor_units         = var.tempo_compactor_units
@@ -288,6 +289,20 @@ resource "juju_integration" "grafana_catalogue" {
   }
 }
 
+resource "juju_integration" "tempo_catalogue" {
+  model = var.model_name
+
+  application {
+    name     = module.catalogue.app_name
+    endpoint = module.catalogue.endpoints.catalogue
+  }
+
+  application {
+    name     = module.tempo.app_names.tempo_coordinator
+    endpoint = module.tempo.endpoints.catalogue
+  }
+}
+
 # Provided by Traefik
 
 resource "juju_integration" "catalogue_ingress" {
@@ -329,6 +344,20 @@ resource "juju_integration" "loki_ingress" {
   application {
     name     = module.loki.app_names.loki_coordinator
     endpoint = module.loki.endpoints.ingress
+  }
+}
+
+resource "juju_integration" "tempo_ingress" {
+  model = var.model_name
+
+  application {
+    name     = module.traefik.app_name
+    endpoint = module.traefik.endpoints.traefik_route
+  }
+
+  application {
+    name     = module.tempo.app_names.tempo_coordinator
+    endpoint = module.tempo.endpoints.ingress
   }
 }
 
