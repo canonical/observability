@@ -1,5 +1,5 @@
 module "tempo_coordinator" {
-  source     = "/home/michael/Work/tempo-coordinator-k8s-operator/terraform"
+  source     = "git::https://github.com/canonical/tempo-coordinator-k8s-operator//terraform"
   model_name = var.model_name
   channel    = var.channel
 }
