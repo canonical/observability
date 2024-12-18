@@ -16,10 +16,12 @@ output "app_names" {
 output "endpoints" {
   value = {
     # Requires
-    logging           = "logging",
-    ingress           = "ingress",
-    certificates      = "certificates",
-    send-remote-write = "send-remote-write",
+    logging            = "logging",
+    ingress            = "ingress",
+    certificates       = "certificates",
+    send-remote-write  = "send-remote-write",
+    receive_datasource = "receive-datasource"
+    catalogue          = "catalogue",
 
     # Provides
     tempo_cluster     = "tempo-cluster"
