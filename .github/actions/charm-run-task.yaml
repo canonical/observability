@@ -1,5 +1,5 @@
 name: 'Task Runner'
-description: 'Run tests or linters for a charm'
+description: 'Run tests for a charm'
 inputs:
   charm-path:
     description: 'Path to the charm'
