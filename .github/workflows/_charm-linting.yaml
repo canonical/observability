@@ -25,7 +25,7 @@ jobs:
           python3 -m pip install tox
           sudo snap install --classic astral-uv
       - name: Run tests
-        uses: actions/charm-run-task
+        uses: actions/charm-run-task@feature/conditional-ci
         with:
           charm-path: ${{ inputs.charm-path }}
           test-type: lint
