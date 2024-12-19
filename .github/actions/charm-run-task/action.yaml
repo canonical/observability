@@ -34,7 +34,7 @@ runs:
           if grep -q -E "^\s*${{ inputs.test-type }}:" Makefile; then
             make "${{ inputs.test-type }}"
           else
-            echo "Error: Invalid Make target -> ${{ inputs.test-type }}."
+            echo "Warning: Make target does not exist -> ${{ inputs.test-type }}."
           fi
         else
           echo "Error: Taskrunner file not found."
