@@ -12,7 +12,7 @@ inputs:
     required: true
 
 runs:
-  using: 'bash'
+  using: 'composite'
   steps:
     - name: Run test
       shell: bash
