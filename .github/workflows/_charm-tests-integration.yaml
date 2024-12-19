@@ -69,7 +69,7 @@ jobs:
         run: |
           sudo snap install --classic astral-uv
       - name: Run tests
-        uses: ./.github/actions/charm-run-task@feature/conditional-ci
+        uses: ./.github/actions/charm-run-task
         with:
           charm-path: ${{ inputs.charm-path }}
           test-type: integration

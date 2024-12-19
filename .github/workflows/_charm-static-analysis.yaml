@@ -25,7 +25,7 @@ jobs:
           python3 -m pip install tox
           sudo snap install --classic astral-uv
       - name: Run static analysis for /lib for 3.8
-        uses: ./.github/actions/charm-run-task@feature/conditional-ci
+        uses: ./.github/actions/charm-run-task
         with:
           charm-path: ${{ inputs.charm-path }}
           test-type: static
@@ -47,7 +47,7 @@ jobs:
           python3 -m pip install tox
           sudo snap install --classic astral-uv
       - name: Run static analysis (charm)
-        uses: ./.github/actions/charm-run-task@feature/conditional-ci
+        uses: ./.github/actions/charm-run-task
         with:
           charm-path: ${{ inputs.charm-path }}
           test-type: static
