@@ -29,4 +29,3 @@ jobs:
         with:
           charm-path: ${{ inputs.charm-path }}
           test-type: unit
-          tox-command: -e unit

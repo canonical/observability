@@ -73,7 +73,6 @@ jobs:
         with:
           charm-path: ${{ inputs.charm-path }}
           test-type: integration
-          tox-command: -vve integration
       - name: Dump logs
         if: failure()
         uses: canonical/charming-actions/dump-logs@main

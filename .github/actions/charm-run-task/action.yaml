@@ -5,10 +5,7 @@ inputs:
     description: 'Path to the charm'
     required: true
   test-type:
-    description: 'Test type (e.g., lint, fmt, etc.)'
-    required: true
-  tox-command:
-    description: 'The tox command options and environment (e.g. -vve lint)'
+    description: 'Test type (e.g., lint, fmt, static, etc.)'
     required: true
 
 runs:
@@ -18,10 +15,16 @@ runs:
       shell: bash
       run: |
         cd ${{ inputs.charm-path }}
-        if [ -f tox.ini ]; then
-          tox ${{ inputs.tox-command }}  # If the tox.ini file exists, run Tox
-        else
+        if [ -f tox.ini ]; then  # Run Tox
+          tox -vve ${{ inputs.test-type }}
+        elif [ -f Makefile ]; then  # Run Make
           if grep -q -E "^\s*${{ inputs.test-type }}:" Makefile; then
-            make ${{ inputs.test-type }}  # If the test type exists, run it with Make
+            make ${{ inputs.test-type }}
+          else
+            echo "Error: Invalid Make target (${{ inputs.test-type }})."
+            exit 1
           fi
+        else
+          echo "Error: Taskrunner file not found."
+          exit 1
         fi

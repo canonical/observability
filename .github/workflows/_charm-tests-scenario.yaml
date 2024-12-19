@@ -29,4 +29,3 @@ jobs:
         with:
           charm-path: ${{ inputs.charm-path }}
           test-type: scenario
-          tox-command: -e scenario

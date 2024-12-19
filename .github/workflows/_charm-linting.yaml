@@ -9,7 +9,7 @@ on:
 
 jobs:
   lint:
-    name: Lint
+    name: Lint tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,4 +29,3 @@ jobs:
         with:
           charm-path: ${{ inputs.charm-path }}
           test-type: lint
-          tox-command: -vve lint
