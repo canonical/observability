@@ -14,7 +14,7 @@ inputs:
 runs:
   using: 'bash'
   steps:
-    - name: Run linters
+    - name: Run test
       shell: bash
       run: |
         cd ${{ inputs.charm-path }}
