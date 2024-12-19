@@ -8,7 +8,7 @@ on:
         required: false
 
 jobs:
-  static-lib:
+  static:
     name: Static static analysis for /lib and charm
     runs-on: ubuntu-20.04
     steps:
