@@ -1,0 +1,42 @@
+name: 'Task Runner'
+description: 'Run tests for a charm'
+inputs:
+  charm-path:
+    type: string
+    description: 'Path to the charm'
+    required: true
+  test-type:
+    type: choice
+    description: 'Test type for the task runner to execute'
+    required: true
+    options:
+    - lint
+    - static
+    - unit
+    - scenario
+    - integration
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run test
+      shell: bash
+      run: |
+        cd ${{ inputs.charm-path }}
+        if [ -f tox.ini ]; then  # Run Tox
+            if [ "${{ inputs.test-type }}" == "static" ]; then
+              tox -vve "static-lib"
+              tox -vve "static-charm"
+            else
+              tox -vve "${{ inputs.test-type }}"
+            fi
+        elif [ -f Makefile ]; then  # Run Make
+          if grep -q -E "^\s*${{ inputs.test-type }}:" Makefile; then
+            make "${{ inputs.test-type }}"
+          else
+            echo "Warning: Make target does not exist -> ${{ inputs.test-type }}."
+          fi
+        else
+          echo "Error: Taskrunner file not found."
+          exit 1
+        fi

@@ -8,35 +8,24 @@ on:
         required: false
 
 jobs:
-  static-lib:
-    name: Static Analysis of Libs
+  static:
+    name: Static analysis (lib and charm)
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Set up Python 3.8
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.8
       - name: Install dependencies
-        run: python3 -m pip install tox
-      - name: Run static analysis for /lib for 3.8
-        run: cd ${{ inputs.charm-path }} && tox -vve static-lib
-  static-charm:
-    name: Static Analysis of Charm
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+        run: |
+          python3 -m pip install tox
+          sudo snap install --classic astral-uv
+      - name: Run tests
+        uses: canonical/observability/.github/actions/charm-run-task@main
         with:
-          fetch-depth: 1
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.8
-      - name: Install dependencies
-        run: python3 -m pip install tox
-      - name: Run static analysis (charm)
-        run: cd ${{ inputs.charm-path }} && tox -vve static-charm
+          charm-path: ${{ inputs.charm-path }}
+          test-type: static

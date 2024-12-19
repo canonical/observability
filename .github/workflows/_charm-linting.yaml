@@ -9,7 +9,7 @@ on:
 
 jobs:
   lint:
-    name: Lint
+    name: Lint tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,6 +21,11 @@ jobs:
         with:
           python-version: 3.8
       - name: Install dependencies
-        run: python3 -m pip install tox
-      - name: Run linters
-        run: cd ${{ inputs.charm-path }} && tox -vve lint
+        run: |
+          python3 -m pip install tox
+          sudo snap install --classic astral-uv
+      - name: Run tests
+        uses: canonical/observability/.github/actions/charm-run-task@main
+        with:
+          charm-path: ${{ inputs.charm-path }}
+          test-type: lint
