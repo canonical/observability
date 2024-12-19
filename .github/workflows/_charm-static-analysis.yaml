@@ -25,16 +25,11 @@ jobs:
           python3 -m pip install tox
           sudo snap install --classic astral-uv
       - name: Run static analysis for /lib for 3.8
-        run: |
-          cd ${{ inputs.charm-path }}
-          test_type="static-lib"
-          if [ -f tox.ini ]; then
-            tox -vve "$test_type"  # If the tox.ini file exists, run Tox
-          else
-            if grep -q -E "^\s*${test_type}:" Makefile; then
-              make $test_type  # If the test type exists, run it with Make
-            fi
-          fi
+        uses: actions/charm-run-task
+        with:
+          charm-path: ${{ inputs.charm-path }}
+          test-type: static
+          tox-command: -vve static-lib
   static-charm:
     name: Static Analysis of Charm
     runs-on: ubuntu-latest
@@ -52,13 +47,8 @@ jobs:
           python3 -m pip install tox
           sudo snap install --classic astral-uv
       - name: Run static analysis (charm)
-        run: |
-          cd ${{ inputs.charm-path }}
-          test_type="static-charm"
-          if [ -f tox.ini ]; then
-            tox -vve "$test_type"  # If the tox.ini file exists, run Tox
-          else
-            if grep -q -E "^\s*${test_type}:" Makefile; then
-              make $test_type  # If the test type exists, run it with Make
-            fi
-          fi
+        uses: actions/charm-run-task
+        with:
+          charm-path: ${{ inputs.charm-path }}
+          test-type: static
+          tox-command: -vve static-charm

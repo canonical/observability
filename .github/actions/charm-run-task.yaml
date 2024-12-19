@@ -1,0 +1,27 @@
+name: 'Task Runner'
+description: 'Run tests or linters for a charm'
+inputs:
+  charm-path:
+    description: 'Path to the charm'
+    required: true
+  test-type:
+    description: 'Test type (e.g., lint, fmt, etc.)'
+    required: true
+  tox-command:
+    description: 'The tox command options and environment (e.g. -vve lint)'
+    required: true
+
+runs:
+  using: 'bash'
+  steps:
+    - name: Run linters
+      shell: bash
+      run: |
+        cd ${{ inputs.charm-path }}
+        if [ -f tox.ini ]; then
+          tox ${{ inputs.tox-command }}  # If the tox.ini file exists, run Tox
+        else
+          if grep -q -E "^\s*${{ inputs.test-type }}:" Makefile; then
+            make ${{ inputs.test-type }}  # If the test type exists, run it with Make
+          fi
+        fi
