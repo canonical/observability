@@ -21,7 +21,9 @@ jobs:
         with:
           python-version: 3.8
       - name: Install dependencies
-        run: python3 -m pip install tox
+        run: |
+          python3 -m pip install tox
+          sudo snap install --classic astral-uv
       - name: Run static analysis for /lib for 3.8
         uses: canonical/observability/.github/actions/charm-run-task@main
         with:
@@ -41,7 +43,9 @@ jobs:
         with:
           python-version: 3.8
       - name: Install dependencies
-        run: python3 -m pip install tox
+        run: |
+          python3 -m pip install tox
+          sudo snap install --classic astral-uv
       - name: Run static analysis (charm)
         uses: canonical/observability/.github/actions/charm-run-task@main
         with:
