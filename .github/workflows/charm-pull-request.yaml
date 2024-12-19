@@ -67,7 +67,7 @@ jobs:
     name: Quality Checks
     needs:
       - ci-ignore
-    # if: needs.ci-ignore.outputs.any_modified == 'true'
+    if: needs.ci-ignore.outputs.any_modified == 'true'
     uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@feature/conditional-ci
     secrets: inherit
     with:
