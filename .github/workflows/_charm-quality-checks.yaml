@@ -79,7 +79,7 @@ jobs:
       charm-path: "${{ inputs.charm-path }}"
   scenario-test:
     name: Scenario Tests
-    uses: canonical/observability/.github/workflows/_charm-tests-scenario.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-tests-scenario.yaml@feature/conditional-ci
     with:
       charm-path: "${{ inputs.charm-path }}"
   integration-test:
