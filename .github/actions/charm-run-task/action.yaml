@@ -27,6 +27,8 @@ runs:
             if [ "${{ inputs.test-type }}" == "static" ]; then
               tox -vve "static-lib"
               tox -vve "static-charm"
+            elif [ "${{ inputs.test-type }}" == "scenario" ]; then
+              tox -e "scenario"  # Scenario generates a lot of logs, lower the verbosity
             else
               tox -vve "${{ inputs.test-type }}"
             fi
