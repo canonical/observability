@@ -40,8 +40,7 @@ module "ssc" {
 }
 
 module "tempo" {
-  # TODO: remove ref before merging
-  source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo?ref=TAP-158"
+  source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo"
   model_name              = var.model_name
   channel                 = var.channel
   compactor_units         = var.tempo_compactor_units
