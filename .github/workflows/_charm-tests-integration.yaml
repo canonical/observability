@@ -31,6 +31,7 @@ defaults:
 jobs:
   integration-test:
     name: Integration Tests
+    # Pinned since multiple itests were failing when switching to 24.04 due to permissions
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
