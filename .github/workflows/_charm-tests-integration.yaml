@@ -68,6 +68,8 @@ jobs:
       - name: Install dependencies
         run: |
           sudo snap install --classic astral-uv
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
       - name: Run tests
         uses: canonical/observability/.github/actions/charm-run-task@main
         with:
