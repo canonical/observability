@@ -159,7 +159,7 @@ jobs:
       - name: Generate matrix list
         id: suites
         run: |
-          list="$(find tests/integration -name 'test_*.py' | jq -r -ncR '[inputs]')"
+          list="$(find tests/integration -name 'test_*.py' -printf '%f\n' | jq -r -ncR '[inputs]')"
           echo "suites=$list"
           echo "suites=$list" >> $GITHUB_OUTPUT
           
