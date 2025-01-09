@@ -76,7 +76,7 @@ jobs:
         run: sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
       - name: Check charm libraries
         env:
-          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.number }}
         run: |
