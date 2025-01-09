@@ -130,7 +130,6 @@ jobs:
 
       - name: Create a PR for local changes
         uses: peter-evans/create-pull-request@v6
-        id: cpr
         with:
           token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
           commit-message: "chore: update charm libraries"

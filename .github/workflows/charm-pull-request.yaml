@@ -62,24 +62,31 @@ jobs:
           echo "Modified files: ${{ steps.changed-files.outputs.all_modified_files }}"
           echo "any_modified=${{ steps.changed-files.outputs.any_modified }}" >> $GITHUB_OUTPUT
 
-  channels:
-    name: Select snap channels
+  lib-check:
+    name: Check libraries  # Check if the charm libraries are updated and add the relevant label to the PR
     runs-on: ubuntu-latest
     needs: [ci-ignore]
-    outputs:
-      juju-channel: ${{ steps.channels.outputs.juju-channel }}
-    env:
-      BRANCH_NAME: ${{ github.base_ref || github.ref_name }} 
+    if: ${{ github.event_name == 'pull_request' && needs.ci-ignore.outputs.any_modified == 'true' }}
     steps:
-      - name: Determine Juju version
-        id: channels
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install charmcraft
+        run: sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
+      - name: Check charm libraries
+        env:
+          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
         run: |
-          if [[ -n "${{ inputs.juju-channel }}" ]]; then
-            echo "juju-channel=${{ inputs.juju-channel }}" >> $GITHUB_OUTPUT
-          elif [[ "${BRANCH_NAME#refs/heads/}" == "track/v0" ]]; then
-            echo "juju-channel=3.1/stable" >> $GITHUB_OUTPUT
+          cd "${{ inputs.charm-path }}"
+          fetch_lib="$(charmcraft fetch-lib)"
+          # If charm libraries are not up-to-date
+          if echo "$fetch_lib" | grep -qE "not found in Charmhub|updated to version|has local changes"; then
+            gh pr edit "$PR_NUMBER" --remove-label "Libraries: OK" --add-label "Libraries: Out of Sync"
           else
-            echo "juju-channel=3.6/stable" >> $GITHUB_OUTPUT
+            gh pr edit "$PR_NUMBER" --remove-label "Libraries: Out of Sync" --add-label "Libraries: OK"
           fi
 
   quality-checks:
@@ -94,5 +101,5 @@ jobs:
       charm-path: ${{ inputs.charm-path }}
       provider: ${{ inputs.provider }}
       charmcraft-channel: ${{ inputs.charmcraft-channel }}
-      juju-channel: ${{ needs.channels.outputs.juju-channel }}
+      juju-channel: ${{ inputs.juju-channel }}
 

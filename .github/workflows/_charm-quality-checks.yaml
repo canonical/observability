@@ -18,9 +18,10 @@ on:
           The snap channel from which to install Charmcraft.
       juju-channel:
         type: string
-        required: true
+        required: false
         description: |
           The snap channel from which to install Juju.
+          Overrides the default branch-dependant selection of the Juju version.
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -36,12 +37,35 @@ jobs:
           CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
         if: "${{ env.CHARMHUB_TOKEN != '' }}"
         run: echo "defined=true" >> $GITHUB_OUTPUT
+
+  snap-channels:
+    name: Select snap channels
+    runs-on: ubuntu-latest
+    outputs:
+      juju-channel: ${{ steps.channels.outputs.juju-channel }}
+    env:
+      BRANCH_NAME: ${{ github.base_ref || github.ref_name }} 
+    steps:
+      - name: Determine Juju version
+        id: channels
+        run: |
+          # If a Juju version is passed from the inputs use that, otherwise use the defaults
+          # we picked for each track name
+          if [[ -n "${{ inputs.juju-channel }}" ]]; then
+            echo "juju-channel=${{ inputs.juju-channel }}" >> $GITHUB_OUTPUT
+          elif [[ "${BRANCH_NAME#refs/heads/}" == "track/1" ]]; then
+            echo "juju-channel=3.1/stable" >> $GITHUB_OUTPUT
+          else
+            echo "juju-channel=3.6/stable" >> $GITHUB_OUTPUT
+          fi
+
   call-inclusive-naming-check:
     # Issues with this workflow can be addressed by adding a .wokeignore in the repository root
     name: Inclusive naming
     uses: canonical/Inclusive-naming/.github/workflows/woke.yaml@main
     with:
       fail-on-error: "true"
+
   codeql:
     name: CodeQL analysis
     runs-on: ubuntu-latest
@@ -57,27 +81,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: python
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
-  lib-check:
-    name: Check libraries
-    runs-on: ubuntu-latest
-    needs:
-      - check-secret
-    if: needs.check-secret.outputs.defined == 'true'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Check charm libraries # Make sure our charm libraries are updated
-        uses: canonical/charming-actions/check-libraries@2.5.0-rc
-        with:
-          credentials: "${{ secrets.CHARMHUB_TOKEN }}"
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-          charm-path: "${{ inputs.charm-path }}"
-          charmcraft-channel: "${{ inputs.charmcraft-channel }}"
+        uses: github/codeql-action/analyze@v3
+
   linting:
     name: Linting
     runs-on: ubuntu-latest
@@ -89,6 +98,7 @@ jobs:
           sudo snap install astral-uv --classic
           cd "${{ inputs.charm-path }}"
           uvx tox -e lint
+
   static-analysis:
     name: Static analysis
     runs-on: ubuntu-latest
@@ -100,6 +110,7 @@ jobs:
           sudo snap install astral-uv --classic
           cd "${{ inputs.charm-path }}"
           uvx tox -e static
+
   unit-test:
     name: Unit tests
     runs-on: ubuntu-latest
@@ -111,6 +122,7 @@ jobs:
           sudo snap install astral-uv --classic
           cd "${{ inputs.charm-path }}"
           uvx tox -e unit
+
   pack-charm:
     name: Pack the charm
     runs-on: ubuntu-latest
@@ -154,13 +166,13 @@ jobs:
   integration-test:
     name: Integration Tests
     runs-on: ubuntu-latest
-    needs: [pack-charm, integration-matrix]
+    needs: [snap-channels, pack-charm, integration-matrix]
     strategy:
       fail-fast: false
       matrix:
         suite: ${{ fromJSON(needs.integration-matrix.outputs.suites) }}
     env:
-      CONCIERGE_JUJU_CHANNEL: ${{ inputs.juju-channel }}
+      CONCIERGE_JUJU_CHANNEL: ${{ needs.snap-channels.outputs.juju-channel }}
       CONCIERGE_MICROK8S_CHANNEL: 1.31-strict/stable
       CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
     steps:
@@ -180,5 +192,5 @@ jobs:
           cd ${{ inputs.charm-path }}
           charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | tail -n1)"
           export CHARM_PATH="$(realpath $charm_relative_path)"
-          uvx tox -e integration
+          uvx tox -e integration -- -k "${{ matrix.suite }}"
 

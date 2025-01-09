@@ -44,9 +44,35 @@ permissions:
   pull-requests: write
 
 jobs:
+  merge-pr:
+    name: Merge previous green PRs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Merge any pre-existing PRs from the automatically generated "chore/add-version" branch if the CI is green
+        run: |
+          # If a PR from "chore/add-version" is open and CI checks are passing, merge it
+          is_pr_open="$(gh pr list --head chore/add-version --state open --json id --jq 'length')"
+          if [[ "$is_pr_open" == "1" ]]; then
+            if gh pr checks chore/add-version; then
+              echo "CI checks are passing, merging the chore/add-version PR"
+              gh pr merge chore/add-version --admin --squash --delete-branch
+            fi
+          elif [[ "$is_pr_open" != "0" ]]; then
+            # The number of open PRs should always be either 0 or 1
+            echo "There's two PRs from the same branch; this should never happen!"
+            exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
   check-version:
     name: Detect new releases
     runs-on: ubuntu-latest
+    needs:
+      - merge-pr
     steps:
       - name: Install dependencies
         run: |
@@ -151,5 +177,5 @@ jobs:
           author: "${{ inputs.commit-username }} <${{ inputs.commit-email }}>"
           title: "chore: add rock for ${{ inputs.rock-name }} ${{ steps.check.outputs.release }}"
           body: Automated update to follow upstream [release](https://github.com/${{ inputs.source-repo }}/releases/tag/${{ steps.check.outputs.release }}) of ${{ inputs.rock-name }}.
-          branch: "chore/bump-version-to-${{ steps.check.outputs.release }}"
+          branch: "chore/add-version"
           delete-branch: true

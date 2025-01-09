@@ -8,40 +8,36 @@ on:
         default: '.'
         required: false
         type: string
-      release-tag-prefix:
-        description: "Tag prefix to use for the tag of the GitHub release."
-        default: ''
-        required: false
-        type: string
-      artifact:
-        description: "Name of artifact to download before building. Must contain the file artifact.tar.gz."
-        default: ''
-        required: false
-        type: string
       provider:
         description: "The provider to choose for either machine or k8s tests ('lxd' or 'microk8s')"
         default: 'microk8s'
         required: false
         type: string
-      ip-range:
-        type: string
-        description: |
-          The IP range in the address pool for the load balancer to use.
-          It can be either a subnet(IP/mask) or a range (<IP1>-<IP2>)
-        required: false
-        default: null
-      build-for-arm:
-        type: boolean
-        default: false
-        required: false
-        description: |
-          Whether or not to also build the charm for arm64. Defaults to false.
       charmcraft-channel:
         type: string
         default: "3.x/candidate"
         required: false
         description: |
           The snap channel from which to install Charmcraft.
+      juju-channel:
+        type: string
+        required: false
+        description: |
+          The snap channel from which to install Juju.
+          Overrides the default branch-dependant selection of the Juju version.
+      default-track:
+        type: string
+        required: false
+        description: |
+          The default track to release to when pushing to the 'main' branch.
+          If the push happens to a branch named 'track/X', the charm will be
+          released to the channel 'X/edge'.
+        default: "latest"  # TODO: replace with 1
+      git-tag-prefix:
+        description: "Tag prefix to use for the tag of the GitHub release."
+        default: ''
+        required: false
+        type: string
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -53,26 +49,72 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  define-matrix:
+    name: Define runner and build matrix
+    runs-on: ubuntu-latest
+    outputs:
+      runners: ${{ steps.build-matrix.outputs.runners }}
+      release-channel: ${{ steps.define-channel.outputs.release_channel }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install yq
+      - name: Define build matrix
+        id: build-matrix
+        run: |
+          cd "${{ inputs.charm-path }}"
+          runners="$( \
+            yq -o json '.platforms | to_entries | map(.key)' charmcraft.yaml | \
+            sed 's/".*amd64.*"/"ubuntu-latest"/' | \
+            sed 's/".*arm64.*"/"Ubuntu_ARM64_4C_16G_01"/' | \
+            jq -rc \
+          )"
+          echo "runners=$runners"
+          echo "runners=$runners" >> $GITHUB_OUTPUT
+      - name: Define release channel
+        id: define-channel
+        env:
+          GIT_BRANCH: ${{ github.ref_name }}
+          DEFAULT_TRACK: ${{ inputs.default-track }}
+        run: |
+          if [[ "$GIT_BRANCH" == "main" ]]; then
+            release_channel="${DEFAULT_TRACK}/edge"
+          elif [[ "${GIT_BRANCH%/*}" == "track" ]]; then
+            release_channel="${GIT_BRANCH#track/}/edge"
+          fi
+          echo "release_channel=$release_channel"
+          echo "release_channel=$release_channel" >> $GITHUB_OUTPUT
+
   quality-checks:
     name: Quality Checks
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@feature/v1
+    needs: [define-matrix]
     secrets: inherit
     with:
       charm-path: "${{ inputs.charm-path }}"
       provider: "${{ inputs.provider }}"
       ip-range: "${{ inputs.ip-range }}"
-      charmcraft-channel: ${{ inputs.charmcraft-channel }}
+      charmcraft-channel: "${{ inputs.charmcraft-channel }}"
+    
   release-charm:
     name: Release Charm and Libraries
     needs:
+      - define-matrix
       - quality-checks
+    strategy:
+      matrix:
+        runner: ${{ fromJSON(needs.define-matrix.outputs.runners) }}
     uses: canonical/observability/.github/workflows/_charm-release.yaml@main
     secrets: inherit
     with:
-      artifact: "${{ inputs.artifact }}"
+      release-channel: "${{ needs.define-matrix.outputs.release-channel }}"
       charm-path: "${{ inputs.charm-path }}"
-      release-tag-prefix: "${{ inputs.release-tag-prefix }}"
-      build-for-arm: ${{ inputs.build-for-arm }}
+      runner: "${{ matrix.runner }}"
+      charmcraft-channel: "${{ inputs.charmcraft-channel }}"
+      git-tag-prefix: "${{ inputs.git-tag-prefix }}"
+      
   release-libs:
     name: Release any bumped charm library
     needs:
@@ -82,10 +124,10 @@ jobs:
       - name: Checkout the source
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
           path: charm
-
       - name: Release libraries
+        env:
+          CHARMCRAFT_AUTH: "${{ secrets.CHARMHUB_TOKEN }}"
         run: |
           # Install Charmcraft
           sudo snap install charmcraft --classic --channel ${{ inputs.charmcraft-channel }}
@@ -99,5 +141,4 @@ jobs:
               charmcraft publish-lib $lib
             done
           fi
-        env:
-          CHARMCRAFT_AUTH: "${{ secrets.CHARMHUB_TOKEN }}"
+
