@@ -93,10 +93,10 @@ jobs:
     needs: [define-matrix]
     secrets: inherit
     with:
-      charm-path: "${{ inputs.charm-path }}"
-      provider: "${{ inputs.provider }}"
-      ip-range: "${{ inputs.ip-range }}"
-      charmcraft-channel: "${{ inputs.charmcraft-channel }}"
+      charm-path: ${{ inputs.charm-path }}
+      provider: ${{ inputs.provider }}
+      charmcraft-channel: ${{ inputs.charmcraft-channel }}
+      juju-channel: ${{ inputs.juju-channel }}
     
   release-charm:
     name: Release Charm and Libraries
