@@ -106,7 +106,7 @@ jobs:
     strategy:
       matrix:
         runner: ${{ fromJSON(needs.define-matrix.outputs.runners) }}
-    uses: canonical/observability/.github/workflows/_charm-release.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-release.yaml@feature/v1
     secrets: inherit
     with:
       release-channel: "${{ needs.define-matrix.outputs.release-channel }}"
