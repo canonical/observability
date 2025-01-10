@@ -103,15 +103,12 @@ jobs:
     needs:
       - define-matrix
       # - quality-checks
-    strategy:
-      matrix:
-        runner: ${{ fromJSON(needs.define-matrix.outputs.runners) }}
     uses: canonical/observability/.github/workflows/_charm-release.yaml@feature/v1
     secrets: inherit
     with:
       release-channel: "${{ needs.define-matrix.outputs.release-channel }}"
       charm-path: "${{ inputs.charm-path }}"
-      runner: "${{ matrix.runner }}"
+      runners: "${{ needs.define-matrix.outputs.runners }}"
       charmcraft-channel: "${{ inputs.charmcraft-channel }}"
       git-tag-prefix: "${{ inputs.git-tag-prefix }}"
       
