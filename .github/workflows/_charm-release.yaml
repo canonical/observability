@@ -122,10 +122,10 @@ jobs:
             # Create a GitHub release 
             release_name="Revision $revision"
             ## Add the charm information to the release body
-            body_charm="$(print "\`\`\`json\n${pretty_uploaded_charm}\n\`\`\`")"
+            body_charm="$(printf "\`\`\`json\n${pretty_uploaded_charm}\n\`\`\`")"
             current_date="$(date -u +"%B %e, %Y at %H:%M UTC")"
-            body_meta="$(print "Released to *${RELEASE_CHANNEL}* on ${current_date}")"
-            body="$(print "${body_charm}\n\n${body_meta}")"
+            body_meta="$(printf "Released to *${RELEASE_CHANNEL}* on ${current_date}")"
+            body="$(printf "${body_charm}\n\n${body_meta}")"
             ## Create the GitHub release from the previously-created tag
             gh release create "${TAG_PREFIX}rev${revision}" --notes="$body" --generate-notes
           done
