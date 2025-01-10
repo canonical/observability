@@ -133,9 +133,12 @@ jobs:
           UPLOADED_CHARM: ${{ needs.charmhub-release.outputs.uploaded_charm }}
           TAG_PREFIX: ${{ inputs.git-tag-prefix }}
         run: |
-          revision="$(echo "$UPLOADED_CHARM" | jq .revision)"
+          # Configure git
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
           # Use the latest commit message as the tag message
           git log -1 --pretty=%B > tag-message
+          revision="$(echo "$UPLOADED_CHARM" | jq .revision)"
           git tag --annotate "${TAG_PREFIX}rev${revision}" --file=tag-message
           rm -f tag-message
           git push origin --tags
