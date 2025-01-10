@@ -114,8 +114,9 @@ jobs:
               --channel "${{ inputs.release-channel }}" \
               --json \
           )"
-          echo "uploaded_charm='$uploaded_charm'"
-          echo "uploaded_charm='$uploaded_charm'" >> $GITHUB_OUTPUT
+          uploaded_charm_json="$(echo "$uploaded_charm" | jq -rc)"
+          echo "uploaded_charm='$uploaded_charm_json'"
+          echo "uploaded_charm='$uploaded_charm_json'" >> $GITHUB_OUTPUT
   github-release:
     name: Create the GitHub tag and release (${{ inputs.runner }})
     runs-on: ubuntu-latest
