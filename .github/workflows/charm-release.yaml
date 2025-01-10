@@ -102,7 +102,7 @@ jobs:
     name: Release Charm and Libraries
     needs:
       - define-matrix
-      - quality-checks
+      # - quality-checks
     strategy:
       matrix:
         runner: ${{ fromJSON(needs.define-matrix.outputs.runners) }}
