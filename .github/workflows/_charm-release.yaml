@@ -106,11 +106,8 @@ jobs:
                 --path "$path" \
                 --channel "$RELEASE_CHANNEL" \
                 --json \
-              | jq -rc \
             )"
-            echo "DEBUG: $uploaded_charm"
-            echo "DEBUG:"
-            echo "$(echo "$uploaded_charm" | jq -r)"
+            echo "$uploaded_charm"
             pretty_uploaded_charm="$(echo "$uploaded_charm" | jq -r)"
             echo "${CHARM_NAME} has been released to ${RELEASE_CHANNEL}"
             echo "$pretty_uploaded_charm"
