@@ -99,15 +99,15 @@ jobs:
           file_paths="$(find -name '*.charm' -printf '%f ')"
           # For all the charms built on this architecture: release them
           for path in ${file_paths}; do
-            uploaded_charm="$( \
-              uvx --quiet --from git+https://github.com/lucabello/noctua noctua charm release \
-                "$CHARM_NAME" \
-                --path "$path" \
-                --channel "$RELEASE_CHANNEL" \
-                --json \
-            )"
+            uvx --quiet --from git+https://github.com/lucabello/noctua noctua charm release \
+              "$CHARM_NAME" \
+              --path "$path" \
+              --channel "$RELEASE_CHANNEL" \
+              --json > uploaded
+            uploaded_charm="$(jq -rc . .upload_results)"
             echo "$uploaded_charm"
-            pretty_uploaded_charm="$(echo "'$uploaded_charm'" | jq -r)"
+            rm -f .upload_results
+            pretty_uploaded_charm="$(echo "$uploaded_charm" | jq -r)"
             echo "${CHARM_NAME} has been released to ${RELEASE_CHANNEL}"
             # Create a git tag and push it
             ## Configure git
@@ -115,7 +115,7 @@ jobs:
             git config --global user.name "github-actions[bot]"
             ## Use the latest commit message as the tag message
             git log -1 --pretty=%B > tag-message
-            revision="$(echo "'$uploaded_charm'" | jq -rc .revision)"
+            revision="$(echo "$uploaded_charm" | jq -rc .revision)"
             git tag --annotate "${TAG_PREFIX}rev${revision}" --file=tag-message
             rm -f tag-message
             git push origin --tags
