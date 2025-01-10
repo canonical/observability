@@ -74,9 +74,10 @@ jobs:
         with:
           name: charms
           path: ${{ inputs.charm-path }}/*.charm
-      - name: Read charm name from charmcraft.yaml or metadata.yaml
+      - name: Get charm name
         id: get-charm-name
         run: |
+          # Read charm name from metadata.yaml or charmcraft.yaml
           cd "${{ inputs.charm-path }}"
           charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
           echo "charm_name=$charm_name" >> $GITHUB_OUTPUT
@@ -97,7 +98,7 @@ jobs:
           cd "${{ inputs.charm-path }}"
           file_paths="$(find -name '*.charm' -printf '%f ')"
           # For all the charms built on this architecture: release them
-          for path in  ${=file_paths}; do
+          for path in ${file_paths}; do
             uploaded_charm="$( \
               uvx --from git+https://github.com/lucabello/noctua noctua charm release \
                 "${{ steps.get-charm-name.outputs.charm_name }}" \
