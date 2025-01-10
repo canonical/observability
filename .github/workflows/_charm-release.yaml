@@ -100,7 +100,7 @@ jobs:
           # For all the charms built on this architecture: release them
           for path in ${file_paths}; do
             uploaded_charm="$( \
-              uvx --from git+https://github.com/lucabello/noctua noctua charm release \
+              uvx --quiet --from git+https://github.com/lucabello/noctua noctua charm release \
                 "$CHARM_NAME" \
                 --path "$path" \
                 --channel "$RELEASE_CHANNEL" \
