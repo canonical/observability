@@ -58,7 +58,7 @@ jobs:
           echo "charms=$CHARMS"
           echo "charms=$CHARMS" >> $GITHUB_OUTPUT
       - name: Store charm(s)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: charms
           path: ${{ inputs.charm-path }}/*.charm
@@ -87,7 +87,7 @@ jobs:
           charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
           echo "charm_name=$charm_name" >> $GITHUB_OUTPUT
       - name: Fetch charm artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: charms
           path: "${{ github.workspace }}/${{ inputs.charm-path }}"
