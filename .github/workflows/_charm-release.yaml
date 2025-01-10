@@ -80,7 +80,7 @@ jobs:
           cd "${{ inputs.charm-path }}"
           charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
           echo "charm_name=$charm_name" >> $GITHUB_OUTPUT
-      - name: Upload charm to Charmhub and release
+      - name: Release charm to Charmhub and GitHub
         id: upload
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
@@ -89,40 +89,42 @@ jobs:
           TAG_PREFIX: ${{ inputs.git-tag-prefix }}
           RELEASE_CHANNEL: ${{ inputs.release-channel }}
         run: |
-          # Upload charm to Charmhub and release it
+          # Upload charm to CharmHub and release it
           # uploaded_charm has the following JSON format:
           # {"name": "o11y-tester", "revision": 12, "resources": [
           #   {"name": "httpbin-image", "revision": 1, "upstream_source": "kennethreitz/httpbin"}
           # ]}
           cd "${{ inputs.charm-path }}"
           file_paths="$(find -name '*.charm' -printf '%f ')"
+          # For all the charms built on this architecture: release them
           for path in  ${=file_paths}; do
-          uploaded_charm="$( \
-            uvx --from git+https://github.com/lucabello/noctua noctua charm release \
-              "${{ steps.get-charm-name.outputs.charm_name }}" \
-              --path "${{ matrix.path }}" \
-              --channel "${{ inputs.release-channel }}" \
-              --json \
-          )"
-          pretty_uploaded_charm="$(echo "$uploaded_charm" | jq)"
-          echo "${CHARM_NAME} has been released to ${RELEASE_CHANNEL}"
-          echo "$pretty_uploaded_charm"
-          # Create a git tag and push it
-          ## Configure git
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-          ## Use the latest commit message as the tag message
-          git log -1 --pretty=%B > tag-message
-          revision="$(echo "$uploaded_charm" | jq .revision)"
-          git tag --annotate "${TAG_PREFIX}rev${revision}" --file=tag-message
-          rm -f tag-message
-          git push origin --tags
-          # Create a GitHub release 
-          release_name="Revision $revision"
-          ## Add the charm information to the release body
-          body_charm="$(print "\`\`\`json\n${pretty_uploaded_charm}\n\`\`\`")"
-          current_date="$(date -u +"%B %e, %Y at %H:%M UTC")"
-          body_meta="$(print "Released to *${RELEASE_CHANNEL}* on ${current_date}")"
-          body="$(print "${body_charm}\n\n${body_meta}")"
-          ## Create the GitHub release from the previously-created tag
-          gh release create "${TAG_PREFIX}rev${revision}" --notes="$body" --generate-notes
+            uploaded_charm="$( \
+              uvx --from git+https://github.com/lucabello/noctua noctua charm release \
+                "${{ steps.get-charm-name.outputs.charm_name }}" \
+                --path "${{ matrix.path }}" \
+                --channel "${{ inputs.release-channel }}" \
+                --json \
+            )"
+            pretty_uploaded_charm="$(echo "$uploaded_charm" | jq)"
+            echo "${CHARM_NAME} has been released to ${RELEASE_CHANNEL}"
+            echo "$pretty_uploaded_charm"
+            # Create a git tag and push it
+            ## Configure git
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git config --global user.name "github-actions[bot]"
+            ## Use the latest commit message as the tag message
+            git log -1 --pretty=%B > tag-message
+            revision="$(echo "$uploaded_charm" | jq .revision)"
+            git tag --annotate "${TAG_PREFIX}rev${revision}" --file=tag-message
+            rm -f tag-message
+            git push origin --tags
+            # Create a GitHub release 
+            release_name="Revision $revision"
+            ## Add the charm information to the release body
+            body_charm="$(print "\`\`\`json\n${pretty_uploaded_charm}\n\`\`\`")"
+            current_date="$(date -u +"%B %e, %Y at %H:%M UTC")"
+            body_meta="$(print "Released to *${RELEASE_CHANNEL}* on ${current_date}")"
+            body="$(print "${body_charm}\n\n${body_meta}")"
+            ## Create the GitHub release from the previously-created tag
+            gh release create "${TAG_PREFIX}rev${revision}" --notes="$body" --generate-notes
+          done
