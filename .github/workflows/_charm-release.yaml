@@ -103,12 +103,12 @@ jobs:
               "$CHARM_NAME" \
               --path "$path" \
               --channel "$RELEASE_CHANNEL" \
-              --json > uploaded
+              --json > .upload_results
             uploaded_charm="$(jq -rc . .upload_results)"
-            echo "$uploaded_charm"
+            pretty_uploaded_charm="$(jq -r .upload_results)"
             rm -f .upload_results
-            pretty_uploaded_charm="$(echo "$uploaded_charm" | jq -r)"
             echo "${CHARM_NAME} has been released to ${RELEASE_CHANNEL}"
+            echo "$pretty_uploaded_charm"
             # Create a git tag and push it
             ## Configure git
             git config --global user.email "github-actions[bot]@users.noreply.github.com"
