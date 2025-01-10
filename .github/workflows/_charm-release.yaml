@@ -102,9 +102,9 @@ jobs:
           for path in ${file_paths}; do
             uploaded_charm="$( \
               uvx --from git+https://github.com/lucabello/noctua noctua charm release \
-                "${{ steps.get-charm-name.outputs.charm_name }}" \
-                --path "${{ matrix.path }}" \
-                --channel "${{ inputs.release-channel }}" \
+                "$CHARM_NAME" \
+                --path "$path" \
+                --channel "$RELEASE_CHANNEL" \
                 --json \
             )"
             pretty_uploaded_charm="$(echo "$uploaded_charm" | jq)"
