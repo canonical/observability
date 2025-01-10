@@ -114,8 +114,8 @@ jobs:
               --channel "${{ inputs.release-channel }}" \
               --json \
           )"
-          echo "uploaded_charm=$uploaded_charm"
-          echo "uploaded_charm=$uploaded_charm" >> $GITHUB_OUTPUT
+          echo "uploaded_charm='$uploaded_charm'"
+          echo "uploaded_charm='$uploaded_charm'" >> $GITHUB_OUTPUT
   github-release:
     name: Create the GitHub tag and release (${{ runner.arch }})
     runs-on: ubuntu-latest
@@ -132,7 +132,7 @@ jobs:
           UPLOADED_CHARM: ${{ needs.charmhub-release.outputs.uploaded_charm }}
           TAG_PREFIX: ${{ inputs.git-tag-prefix }}
         run: |
-          revision="$(echo $UPLOADED_CHARM | jq .revision)"
+          revision="$(echo "$UPLOADED_CHARM" | jq .revision)"
           # Use the latest commit message as the tag message
           git log -1 --pretty=%B > tag-message
           git tag --annotate "${TAG_PREFIX}rev${revision}" --file=tag-message
@@ -145,10 +145,10 @@ jobs:
           TAG_PREFIX: ${{ inputs.git-tag-prefix }}
           RELEASE_CHANNEL: ${{ inputs.release-channel }}
         run: |
-          revision="$(echo $UPLOADED_CHARM | jq .revision)"
+          revision="$(echo "$UPLOADED_CHARM" | jq .revision)"
           release_name="Revision $revision"
           # Add the charm information to the release body
-          pretty_uploaded_charm="$(echo $UPLOADED_CHARM | jq)"
+          pretty_uploaded_charm="$(echo "$UPLOADED_CHARM"" | jq)"
           body_charm="$(print "\`\`\`json\n${pretty_uploaded_charm}\n\`\`\`")"
           body_meta="$(print "Released to *${RELEASE_CHANNEL}* on $(date -u +"%B %e, %Y at %H:%M UTC")")"
           body="$(print "${body_charm}\n\n${body_meta}")"
