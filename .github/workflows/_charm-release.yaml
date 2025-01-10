@@ -108,7 +108,7 @@ jobs:
                 --json \
             )"
             echo "$uploaded_charm"
-            pretty_uploaded_charm="$(echo "$uploaded_charm" | jq -r)"
+            pretty_uploaded_charm="$(echo "'$uploaded_charm'" | jq -r)"
             echo "${CHARM_NAME} has been released to ${RELEASE_CHANNEL}"
             echo "$pretty_uploaded_charm"
             # Create a git tag and push it
@@ -117,7 +117,7 @@ jobs:
             git config --global user.name "github-actions[bot]"
             ## Use the latest commit message as the tag message
             git log -1 --pretty=%B > tag-message
-            revision="$(echo "$uploaded_charm" | jq -rc .revision)"
+            revision="$(echo "'$uploaded_charm'" | jq -rc .revision)"
             git tag --annotate "${TAG_PREFIX}rev${revision}" --file=tag-message
             rm -f tag-message
             git push origin --tags
