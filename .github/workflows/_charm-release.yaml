@@ -50,7 +50,6 @@ jobs:
         uses: canonical/setup-lxd@main
       - name: Install charmcraft
         run: |
-          sudo snap install jq
           sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
           sudo snap install astral-uv --classic
       - name: Cache wheels
@@ -110,7 +109,6 @@ jobs:
             echo "$uploaded_charm"
             pretty_uploaded_charm="$(echo "'$uploaded_charm'" | jq -r)"
             echo "${CHARM_NAME} has been released to ${RELEASE_CHANNEL}"
-            echo "$pretty_uploaded_charm"
             # Create a git tag and push it
             ## Configure git
             git config --global user.email "github-actions[bot]@users.noreply.github.com"
