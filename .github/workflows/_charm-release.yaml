@@ -19,13 +19,11 @@ on:
         default: "ubuntu-latest"
       charmcraft-channel:
         type: string
-        default: "3.x/candidate"
-        required: false
+        required: true
         description: |
           The snap channel from which to install Charmcraft.
       git-tag-prefix:
         description: "Tag prefix to use for the tag of the GitHub release."
-        default: ''
         required: false
         type: string
     secrets:
@@ -36,20 +34,29 @@ on:
 
 jobs:
   build:
-    name: Pack the charm
+    name: Pack the charm (${{ inputs.runner }})
     runs-on: ${{ inputs.runner }}
     outputs:
       charms: ${{ steps.pack.outputs.charms }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install dependencies
-        env:
-          CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
+      - name: Setup LXD
+        uses: canonical/setup-lxd@main
+      - name: Install charmcraft
         run: |
           sudo snap install jq
-          sudo snap install concierge --classic
-          sudo concierge prepare -p machine
+          sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
+      - name: Cache wheels
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/snap/charmcraft/common/cache/charmcraft
+          key: ${{ runner.os }}-wheel-cache-${{ hashFiles('./uv.lock') }}
+          # If the above cache key doesn't match, it's because the uv.lock has changed.
+          # Even so, pre-existing caches may still contain useful cached builds for some
+          # portion of the dependencies, and restore-keys can partially match a cache.
+          restore-keys: |
+            ${{ runner.os }}-wheel-cache-
       - name: Pack charm(s)
         id: pack
         run: |
@@ -63,7 +70,7 @@ jobs:
           name: charms
           path: ${{ inputs.charm-path }}/*.charm
   charmhub-release:
-    name: Release to CharmHub
+    name: Release to CharmHub (${{ inputs.runner }})
     runs-on: ubuntu-latest
     needs:
       - build
@@ -110,7 +117,7 @@ jobs:
           echo "uploaded_charm=$uploaded_charm"
           echo "uploaded_charm=$uploaded_charm" >> $GITHUB_OUTPUT
   github-release:
-    name: Create the GitHub tag and release
+    name: Create the GitHub tag and release (${{ inputs.runner }})
     runs-on: ubuntu-latest
     needs:
       - build

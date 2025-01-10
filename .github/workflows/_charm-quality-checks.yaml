@@ -6,19 +6,19 @@ on:
       charm-path:
         type: string
         required: false
+        default: .
       provider:
         type: string
         description: "The provider to choose for integration tests ('machine' or 'microk8s')"
         required: true
       charmcraft-channel:
         type: string
-        default: "3.x/candidate"
-        required: false
+        required: true
         description: |
           The snap channel from which to install Charmcraft.
       juju-channel:
         type: string
-        required: false
+        required: true
         description: |
           The snap channel from which to install Juju.
           Overrides the default branch-dependant selection of the Juju version.
@@ -137,6 +137,16 @@ jobs:
         uses: canonical/setup-lxd@main
       - name: Install charmcraft
         run: sudo snap install charmcraft --classic
+      - name: Cache wheels
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/snap/charmcraft/common/cache/charmcraft
+          key: ${{ runner.os }}-wheel-cache-${{ hashFiles('./uv.lock') }}
+          # If the above cache key doesn't match, it's because the uv.lock has changed.
+          # Even so, pre-existing caches may still contain useful cached builds for some
+          # portion of the dependencies, and restore-keys can partially match a cache.
+          restore-keys: |
+            ${{ runner.os }}-wheel-cache-
       - name: Run charmcraft pack
         run: |
           cd "${{ inputs.charm-path }}"

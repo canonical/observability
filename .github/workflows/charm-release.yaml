@@ -118,7 +118,7 @@ jobs:
   release-libs:
     name: Release any bumped charm library
     needs:
-      - quality-checks
+      - release-charm
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the source
