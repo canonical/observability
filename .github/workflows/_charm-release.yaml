@@ -130,7 +130,7 @@ jobs:
           ref: "${{ github.event.head_commit.id }}"
       - name: Create the git tag and push it
         env:
-          UPLOADED_CHARM: ${{ needs.charmhub-release.outputs.uploaded_charm }}
+          UPLOADED_CHARM: ${{ needs.charmhub-release.outputs.uploaded-charm }}
           TAG_PREFIX: ${{ inputs.git-tag-prefix }}
         run: |
           # Configure git
@@ -144,7 +144,7 @@ jobs:
           git push origin --tags
       - name: Build the GitHub release content
         env:
-          UPLOADED_CHARM: ${{ needs.charmhub-release.outputs.uploaded_charm }}
+          UPLOADED_CHARM: ${{ needs.charmhub-release.outputs.uploaded-charm }}
           GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
           TAG_PREFIX: ${{ inputs.git-tag-prefix }}
           RELEASE_CHANNEL: ${{ inputs.release-channel }}
@@ -152,9 +152,10 @@ jobs:
           revision="$(echo "$UPLOADED_CHARM" | jq .revision)"
           release_name="Revision $revision"
           # Add the charm information to the release body
-          pretty_uploaded_charm="$(echo "$UPLOADED_CHARM"" | jq)"
+          pretty_uploaded_charm="$(echo "$UPLOADED_CHARM" | jq)"
           body_charm="$(print "\`\`\`json\n${pretty_uploaded_charm}\n\`\`\`")"
-          body_meta="$(print "Released to *${RELEASE_CHANNEL}* on $(date -u +"%B %e, %Y at %H:%M UTC")")"
+          current_date="$(date -u +"%B %e, %Y at %H:%M UTC")"
+          body_meta="$(print "Released to *${RELEASE_CHANNEL}* on ${current_date}")"
           body="$(print "${body_charm}\n\n${body_meta}")"
           # Create the GitHub release from the previously-created tag
           gh release create "${TAG_PREFIX}rev${revision}" --notes="$body" --generate-notes
