@@ -108,7 +108,7 @@ jobs:
               --channel "$RELEASE_CHANNEL" \
               --json > .upload_results
             uploaded_charm="$(jq -rc . .upload_results)"
-            pretty_uploaded_charm="$(jq -r .upload_results)"
+            pretty_uploaded_charm="$(jq -r . .upload_results)"
             rm -f .upload_results
             echo "${CHARM_NAME} has been released to ${RELEASE_CHANNEL}"
             echo "$pretty_uploaded_charm"

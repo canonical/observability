@@ -68,7 +68,7 @@ jobs:
           runners="$( \
             yq -o json '.platforms | to_entries | map(.key)' charmcraft.yaml | \
             sed 's/".*amd64.*"/"ubuntu-latest"/' | \
-            sed 's/".*arm64.*"/"Ubuntu_ARM64_4C_16G_01"/' | \
+            sed 's/".*arm64.*"/"Ubuntu_ARM64_4C_16G_03"/' | \
             jq -rc \
           )"
           echo "runners=$runners"
