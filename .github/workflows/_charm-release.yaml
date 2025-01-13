@@ -51,10 +51,12 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup LXD
         uses: canonical/setup-lxd@main
-      - name: Install charmcraft
+      - name: Install dependencies
         run: |
           sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
           sudo snap install astral-uv --classic
+          # Add the user to the `lxd` group (required for ARM runner)
+          usermod -aG "$USER" "lxd"
       - name: Cache wheels
         uses: actions/cache@v4
         with:
