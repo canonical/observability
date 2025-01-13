@@ -87,22 +87,22 @@ jobs:
           echo "release_channel=$release_channel"
           echo "release_channel=$release_channel" >> $GITHUB_OUTPUT
 
-  # quality-checks:
-  #   name: Quality Checks
-  #   uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@feature/v1
-  #   needs: [define-matrix]
-  #   secrets: inherit
-  #   with:
-  #     charm-path: ${{ inputs.charm-path }}
-  #     provider: ${{ inputs.provider }}
-  #     charmcraft-channel: ${{ inputs.charmcraft-channel }}
-  #     juju-channel: ${{ inputs.juju-channel }}
+  quality-checks:
+    name: Quality Checks
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@feature/v1
+    needs: [define-matrix]
+    secrets: inherit
+    with:
+      charm-path: ${{ inputs.charm-path }}
+      provider: ${{ inputs.provider }}
+      charmcraft-channel: ${{ inputs.charmcraft-channel }}
+      juju-channel: ${{ inputs.juju-channel }}
     
   release-charm:
     name: Release Charm and Libraries
     needs:
       - define-matrix
-      # - quality-checks
+      - quality-checks
     uses: canonical/observability/.github/workflows/_charm-release.yaml@feature/v1
     permissions:
       contents: write
