@@ -55,8 +55,6 @@ jobs:
         run: |
           sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
           sudo snap install astral-uv --classic
-          # Add the user to the `lxd` group (required for ARM runner)
-          sudo usermod -aG "$USER" "lxd"
       - name: Cache wheels
         uses: actions/cache@v4
         with:
@@ -70,7 +68,11 @@ jobs:
       - name: Pack charm(s)
         id: pack
         run: |
-          (cd ${{ inputs.charm-path }}; charmcraft pack)
+          current_wd="$(pwd)"
+          cd "${{ inputs.charm-path }}"
+          # Run pack as part of the `lxd` group (required for the ARM runner)
+          sg lxd -c 'charmcraft pack'
+          cd "$current_wd"
           export CHARMS=$(basename -a ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
           echo "charms=$CHARMS"
           echo "charms=$CHARMS" >> $GITHUB_OUTPUT
