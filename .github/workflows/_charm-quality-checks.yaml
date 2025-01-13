@@ -125,7 +125,7 @@ jobs:
 
   pack-charm:
     name: Pack the charm
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, AMD64, X64, large, jammy]
     needs:
       - static-analysis
       - linting
@@ -175,7 +175,7 @@ jobs:
           
   integration-test:
     name: Integration Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, AMD64, X64, large, jammy]
     needs: [snap-channels, pack-charm, integration-matrix]
     strategy:
       fail-fast: false
