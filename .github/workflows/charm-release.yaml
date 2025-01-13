@@ -104,6 +104,8 @@ jobs:
       - define-matrix
       # - quality-checks
     uses: canonical/observability/.github/workflows/_charm-release.yaml@feature/v1
+    permissions:
+      contents: write
     secrets: inherit
     with:
       release-channel: "${{ needs.define-matrix.outputs.release-channel }}"

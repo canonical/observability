@@ -34,6 +34,9 @@ on:
       OBSERVABILITY_NOCTUA_TOKEN:
         required: true
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Release the charm
@@ -86,7 +89,7 @@ jobs:
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
           CHARM_NAME: ${{ steps.get-charm-name.outputs.charm_name }}
-          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           TAG_PREFIX: ${{ inputs.git-tag-prefix }}
           RELEASE_CHANNEL: ${{ inputs.release-channel }}
         run: |
