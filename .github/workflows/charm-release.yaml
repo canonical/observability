@@ -67,8 +67,8 @@ jobs:
           cd "${{ inputs.charm-path }}"
           runners="$( \
             yq -o json '.platforms | to_entries | map(.key)' charmcraft.yaml | \
-            sed 's/".*amd64.*"/"[self-hosted, linux, AMD64, X64, large, jammy]"/' | \
-            sed 's/".*arm64.*"/"[self-hosted, linux, ARM64, large, jammy]"/' | \
+            sed 's/".*amd64.*"/"ubuntu-latest"/' | \
+            sed 's/".*arm64.*"/"Ubuntu_ARM64_4C_16G_03"/' | \
             jq -rc \
           )"
           echo "runners=$runners"

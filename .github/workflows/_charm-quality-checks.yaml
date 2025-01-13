@@ -32,7 +32,8 @@ jobs:
     outputs:
       defined: ${{ steps.check.outputs.defined }}
     steps:
-      - id: check
+      - name: Check the CHARMHUB_TOKEN secret
+        id: check
         env:
           CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
         if: "${{ env.CHARMHUB_TOKEN != '' }}"
@@ -125,7 +126,7 @@ jobs:
 
   pack-charm:
     name: Pack the charm
-    runs-on: [self-hosted, linux, AMD64, X64, large, jammy]
+    runs-on: ubuntu-latest
     needs:
       - static-analysis
       - linting
@@ -175,7 +176,7 @@ jobs:
           
   integration-test:
     name: Integration Tests
-    runs-on: [self-hosted, linux, AMD64, X64, large, jammy]
+    runs-on: ubuntu-latest
     needs: [snap-channels, pack-charm, integration-matrix]
     strategy:
       fail-fast: false
