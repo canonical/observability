@@ -54,7 +54,7 @@ jobs:
           CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
         run: |
           sudo snap install concierge --classic
-          sudo concierge prepare -p "microk8s" --extra-snaps=astral-uv
+          sudo concierge prepare -p "machine" --extra-snaps=astral-uv
       - name: Cache wheels
         uses: actions/cache@v4
         with:
@@ -136,3 +136,7 @@ jobs:
               --notes="$body" \
               --generate-notes
           done
+      - name: Print the charmcraft logs
+        if: always()
+        run: |
+          cat "$HOME/.local/state/charmcraft/log/*"
