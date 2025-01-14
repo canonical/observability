@@ -15,7 +15,7 @@ on:
         type: string
       charmcraft-channel:
         type: string
-        default: "3.x/stable"
+        default: "3.x/edge"
         required: false
         description: |
           The snap channel from which to install Charmcraft.
