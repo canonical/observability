@@ -52,7 +52,7 @@ jobs:
       - name: Setup LXD
         uses: canonical/setup-lxd@main
         with:
-          group: runner  # needed by the ARM runner
+          channel: 5.21/stable
       - name: Install dependencies
         run: |
           sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
