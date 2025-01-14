@@ -51,6 +51,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup LXD
         uses: canonical/setup-lxd@main
+        with:
+          group: runner  # needed by the ARM runner
       - name: Install dependencies
         run: |
           sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
@@ -68,78 +70,71 @@ jobs:
       - name: Pack charm(s)
         id: pack
         run: |
-          current_wd="$(pwd)"
-          echo "Debug"
-          echo "user: $USER (also $(whoami))"
-          echo "who: $(who)"
-          echo "groups: $(groups)"
           cd "${{ inputs.charm-path }}"
-          # Run pack as part of the `lxd` group (required for the ARM runner)
-      #     sudo sg lxd -c 'charmcraft pack'
-      #     cd "$current_wd"
-      #     export CHARMS=$(basename -a ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
-      #     echo "charms=$CHARMS"
-      #     echo "charms=$CHARMS" >> $GITHUB_OUTPUT
-      # - name: Store charm(s)
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: charms
-      #     path: ${{ inputs.charm-path }}/*.charm
-      # - name: Get charm name
-      #   id: get-charm-name
-      #   run: |
-      #     # Read charm name from metadata.yaml or charmcraft.yaml
-      #     cd "${{ inputs.charm-path }}"
-      #     charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
-      #     echo "charm_name=$charm_name" >> $GITHUB_OUTPUT
-      # - name: Release charm to Charmhub and GitHub
-      #   id: upload
-      #   env:
-      #     CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
-      #     CHARM_NAME: ${{ steps.get-charm-name.outputs.charm_name }}
-      #     GH_TOKEN: ${{ github.token }}
-      #     TAG_PREFIX: ${{ inputs.git-tag-prefix }}
-      #     RELEASE_CHANNEL: ${{ inputs.release-channel }}
-      #   run: |
-      #     # Upload charm to CharmHub and release it
-      #     # uploaded_charm has the following JSON format:
-      #     # {"name": "o11y-tester", "revision": 12, "resources": [
-      #     #   {"name": "httpbin-image", "revision": 1, "upstream_source": "kennethreitz/httpbin"}
-      #     # ]}
-      #     cd "${{ inputs.charm-path }}"
-      #     file_paths="$(find -name '*.charm' -printf '%f ')"
-      #     # For all the charms built on this architecture: release them
-      #     for path in ${file_paths}; do
-      #       uvx --quiet --from git+https://github.com/lucabello/noctua noctua charm release \
-      #         "$CHARM_NAME" \
-      #         --path "$path" \
-      #         --channel "$RELEASE_CHANNEL" \
-      #         --json > .upload_results
-      #       uploaded_charm="$(jq -rc . .upload_results)"
-      #       pretty_uploaded_charm="$(jq -r . .upload_results)"
-      #       rm -f .upload_results
-      #       echo "${CHARM_NAME} has been released to ${RELEASE_CHANNEL}"
-      #       echo "$pretty_uploaded_charm"
-      #       # Create a git tag and push it
-      #       ## Configure git
-      #       git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      #       git config --global user.name "github-actions[bot]"
-      #       ## Use the latest commit message as the tag message
-      #       git log -1 --pretty=%B > tag-message
-      #       revision="$(echo "$uploaded_charm" | jq -rc .revision)"
-      #       git tag --annotate "${TAG_PREFIX}rev${revision}" --file=tag-message
-      #       rm -f tag-message
-      #       git push origin --tags
-      #       # Create a GitHub release 
-      #       release_title="Revision $revision"
-      #       ## Add the charm information to the release body
-      #       body_charm="$(printf "\`\`\`json\n${pretty_uploaded_charm}\n\`\`\`")"
-      #       current_date="$(date -u +"%B %e, %Y at %H:%M UTC")"
-      #       body_meta="$(printf "Released to *${RELEASE_CHANNEL}* on ${current_date}")"
-      #       body="$(printf "${body_charm}\n\n${body_meta}")"
-      #       ## Create the GitHub release from the previously-created tag
-      #       gh release create "${TAG_PREFIX}rev${revision}" \
-      #         --title="$release_title" \
-      #         --notes="$body" \
-      #         --generate-notes
-      #     done
+          charmcraft pack -v
+          export CHARMS=$(basename -a *.charm | jq -R -s -c 'split("\n")[:-1]')
+          echo "charms=$CHARMS"
+          echo "charms=$CHARMS" >> $GITHUB_OUTPUT
+      - name: Store charm(s)
+        uses: actions/upload-artifact@v4
+        with:
+          name: charms
+          path: ${{ inputs.charm-path }}/*.charm
+      - name: Get charm name
+        id: get-charm-name
+        run: |
+          # Read charm name from metadata.yaml or charmcraft.yaml
+          cd "${{ inputs.charm-path }}"
+          charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
+          echo "charm_name=$charm_name" >> $GITHUB_OUTPUT
+      - name: Release charm to Charmhub and GitHub
+        id: upload
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+          CHARM_NAME: ${{ steps.get-charm-name.outputs.charm_name }}
+          GH_TOKEN: ${{ github.token }}
+          TAG_PREFIX: ${{ inputs.git-tag-prefix }}
+          RELEASE_CHANNEL: ${{ inputs.release-channel }}
+        run: |
+          # Upload charm to CharmHub and release it
+          # uploaded_charm has the following JSON format:
+          # {"name": "o11y-tester", "revision": 12, "resources": [
+          #   {"name": "httpbin-image", "revision": 1, "upstream_source": "kennethreitz/httpbin"}
+          # ]}
+          cd "${{ inputs.charm-path }}"
+          file_paths="$(find -name '*.charm' -printf '%f ')"
+          # For all the charms built on this architecture: release them
+          for path in ${file_paths}; do
+            uvx --quiet --from git+https://github.com/lucabello/noctua noctua charm release \
+              "$CHARM_NAME" \
+              --path "$path" \
+              --channel "$RELEASE_CHANNEL" \
+              --json > .upload_results
+            uploaded_charm="$(jq -rc . .upload_results)"
+            pretty_uploaded_charm="$(jq -r . .upload_results)"
+            rm -f .upload_results
+            echo "${CHARM_NAME} has been released to ${RELEASE_CHANNEL}"
+            echo "$pretty_uploaded_charm"
+            # Create a git tag and push it
+            ## Configure git
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git config --global user.name "github-actions[bot]"
+            ## Use the latest commit message as the tag message
+            git log -1 --pretty=%B > tag-message
+            revision="$(echo "$uploaded_charm" | jq -rc .revision)"
+            git tag --annotate "${TAG_PREFIX}rev${revision}" --file=tag-message
+            rm -f tag-message
+            git push origin --tags
+            # Create a GitHub release 
+            release_title="Revision $revision"
+            ## Add the charm information to the release body
+            body_charm="$(printf "\`\`\`json\n${pretty_uploaded_charm}\n\`\`\`")"
+            current_date="$(date -u +"%B %e, %Y at %H:%M UTC")"
+            body_meta="$(printf "Released to *${RELEASE_CHANNEL}* on ${current_date}")"
+            body="$(printf "${body_charm}\n\n${body_meta}")"
+            ## Create the GitHub release from the previously-created tag
+            gh release create "${TAG_PREFIX}rev${revision}" \
+              --title="$release_title" \
+              --notes="$body" \
+              --generate-notes
+          done
