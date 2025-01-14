@@ -49,14 +49,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup LXD
-        uses: canonical/setup-lxd@main
-        with:
-          channel: 5.21/stable
+      # - name: Setup LXD
+      #   uses: canonical/setup-lxd@main
+      #   with:
+      #     channel: 5.21/stable
       - name: Install dependencies
         run: |
-          sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
-          sudo snap install astral-uv --classic
+          sudo snap install concierge --classic
+          sudo concierge prepare -p "machine" --extra-snaps=astral-uv
+          # sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
+          # sudo snap install astral-uv --classic
       - name: Cache wheels
         uses: actions/cache@v4
         with:
