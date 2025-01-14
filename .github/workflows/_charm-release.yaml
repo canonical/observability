@@ -107,7 +107,7 @@ jobs:
               "$CHARM_NAME" \
               --path "$path" \
               --channel "$RELEASE_CHANNEL" \
-              --json > .upload_results
+              --json > .upload_results || cat $HOME/.local/state/charmcraft/log/*
             uploaded_charm="$(jq -rc . .upload_results)"
             pretty_uploaded_charm="$(jq -r . .upload_results)"
             rm -f .upload_results
@@ -136,7 +136,3 @@ jobs:
               --notes="$body" \
               --generate-notes
           done
-      - name: Print the charmcraft logs
-        if: always()
-        run: |
-          cat "$HOME/.local/state/charmcraft/log/*"
