@@ -55,10 +55,12 @@ jobs:
         run: |
           sudo snap install concierge --classic
           sudo concierge prepare -p "machine" --extra-snaps=astral-uv
-          # if sudo iptables -L DOCKER-USER; then
-          #   sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT
-          #   sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-          # fi
+          # TODO: debug, remove this docker section below, shouldn't be needed
+          sudo snap install docker
+          if sudo iptables -L DOCKER-USER; then
+            sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT
+            sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+          fi
       - name: Cache wheels
         uses: actions/cache@v4
         with:
