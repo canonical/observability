@@ -108,7 +108,7 @@ jobs:
           # For all the charms built on this architecture: release them
           for path in ${file_paths}; do
           echo "Debug: uploading resource"  # TODO: remove
-          charmcraft upload-resource o11y-tester httpbin-image --image="docker://kennethreitz/httpbin" --format=json || cat $HOME/.local/state/charmcraft/log/* # TODO: remove
+          charmcraft upload-resource o11y-tester httpbin-image --image="docker://docker.io/kennethreitz/httpbin" --format=json || cat $HOME/.local/state/charmcraft/log/* # TODO: remove
           echo "Debug: trying to upload charm"  # TODO: remove
             uvx --quiet --from git+https://github.com/lucabello/noctua noctua charm release \
               "$CHARM_NAME" \
