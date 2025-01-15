@@ -55,10 +55,10 @@ jobs:
         run: |
           sudo snap install concierge --classic
           sudo concierge prepare -p "machine" --extra-snaps=astral-uv
-          if sudo iptables -L DOCKER-USER; then
-            sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT
-            sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-          fi
+          # if sudo iptables -L DOCKER-USER; then
+          #   sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT
+          #   sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+          # fi
       - name: Cache wheels
         uses: actions/cache@v4
         with:
@@ -108,7 +108,7 @@ jobs:
           # For all the charms built on this architecture: release them
           for path in ${file_paths}; do
           echo "Debug: uploading resource"  # TODO: remove
-          charmcraft upload-resource o11y-tester httpbin-image --image=docker://kennethreitz/httpbin --format=json || cat $HOME/.local/state/charmcraft/log/* # TODO: remove
+          charmcraft upload-resource o11y-tester httpbin-image --image="docker://kennethreitz/httpbin" --format=json || cat $HOME/.local/state/charmcraft/log/* # TODO: remove
           echo "Debug: trying to upload charm"  # TODO: remove
             uvx --quiet --from git+https://github.com/lucabello/noctua noctua charm release \
               "$CHARM_NAME" \
