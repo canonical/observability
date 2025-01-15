@@ -25,6 +25,12 @@ on:
         description: |
           The snap channel from which to install Juju.
           Overrides the default branch-dependant selection of the Juju version.
+      parallelize-integration:
+        description: |
+          Parallelize integration tests by spinning up one runner per Python file.
+        default: true
+        required: false
+        type: boolean
     secrets:
        CHARMHUB_TOKEN:
          required: false
@@ -101,4 +107,5 @@ jobs:
       provider: ${{ inputs.provider }}
       charmcraft-channel: ${{ inputs.charmcraft-channel }}
       juju-channel: ${{ inputs.juju-channel }}
+      parallelize-integration: ${{ inputs.parallelize-integration }}
 

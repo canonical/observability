@@ -15,7 +15,7 @@ on:
         type: string
       charmcraft-channel:
         type: string
-        default: "3.x/edge"
+        default: "latest/stable"
         required: false
         description: |
           The snap channel from which to install Charmcraft.
@@ -38,6 +38,12 @@ on:
         default: ''
         required: false
         type: string
+      parallelize-integration:
+        description: |
+          Parallelize integration tests by spinning up one runner per Python file.
+        default: true
+        required: false
+        type: boolean
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -97,6 +103,7 @@ jobs:
   #     provider: ${{ inputs.provider }}
   #     charmcraft-channel: ${{ inputs.charmcraft-channel }}
   #     juju-channel: ${{ inputs.juju-channel }}
+  #     parallelize-integration: ${{ inputs.parallelize-integration }}
     
   release-charm:
     name: Release Charm and Libraries

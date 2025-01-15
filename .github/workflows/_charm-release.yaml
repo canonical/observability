@@ -55,12 +55,6 @@ jobs:
         run: |
           sudo snap install concierge --classic
           sudo concierge prepare -p "machine" --extra-snaps=astral-uv
-          # TODO: debug, remove this docker section below, shouldn't be needed
-          sudo snap install docker
-          if sudo iptables -L DOCKER-USER; then
-            sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT
-            sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-          fi
       - name: Cache wheels
         uses: actions/cache@v4
         with:
@@ -71,19 +65,19 @@ jobs:
           # portion of the dependencies, and restore-keys can partially match a cache.
           restore-keys: |
             ${{ runner.os }}-wheel-cache-
-      - name: Pack charm(s)
-        id: pack
-        run: |
-          cd "${{ inputs.charm-path }}"
-          charmcraft pack -v
-          export CHARMS=$(basename -a *.charm | jq -R -s -c 'split("\n")[:-1]')
-          echo "charms=$CHARMS"
-          echo "charms=$CHARMS" >> $GITHUB_OUTPUT
-      - name: Store charm(s)
-        uses: actions/upload-artifact@v4
-        with:
-          name: charms
-          path: ${{ inputs.charm-path }}/*.charm
+      # - name: Pack charm(s)
+      #   id: pack
+      #   run: |
+      #     cd "${{ inputs.charm-path }}"
+      #     charmcraft pack -v
+      #     export CHARMS=$(basename -a *.charm | jq -R -s -c 'split("\n")[:-1]')
+      #     echo "charms=$CHARMS"
+      #     echo "charms=$CHARMS" >> $GITHUB_OUTPUT
+      # - name: Store charm(s)
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: charms
+      #     path: ${{ inputs.charm-path }}/*.charm
       - name: Get charm name
         id: get-charm-name
         run: |
@@ -106,11 +100,13 @@ jobs:
           #   {"name": "httpbin-image", "revision": 1, "upstream_source": "kennethreitz/httpbin"}
           # ]}
           cd "${{ inputs.charm-path }}"
+          touch fake.charm # TODO:: remove this, debug
           file_paths="$(find -name '*.charm' -printf '%f ')"
           # For all the charms built on this architecture: release them
           for path in ${file_paths}; do
           echo "Debug: uploading resource"  # TODO: remove
-          charmcraft upload-resource o11y-tester httpbin-image --image="docker://docker.io/kennethreitz/httpbin" --format=json || cat $HOME/.local/state/charmcraft/log/* # TODO: remove
+          charmcraft upload-resource o11y-tester httpbin-image --image="docker://kennethreitz/httpbin" --format=json || cat $HOME/.local/state/charmcraft/log/* # TODO: remove
+          exit 1 # TODO: remove
           echo "Debug: trying to upload charm"  # TODO: remove
             uvx --quiet --from git+https://github.com/lucabello/noctua noctua charm release \
               "$CHARM_NAME" \
