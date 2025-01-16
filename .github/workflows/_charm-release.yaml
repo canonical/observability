@@ -56,6 +56,13 @@ jobs:
           /usr/bin/docker --version
           sudo snap install concierge --classic
           sudo concierge prepare -p "machine" --extra-snaps=astral-uv
+          sudo snap install lxd
+          sudo lxd waitready
+          sudo lxd init --auto
+          if sudo iptables -L DOCKER-USER; then
+            sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT
+            sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+          fi
           sudo snap install charmcraft --classic --channel="$CONCIERGE_CHARMCRAFT_CHANNEL"
       - name: Cache wheels
         uses: actions/cache@v4
@@ -67,14 +74,14 @@ jobs:
           # portion of the dependencies, and restore-keys can partially match a cache.
           restore-keys: |
             ${{ runner.os }}-wheel-cache-
-      # - name: Pack charm(s)
-      #   id: pack
-      #   run: |
-      #     cd "${{ inputs.charm-path }}"
-      #     charmcraft pack -v
-      #     export CHARMS=$(basename -a *.charm | jq -R -s -c 'split("\n")[:-1]')
-      #     echo "charms=$CHARMS"
-      #     echo "charms=$CHARMS" >> $GITHUB_OUTPUT
+      - name: Pack charm(s)
+        id: pack
+        run: |
+          cd "${{ inputs.charm-path }}"
+          charmcraft pack -v
+          export CHARMS=$(basename -a *.charm | jq -R -s -c 'split("\n")[:-1]')
+          echo "charms=$CHARMS"
+          echo "charms=$CHARMS" >> $GITHUB_OUTPUT
       # - name: Store charm(s)
       #   uses: actions/upload-artifact@v4
       #   with:
