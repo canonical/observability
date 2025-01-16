@@ -85,7 +85,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Download Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         id: download_artifact
         with:
           name: "${{ inputs.artifact }}"
@@ -102,7 +102,7 @@ jobs:
           sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
       - name: Build charm(s)
         id: builder
-        run: |    
+        run: |
           (cd ${{ inputs.charm-path }}; charmcraft pack)
           export CHARMS=$(basename -a ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
           echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
@@ -140,7 +140,7 @@ jobs:
         uses: canonical/charming-actions/channel@2.1.1
         id: channel
       - name: Fetch charm artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: charms
           path: "${{ github.workspace }}/${{ inputs.charm-path }}"
@@ -164,9 +164,9 @@ jobs:
     needs:
       - build-arm
     strategy:
-      matrix: 
+      matrix:
         path: ${{ fromjson(needs.build-arm.outputs.charms) }}
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -176,7 +176,7 @@ jobs:
         uses: canonical/charming-actions/channel@2.1.1
         id: channel
       - name: Fetch charm artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: charms-arm
           path: "${{ github.workspace }}/${{ inputs.charm-path }}"
