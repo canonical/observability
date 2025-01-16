@@ -54,16 +54,21 @@ jobs:
           CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
         run: |
           /usr/bin/docker --version
-          sudo snap install concierge --classic
+          # sudo snap install concierge --classic
           # sudo concierge prepare -p "machine" --extra-snaps=astral-uv
           sudo snap install astral-uv --classic
           sudo snap install lxd
           sudo lxd waitready
-          sudo lxd init --auto
-          if sudo iptables -L DOCKER-USER; then
-            sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT
-            sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-          fi
+          sudo lxd init --minimal
+          sudo lxc network set lxdbr0 ipv6.address none
+          # Enable non-root user control
+          sudo chmod a+wr /var/snap/lxd/common/lxd/unix.socket
+          lxd_user="$USER"
+          sudo usermod -a -G lxd $lxd_user
+          # Ensure that LXD containers can talk to the internet
+          sudo iptables -F FORWARD
+          sudo iptables -P FORWARD ACCEPT
+          # Install charmcraft
           sudo snap install charmcraft --classic --channel="$CONCIERGE_CHARMCRAFT_CHANNEL"
       - name: Cache wheels
         uses: actions/cache@v4
