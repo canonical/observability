@@ -53,10 +53,8 @@ jobs:
         env:
           CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
         run: |
-          /usr/bin/docker --version
-          # sudo snap install concierge --classic
-          # sudo concierge prepare -p "machine" --extra-snaps=astral-uv
-          sudo snap install astral-uv --classic
+          # Install LXD
+          # concierge breaks charmcraft: https://github.com/jnsgruk/concierge/issues/28
           sudo snap install lxd
           sudo lxd waitready
           sudo lxd init --minimal
@@ -68,8 +66,9 @@ jobs:
           # Ensure that LXD containers can talk to the internet
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
-          # Install charmcraft
+          # Install other snaps
           sudo snap install charmcraft --classic --channel="$CONCIERGE_CHARMCRAFT_CHANNEL"
+          sudo snap install astral-uv --classic
       - name: Cache wheels
         uses: actions/cache@v4
         with:
@@ -88,11 +87,11 @@ jobs:
           export CHARMS=$(basename -a *.charm | jq -R -s -c 'split("\n")[:-1]')
           echo "charms=$CHARMS"
           echo "charms=$CHARMS" >> $GITHUB_OUTPUT
-      # - name: Store charm(s)
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: charms
-      #     path: ${{ inputs.charm-path }}/*.charm
+      - name: Store charm(s)
+        uses: actions/upload-artifact@v4
+        with:
+          name: charms
+          path: ${{ inputs.charm-path }}/*.charm
       - name: Get charm name
         id: get-charm-name
         run: |
@@ -115,14 +114,9 @@ jobs:
           #   {"name": "httpbin-image", "revision": 1, "upstream_source": "kennethreitz/httpbin"}
           # ]}
           cd "${{ inputs.charm-path }}"
-          touch fake.charm # TODO:: remove this, debug
           file_paths="$(find -name '*.charm' -printf '%f ')"
           # For all the charms built on this architecture: release them
           for path in ${file_paths}; do
-          echo "Debug: uploading resource"  # TODO: remove
-          charmcraft upload-resource o11y-tester httpbin-image --image="docker://kennethreitz/httpbin" --format=json || cat $HOME/.local/state/charmcraft/log/* # TODO: remove
-          exit 1 # TODO: remove
-          echo "Debug: trying to upload charm"  # TODO: remove
             uvx --quiet --from git+https://github.com/lucabello/noctua noctua charm release \
               "$CHARM_NAME" \
               --path "$path" \
