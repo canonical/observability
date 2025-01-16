@@ -49,7 +49,7 @@ jobs:
         with:
           channel: latest/stable
       - name: Download Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         id: download_artifact
         with:
           name: "${{ inputs.artifact }}"
