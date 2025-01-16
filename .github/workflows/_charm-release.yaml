@@ -53,11 +53,10 @@ jobs:
         env:
           CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
         run: |
+          /usr/bin/docker --version
           sudo snap install concierge --classic
-          # sudo concierge prepare -p "machine" --extra-snaps=astral-uv
+          sudo concierge prepare -p "machine" --extra-snaps=astral-uv
           sudo snap install charmcraft --classic --channel="$CONCIERGE_CHARMCRAFT_CHANNEL"
-          which docker
-          sudo apt remove docker
       - name: Cache wheels
         uses: actions/cache@v4
         with:
