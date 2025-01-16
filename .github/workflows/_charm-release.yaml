@@ -55,7 +55,8 @@ jobs:
         run: |
           /usr/bin/docker --version
           sudo snap install concierge --classic
-          sudo concierge prepare -p "machine" --extra-snaps=astral-uv
+          # sudo concierge prepare -p "machine" --extra-snaps=astral-uv
+          sudo snap install astral-uv --classic
           sudo snap install lxd
           sudo lxd waitready
           sudo lxd init --auto
