@@ -96,7 +96,15 @@ jobs:
           # For each library belonging to the charm, publish it
           if [ -d lib/charms/$charm_name ]; then
             for lib in $(find lib/charms/$charm_name -type f | sed 's|lib/||' | sed 's/.py//' | sed 's|/|.|g'); do
-              charmcraft publish-lib $lib
+              result="$(charmcraft publish-lib $lib --format=json | jq)"
+              # Filter out the succesfull publish-lib messages: https://github.com/canonical/charmcraft/issues/1981
+              if [[ "$message" == *"sent to the store with version"* ]]; then
+                echo "$message"
+              elif [[ "$message" == *"already updated"* ]]; then
+                echo "$message"
+              else
+                echo "$message" && exit 1
+              fi
             done
           fi
         env:
