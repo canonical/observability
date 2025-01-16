@@ -15,7 +15,7 @@ on:
       runners:
         description: |
           Json matrix of the runners to use to build and release the charm.
-          Example: ...
+          Example: ["ubuntu-latest","Ubuntu_ARM64_4C_16G_03"]
         type: string
         required: false
         default: "ubuntu-latest"
@@ -51,7 +51,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Install dependencies
         env:
-          CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
+          CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
         run: |
           # Install LXD
           # concierge breaks charmcraft: https://github.com/jnsgruk/concierge/issues/28
@@ -67,7 +67,7 @@ jobs:
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
           # Install other snaps
-          sudo snap install charmcraft --classic --channel="$CONCIERGE_CHARMCRAFT_CHANNEL"
+          sudo snap install charmcraft --classic --channel="$CHARMCRAFT_CHANNEL"
           sudo snap install astral-uv --classic
       - name: Cache wheels
         uses: actions/cache@v4
@@ -90,7 +90,7 @@ jobs:
       - name: Store charm(s)
         uses: actions/upload-artifact@v4
         with:
-          name: charms
+          name: charms-${{ runner.arch }}
           path: ${{ inputs.charm-path }}/*.charm
       - name: Get charm name
         id: get-charm-name
