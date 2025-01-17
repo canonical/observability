@@ -117,12 +117,16 @@ jobs:
           PROMTOOL_VERSION: 2.55.0
         run: |
           # Get promtool
-          promtool_url="https://github.com/prometheus/prometheus/releases/download/\
-            v${PROMTOOL_VERSION}/prometheus-${PROMTOOL_VERSION}.linux-amd64.tar.gz"
+          releases_url="https://github.com/prometheus/prometheus/releases/download"
+          promtool_url="${releases_url}/v${PROMTOOL_VERSION}/prometheus-${PROMTOOL_VERSION}.linux-amd64.tar.gz"
           curl -sSL -o promtool.tar.gz "$promtool_url"
           tar -xzf promtool.tar.gz --strip-components=1
           # Lint the alert rules
-          ./promtool check rules "$CHARM_PATH"/src/prometheus_alert_rules/*
+          if [[ -d "$CHARM_PATH"/src/prometheus_alert_rules ]]; then
+            ./promtool check rules "$CHARM_PATH"/src/prometheus_alert_rules/*
+          else
+            echo "This charm has no alert rules under /src/prometheus_alert_rules"
+          fi
 
   static-analysis:
     name: Static analysis
@@ -148,14 +152,13 @@ jobs:
           cd "${{ inputs.charm-path }}"
           uvx tox -e unit
 
-
-
   pack-charm:
     name: Pack the charm
     runs-on: ubuntu-latest
     needs:
-      - static-analysis
       - linting
+      - linting-rules
+      - static-analysis
       - unit-test
     steps:
       - name: Checkout
