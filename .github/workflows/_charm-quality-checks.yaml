@@ -75,10 +75,6 @@ jobs:
   codeql:
     name: CodeQL analysis
     runs-on: ubuntu-latest
-    needs:
-      - static-analysis
-      - linting
-      - unit-test
     permissions:
       security-events: write
       actions: read
@@ -189,7 +185,7 @@ jobs:
 
   integration-mono:
     name: Integration Tests
-    if: ${{ inputs.parallelize-integration == 'false' }}
+    if: ${{ inputs.parallelize-integration }}
     runs-on: ubuntu-latest
     needs: [snap-channels, pack-charm]
     env:
@@ -217,7 +213,7 @@ jobs:
 
   integration-matrix:
     name: Define Integration tests matrix
-    if: ${{ inputs.parallelize-integration == 'true' }}
+    if: ${{ inputs.parallelize-integration }}
     runs-on: ubuntu-latest
     needs: [pack-charm]
     outputs:
@@ -234,7 +230,7 @@ jobs:
           
   integration-test:
     name: Integration Tests
-    if: ${{ inputs.parallelize-integration == 'true' }}
+    if: ${{ inputs.parallelize-integration }}
     runs-on: ubuntu-latest
     needs: [snap-channels, pack-charm, integration-matrix]
     strategy:
