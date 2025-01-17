@@ -51,24 +51,26 @@ jobs:
         uses: actions/checkout@v4
       - name: Install dependencies
         env:
-          CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
+          CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
         run: |
           # Install LXD
           # concierge breaks charmcraft: https://github.com/jnsgruk/concierge/issues/28
-          sudo snap install lxd
-          sudo lxd waitready
-          sudo lxd init --minimal
-          sudo lxc network set lxdbr0 ipv6.address none
-          # Enable non-root user control
-          sudo chmod a+wr /var/snap/lxd/common/lxd/unix.socket
-          lxd_user="$USER"
-          sudo usermod -a -G lxd $lxd_user
-          # Ensure that LXD containers can talk to the internet
-          sudo iptables -F FORWARD
-          sudo iptables -P FORWARD ACCEPT
-          # Install other snaps
-          sudo snap install charmcraft --classic --channel="$CHARMCRAFT_CHANNEL"
-          sudo snap install astral-uv --classic
+          sudo snap install concierge --classic
+          sudo concierge prepare -p "machine" --extra-snaps=astral-uv
+          # sudo snap install lxd
+          # sudo lxd waitready
+          # sudo lxd init --minimal
+          # sudo lxc network set lxdbr0 ipv6.address none
+          # # Enable non-root user control
+          # sudo chmod a+wr /var/snap/lxd/common/lxd/unix.socket
+          # lxd_user="$USER"
+          # sudo usermod -a -G lxd $lxd_user
+          # # Ensure that LXD containers can talk to the internet
+          # sudo iptables -F FORWARD
+          # sudo iptables -P FORWARD ACCEPT
+          # # Install other snaps
+          # sudo snap install charmcraft --classic --channel="$CHARMCRAFT_CHANNEL"
+          # sudo snap install astral-uv --classic
       - name: Cache wheels
         uses: actions/cache@v4
         with:
