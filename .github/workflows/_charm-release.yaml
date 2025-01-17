@@ -113,6 +113,7 @@ jobs:
           # {"name": "o11y-tester", "revision": 12, "resources": [
           #   {"name": "httpbin-image", "revision": 1, "upstream_source": "kennethreitz/httpbin"}
           # ]}
+          set -x
           cd "${{ inputs.charm-path }}"
           file_paths="$(find -name '*.charm' -printf '%f ')"
           # For all the charms built on this architecture: release them
@@ -121,11 +122,11 @@ jobs:
               "$CHARM_NAME" \
               --path "$path" \
               --channel "$RELEASE_CHANNEL" \
-              --json > .upload_results || cat $HOME/.local/state/charmcraft/log/*
+              --json > .upload_results
             uploaded_charm="$(jq -rc . .upload_results)"
             pretty_uploaded_charm="$(jq -r . .upload_results)"
             rm -f .upload_results
-            echo "${CHARM_NAME} has been released to ${RELEASE_CHANNEL}"
+            echo "${CHARM_NAME} has been released to ${RELEASE_CHANNEL}:"
             echo "$pretty_uploaded_charm"
             # Create a git tag and push it
             ## Configure git
@@ -139,6 +140,7 @@ jobs:
             git push origin --tags
             # Create a GitHub release 
             release_title="Revision $revision"
+            echo "Peparing GitHub release: $release_title"
             ## Add the charm information to the release body
             body_charm="$(printf "\`\`\`json\n${pretty_uploaded_charm}\n\`\`\`")"
             current_date="$(date -u +"%B %e, %Y at %H:%M UTC")"
