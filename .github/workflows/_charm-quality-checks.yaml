@@ -105,6 +105,25 @@ jobs:
           cd "${{ inputs.charm-path }}"
           uvx tox -e lint
 
+  linting-rules:
+    name: Lint alert rules
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download promtool and lint rules
+        env:
+          CHARM_PATH: "${{ inputs.charm-path }}"
+          PROMTOOL_VERSION: 2.55.0
+        run: |
+          # Get promtool
+          promtool_url="https://github.com/prometheus/prometheus/releases/download/\
+            v${PROMTOOL_VERSION}/prometheus-${PROMTOOL_VERSION}.linux-amd64.tar.gz"
+          curl -sSL -o promtool.tar.gz "$promtool_url"
+          tar -xzf promtool.tar.gz --strip-components=1
+          # Lint the alert rules
+          ./promtool check rules "$CHARM_PATH"/src/prometheus_alert_rules/*
+
   static-analysis:
     name: Static analysis
     runs-on: ubuntu-latest
@@ -128,6 +147,8 @@ jobs:
           sudo snap install astral-uv --classic
           cd "${{ inputs.charm-path }}"
           uvx tox -e unit
+
+
 
   pack-charm:
     name: Pack the charm
