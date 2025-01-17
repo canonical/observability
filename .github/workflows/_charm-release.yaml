@@ -69,11 +69,6 @@ jobs:
           # Install other snaps
           sudo snap install charmcraft --classic --channel="$CHARMCRAFT_CHANNEL"
           sudo snap install astral-uv --classic
-      - name: TEST # TODO: remove
-        uses: actions/download-artifact@v4
-        with:
-          name: charms-${{ runner.arch }}
-          path: ${{ inputs.charm-path }}
       - name: Get charm name
         id: get-charm-name
         run: |
