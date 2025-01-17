@@ -69,6 +69,18 @@ jobs:
           # Install other snaps
           sudo snap install charmcraft --classic --channel="$CHARMCRAFT_CHANNEL"
           sudo snap install astral-uv --classic
+      - name: TEST # TODO: remove
+        uses: actions/download-artifact@v4
+        with:
+          name: charms-${{ runner.arch }}
+          path: ${{ inputs.charm-path }}
+      - name: Get charm name
+        id: get-charm-name
+        run: |
+          # Read charm name from metadata.yaml or charmcraft.yaml
+          cd "${{ inputs.charm-path }}"
+          charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
+          echo "charm_name=$charm_name" >> $GITHUB_OUTPUT
       - name: Cache wheels
         uses: actions/cache@v4
         with:
@@ -92,13 +104,6 @@ jobs:
         with:
           name: charms-${{ runner.arch }}
           path: ${{ inputs.charm-path }}/*.charm
-      - name: Get charm name
-        id: get-charm-name
-        run: |
-          # Read charm name from metadata.yaml or charmcraft.yaml
-          cd "${{ inputs.charm-path }}"
-          charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
-          echo "charm_name=$charm_name" >> $GITHUB_OUTPUT
       - name: Release charm to Charmhub and GitHub
         id: upload
         env:
