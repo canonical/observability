@@ -238,7 +238,7 @@ jobs:
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
-          name: charm
+          name: charms-tests
           path: ${{ inputs.charm-path }}
       - name: Run integration tests
         run: |
@@ -246,4 +246,3 @@ jobs:
           charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | tail -n1)"
           export CHARM_PATH="$(realpath $charm_relative_path)"
           uvx tox -e integration -- -k "${{ matrix.suite }}"
-
