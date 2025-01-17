@@ -106,7 +106,7 @@ jobs:
       parallelize-integration: ${{ inputs.parallelize-integration }}
     
   release-charm:
-    name: Release Charm and Libraries
+    name: Release the charm
     needs:
       - define-matrix
       - quality-checks
@@ -147,4 +147,3 @@ jobs:
               charmcraft publish-lib $lib
             done
           fi
-
