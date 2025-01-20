@@ -32,7 +32,7 @@ style charm fill:darkslategray,stroke-width:4px
 style rock fill:teal,stroke-width:4px
 ```
 
-> 🕛: workflows running periodically; 🖐: manual workflows
+> **Legend**: 🕛 workflows running periodically | 🖐 manual workflows
 
 To contribute, please read about our guiding principles and contribution guidelines in our [CONTRIBUTING.md](https://github.com/canonical/observability/blob/main/CONTRIBUTING.md).
 
