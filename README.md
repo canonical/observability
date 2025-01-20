@@ -1,11 +1,10 @@
 # Observability
 
-A repository to collect all the initiatives around Observability currently being
-worked on at Canonical.
+[Observability Repositories](https://github.com/search?q=topic%3Aobservability+org%3Acanonical+fork%3Atrue+archived%3Afalse&type=repositories) | [How to Contribute](https://github.com/canonical/observability/blob/main/CONTRIBUTING.md) 
 
-A list of all the active repositories maintained by the Observability team can be found using the [observability topic](https://github.com/search?q=topic%3Aobservability+org%3Acanonical+fork%3Atrue+archived%3Afalse&type=repositories).
+A repository to collect all the initiatives around Observability currently being worked on at Canonical.
 
-Want to know more? See the [CharmHub topic page on Observability](https://charmhub.io/topics/canonical-observability-stack).
+This repository uses [`just`](https://github.com/casey/just) to execute quality checks and generally useful operations; you can install it via Snap. To list the available commands, simply run `just`.
 
 ## GitHub Workflows
 
@@ -96,7 +95,7 @@ style codeql opacity:0.5,stroke-dasharray:10
 ```
 
 > [!note]
-> By default, integration tests are executed in parallel: each `test_*.py` file is executed on a separate runner. This behavior can be disabled via a flag. # TODO: add link to the parallelize-integration flag
+> By default, integration tests are executed in parallel: each `test_*.py` file is executed on a separate runner. This behavior can be disabled via a [flag](https://github.com/canonical/observability/blob/feature/v1/.github/workflows/charm-pull-request.yaml#L28-L33).
 
 ### Rock Workflows
 
@@ -138,26 +137,10 @@ Issues are synced by the [gh-jira-sync-bot](https://github.com/canonical/gh-jira
 The bot configuration lives in [.github/.jira_sync_config.yaml](https://github.com/canonical/observability/blob/main/.github/.jira_sync_config.yaml); *carefully* read the README to configure it. This 
 takes care of most things, except the Jira labels, which are added by the *Jira automation*.
 
-## Meta Repo
-
-This repo also contains the manifest (`manifest.yaml`) for syncing all repositories maintained by the observability team.
-The script assumes that you want to place all repos in the parent folder of the `observability` repo. To use it, do the following:
-
-```
-# install the git-metarepo module
-$ pip3 install metarepo
-
-# sync the repos using the manifest
-$ git meta sync
-```
 ## Scripts
-This repo also contains a `scripts` directory that could hold helper scripts for COS charms and bundles as `pip-installables`.
 
-### `render-bundle`
-This helper script is used by COS bundles as a `pip` package in a `tox.ini` file to render a `bundle.yaml.j2` template into a `bundle.yaml` file that can be deployed using `juju deploy ./bundle.yaml`.
+This repository contains a `scripts` directory for helper scripts of various nature as `pip-installables`.
 
-### Contributing
-To add similar helper scripts (e.g: `my_helper.py`) to be used as a `pip` package:
-
-1. Add the script inside `scripts` directory.
-2. In `scripts/pyproject.toml`, under `[project.scripts]`, add an entrypoint to your newly added script.
+| Script | Description |
+|---|---|
+| **render-bundle** | Render a `bundle.yaml.j2` template into a `bundle.yaml`. Used by the `cos-lite` bundle. |
