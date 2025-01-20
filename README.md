@@ -14,19 +14,19 @@ block-beta
   block
     columns 1
     charm["<b>Charm Workflows</b>"]
-    charmpr["Quality checks (on PRs)"]
-    charmrelease["Release (push to <i>main</i> or <i>track/N</i>)"]
-    charmupdate["🕛 Update charm libraries"]
-    charmpromote["🖐 Promote charm"]
+    charmpr["<a href='https://github.com/canonical/observability/blob/feature/v1/.github/workflows/charm-pull-request.yaml'>Quality checks (on PRs)</a>"]
+    charmrelease["<a href='https://github.com/canonical/observability/blob/feature/v1/.github/workflows/charm-release.yaml' >Release (push to <i>main</i> or <i>track/N</i>)</a>"]
+    charmupdate["<a href='https://github.com/canonical/observability/blob/feature/v1/.github/workflows/charm-update-libs.yaml'>🕛 Update charm libraries</a>"]
+    charmpromote["<a href='https://github.com/canonical/observability/blob/feature/v1/.github/workflows/charm-promote.yaml'>🖐 Promote charm</a>"]
   end
 
   block
     columns 1
     rock["<b>Rock Workflows</b>"]
-    rockpr["Goss checks (on PRs)"]
-    rockreleasedev["Release to GHCR:dev"]
-    rockreleaseoci["Open PR to OCI Factory"]
-    rockupdate["🕛 Update from upstream"]
+    rockpr["<a href='https://github.com/canonical/observability/blob/feature/v1/.github/workflows/rock-pull-request.yaml'>Goss checks (on PRs)</a>"]
+    rockreleasedev["<a href='https://github.com/canonical/observability/blob/feature/v1/.github/workflows/rock-release-dev.yaml'>Release to GHCR:dev</a>"]
+    rockreleaseoci["<a href='https://github.com/canonical/observability/blob/feature/v1/.github/workflows/rock-release-oci-factory.yaml'>Open PR to OCI Factory</a>"]
+    rockupdate["<a href='https://github.com/canonical/observability/blob/feature/v1/.github/workflows/rock-update.yaml'>🕛 Update from upstream</a>"]
   end
 
 style charm fill:darkslategray,stroke-width:4px
