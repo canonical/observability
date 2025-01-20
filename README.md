@@ -84,8 +84,10 @@ style inclusivenaming opacity:0.5,stroke-dasharray:10
 style codeql opacity:0.5,stroke-dasharray:10
 ```
 
-> [!note]
-> By default, integration tests are executed in parallel: each `test_*.py` file is executed on a separate runner. This behavior can be disabled via a [flag](https://github.com/canonical/observability/blob/feature/v1/.github/workflows/charm-pull-request.yaml#L28-L33).
+> [!note] Integration tests
+> Integration tests are executed in parallel: each `test_*.py` file is executed on a separate runner. This behavior can be disabled via a [flag](https://github.com/canonical/observability/blob/feature/v1/.github/workflows/charm-pull-request.yaml#L28-L33).
+>
+> The charm is packed before the tests are executed and exposed via the `CHARM_PATH` environment variable. Make sure to [use it](https://github.com/canonical/o11y-tester-operator/blob/f9fa9f4014c248c07d664069422a47a18f9befea/tests/integration/conftest.py#L40-L49) in your integration tests to avoid re-packing.
 
 ### Rock Workflows
 
