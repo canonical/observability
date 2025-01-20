@@ -128,9 +128,9 @@ style release fill:darkred,stroke-width:4px
 
 These workflows make the repositories holding our rocks *almost* fully automated: human intervention is only required when on workflow failures, which could indicate that the building process changed, or that the rock has a security vulnerability.
 
-## Other automation
+## Other Automation
 
-### Issue sync to Jira
+### Issue Sync to Jira
 
 Issues are synced by the [gh-jira-sync-bot](https://github.com/canonical/gh-jira-sync-bot/blob/main/README.md), and further enriched by a *Jira Automation*.
 
