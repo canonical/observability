@@ -111,6 +111,20 @@ jobs:
             echo "This charm has no alert rules under /src/prometheus_alert_rules"
           fi
 
+  linting-terraform:
+    name: Lint Terraform files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Terraform and lint modules
+        env:
+          CHARM_PATH: "${{ inputs.charm-path }}"
+        run: |
+          sudo snap install opentofu --classic
+          cd "$CHARM_PATH"
+          tofu fmt -check -recursive -diff
+
   static-analysis:
     name: Static analysis
     runs-on: ubuntu-latest
