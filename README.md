@@ -9,86 +9,134 @@ Want to know more? See the [CharmHub topic page on Observability](https://charmh
 
 ## GitHub Workflows
 
-This repository holds all of our **reusable workflows**, in the `.github/workflows` folder; our other repositories implement their workflows by calling these. We follow two conventions for naming them:
-* workflows starting with `_` are *“private”*, meaning they are used by other workflows and shouldn't be called directly;
-* the name should loosely follow a `{scope}-{function}.yaml` schema, to make the folder easily searchable.
+```mermaid
+block-beta
+  block
+    columns 1
+    charm["<b>Charm Workflows</b>"]
+    charmpr["Quality checks (on PRs)"]
+    charmrelease["Release (push to <i>main</i> or <i>track/N</i>)"]
+    charmupdate["🕛 Update charm libraries"]
+    charmpromote["🖐 Promote charm"]
+  end
 
-### Base Workflows
+  block
+    columns 1
+    rock["<b>Rock Workflows</b>"]
+    rockpr["Goss checks (on PRs)"]
+    rockreleasedev["Release to GHCR:dev"]
+    rockreleaseoci["Open PR to OCI Factory"]
+    rockupdate["🕛 Update from upstream"]
+  end
+
+style charm fill:darkslategray,stroke-width:4px
+style rock fill:teal,stroke-width:4px
+```
+
+> 🕛: workflows running periodically; 🖐: manual workflows
+
+This repository holds all of our **reusable workflows**, in the `.github/workflows` folder; our other repositories implement their workflows by calling these. We follow two conventions for naming them:
+- workflows starting with `_` are *“private”*, meaning they are used by other workflows and shouldn't be called from outside this repository;
+- the name should loosely follow a `{scope}-{function}.yaml` schema, to make the folder easily searchable.
+
+Our approach to CI follows some **guiding principles**:
+- **simplicity**: our workflows strive to minimize the amount of moving parts (external actions and tooling);
+- **stability**: our workflows should be tested (e.g., statically and manually on [`o11y-tester`](https://github.com/canonical/o11y-tester-operator)) and versioned, to avoid breaking us and other users;
+- **repeatability**: when possible, workflows should be composed of commands that are also executable locally, in order to ease testing;
+- **decoupling from GitHub CI**: minimize the amount of GitHub-specific features (e.g., actions), relying on Bash where possible.
+
+To contribute, please read CONTRIBUTING.md # TODO: add a link to the file! (move guiding principles there and change the wording to "to read our guiding principles and learning how to contribute" or something similar
+
+
+### Charm Workflows
+
+Our charms default branches are **main** and **track/N**. When a PR is opened or merged to one of those branches, some quality checks are executed (*fast* and *integration* in the chart below), and on merge the charm is automatically released to the appropriate track (for all the defined architetures):
+
+```mermaid
+block-beta
+  block
+    columns 1
+    qualitychecksfast["<b>Quality Checks (fast)</b>"]
+    prlabels["Check libraries (PRs only)"]
+    lint["Linting"]
+    static["Static analysis"]
+    unit["Unit tests"]
+    inclusivenaming["Inclusive naming"]
+    codeql["CodeQL"]
+  end
+
+  block
+    columns 1
+    qualitychecksslow["<b>Quality Checks (integration)</b>"]
+    pack["Pack the charm"]
+    integration["Integration tests"]
+  end
+
+
+  block
+    columns 1
+    release["<b>Release Charm (per arch)</b>"]
+    packrelease["Pack the charm"]
+    charmhubrelease["Release to Charmhub"]
+    githubrelease["GitHub tag and release"]
+    librariesrelease["Publish charm libraries"]
+  end
+
+
+
+qualitychecksfast --> qualitychecksslow
+qualitychecksslow --> release
+
+style qualitychecksfast fill:dodgerblue,stroke-width:4px
+style qualitychecksslow fill:slateblue,stroke-width:4px
+style release fill:indigo,stroke-width:4px
+
+style inclusivenaming opacity:0.5,stroke-dasharray:10
+style codeql opacity:0.5,stroke-dasharray:10
+```
+
+> [!note]
+> By default, integration tests are executed in parallel: each `test_*.py` file is executed on a separate runner. This behavior can be disabled via a flag. # TODO: add link to the parallelize-integration flag
+
+### Rock Workflows
+
+Our rocks are built in [oci-factory](https://github.com/canonical/oci-factory/), which covers:
+- building and publishing the rocks to [DockerHub](https://hub.docker.com/u/ubuntu);
+- tagging with semantic versions (e.g., `prometheus:{major}` pointing to the latest `prometheus:{major}.{minor}.{patch}`)
+- periodically rebuilding rocks to pull any security fix.
+
+```mermaid
+block-beta
+  block
+    columns 1
+    qualitychecks["<b>Quality Checks</b>"]
+    pack["Pack the rock"]
+    goss["Run <b>goss</b> checks"]
+  end
+
+  block
+    columns 1
+    release["<b>Release</b>"]
+    releaseghcr["Release to GHCR:dev"]
+    releaseoci["Open a PR to OCI Factory"]
+  end
+
+qualitychecks --> release
+
+style qualitychecks fill:firebrick,stroke-width:4px
+style release fill:darkred,stroke-width:4px
+```
+
+These workflows make the repositories holding our rocks *almost* fully automated: human intervention is only required when on workflow failures, which could indicate that the building process changed, or that the rock has a security vulnerability.
+
+## Other automation
+
+### Issue sync to Jira
 
 Issues are synced by the [gh-jira-sync-bot](https://github.com/canonical/gh-jira-sync-bot/blob/main/README.md), and further enriched by a *Jira Automation*.
 
 The bot configuration lives in [.github/.jira_sync_config.yaml](https://github.com/canonical/observability/blob/main/.github/.jira_sync_config.yaml); *carefully* read the README to configure it. This 
 takes care of most things, except the Jira labels, which are added by the *Jira automation*.
-
-### Charm Workflows
-
-| On PRs                                  | On main                                 | Periodically                 | Manually                   |
-| --------------------------------------- | --------------------------------------- | ---------------------------- | -------------------------- |
-| **`charm-pull-request.yaml`**           | **`charm-release.yaml`**                | **`charm-update-libs.yaml`** | **`charm-promote.yaml`**   |
-| **`└── _charm-quality-checks.yaml`**    | **`├── _charm-quality-checks.yaml`**    |                              | `(charm-update-libs.yaml)` |
-| `....├── _charm-codeql-analysis.yaml`   | `....├── _charm-codeql-analysis.yaml`   |                              |                            |
-| `....├── _charm-static-analysis.yaml`   | `....├── _charm-static-analysis.yaml`   |                              |                            |
-| `....├── _charm-linting.yaml`           | `....├── _charm-linting.yaml`           |                              |                            |
-| `....├── _charm-tests-unit.yaml`        | `....├── _charm-tests-unit.yaml`        |                              |                            |
-| `....├── _charm-tests-scenario.yaml`    | `....├── _charm-tests-scenario.yaml`    |                              |                            |
-| `....└── _charm-tests-integration.yaml` | `....└── _charm-tests-integration.yaml` |                              |                            |
-|                                         | **`└── _charm-release.yaml`**           |                              |                            |
-
-Whenever a PR is opened to a charm repository, some quality checks are run:
-* first check that the `CHARMHUB_TOKEN` secret is set on the repo, as it's needed by other actions;
-* run the Canonical inclusive naming workflow;
-* make sure charm libraries are updated and tag the PR accordingly with "Libraries: OK" or "Libraries: Out of Sync";
-* run linting, analyses and tests to ensure the code quality.
-
-After a PR is merged, the same quality checks are run on the main branch; when passing, the CI takes care of publishing any bumped charm library and releasing the charm to edge.
-
-Periodically, CI checks whether the charm libraries are up-to-date; if not (i.e., another charm published an updated library), a PR is automatically opened to update them with the new version.
-
-There's also a manual action to promote the charm (i.e., from `latest/edge` to `latest/beta`), making the process more user-friendly.
-
-### Bundle Workflows
-| On PRs                              |
-| ------------------------------------|
-| **`bundle-pull-request.yaml`**      |
-| `├── _charm-codeql-analysis.yaml`   |
-| `├── _charm-linting.yaml`           |
-| `└── _charm-tests-integration.yaml` |
-
-Whenever a PR is opened to a bundle repository, some quality checks are run:
-* first check that the `CHARMHUB_TOKEN` secret is set on the repo, as it's needed by other actions;
-* run the Canonical inclusive naming workflow.
-* run linting, analyses and tests to ensure the code quality.
-
-<!-- TODO: add merging PR workflow -->
-
-### Rock Workflows
-
-| On PRs                          | On main                             | Periodically           | Manually                  |
-| ------------------------------- | ----------------------------------- | ---------------------- | ------------------------- |
-| **`_rock-pull-request.yaml`**   | **`rock-release-dev.yaml`**         | **`rock-update.yaml`** | `(rock-release-dev.yaml)` |
-| **`└── _rock-build-test.yaml`** | **`rock-release-oci-factory.yaml`** |                        | `(rock-update.yaml)`      |
-
-Our rocks are built in [oci-factory](https://github.com/canonical/oci-factory/), which covers:
-* building and publishing the rocks to [DockerHub](https://hub.docker.com/u/ubuntu);
-* tagging with semantic versions (e.g., `prometheus:{major}` pointing to the latest `prometheus:{major}.{minor}.{patch}`)
-* periodically rebuilding rocks to pull any security fix.
-
-These workflows make the repositories holding our rocks almost fully automated: whenever the upstream project releases a new version, a PR is opened automatically to add a rock for that specific version. Consequently, a workflow is run to make a quality check by trying to build the rock locally.
-
-When the PR is merged, the rock is published to the GitHub Container Registry (GHCR) with a `:dev` tag. At the same time, a PR is opened to the **oci-factory** repo for the ROCKS Team to approve and merge, triggering the actual build process.
-
-### Manual Workflows
-
-| Manually                        |
-| --------------------------------|
-| **`_local-promote-train.yaml`** |
-
-The [**Promote Train**](https://github.com/canonical/observability/actions/workflows/_local-promote-train.yaml) workflow allows to promote all the charms revisions to their next risk track. Specifically, if the tracks are open, the following promotions will be executed:
-- `latest/candidate` --> `latest/stable`
-- `latest/beta` --> `latest/candidate`
-- `latest/edge` --> `latest/beta`
-
-If the *dry-run* flag is selected, the promotion will simply be printed instead of being carried out.
 
 ## Meta Repo
 
