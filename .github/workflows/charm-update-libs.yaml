@@ -28,6 +28,10 @@ on:
         required: false
       OBSERVABILITY_NOCTUA_TOKEN:
         required: true
+      NOCTUA_GPG_PASSPHRASE:
+        required: true
+      NOCTUA_GPG_PRIVATE:
+        required: true
 
 permissions:
   contents: write
@@ -65,7 +69,7 @@ jobs:
           sudo snap install charmcraft --classic --channel "${{ inputs.charmcraft-channel }}"
           cd "$GITHUB_WORKSPACE/${{ inputs.charm-path }}"
           # Get the charm name
-          charm_name=$((yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
+          charm_name=$( (yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
           if [[ $charm_name = "" ]]; then echo "Error: can't extract the charm name." && exit 1; fi
           # Initalize the issue body content to empty string, and fill it up in the for loop
           issue_body=""
@@ -77,7 +81,7 @@ jobs:
             lib_major=$(cut -d. -f3 <<< "$lib")
             lib_owner=$(cut -d. -f2 <<< "$lib" | tr _ -)
             # Get the latest major version of the library from Charmhub
-            latest_major="v$(charmcraft list-lib $lib_owner --format=json | jq -r --arg LIBNAME $lib_name '.[] | select(.library_name == $LIBNAME) | .api')"
+            latest_major="v$(charmcraft list-lib "$lib_owner" --format=json | jq -r --arg LIBNAME "$lib_name" '.[] | select(.library_name == $LIBNAME) | .api')"
             # If there is a new major version of the library, open a new issue
             if [[ $(printf "%s\n%s" "$lib_major" "$latest_major" | sort -V | tail -n1 ) != "$lib_major" ]]; then
               issue_body=$(printf "%s\n%s" "$issue_body" "- update <b>$lib</b> to <b>$latest_major</b>")
