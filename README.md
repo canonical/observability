@@ -34,17 +34,7 @@ style rock fill:teal,stroke-width:4px
 
 > 🕛: workflows running periodically; 🖐: manual workflows
 
-This repository holds all of our **reusable workflows**, in the `.github/workflows` folder; our other repositories implement their workflows by calling these. We follow two conventions for naming them:
-- workflows starting with `_` are *“private”*, meaning they are used by other workflows and shouldn't be called from outside this repository;
-- the name should loosely follow a `{scope}-{function}.yaml` schema, to make the folder easily searchable.
-
-Our approach to CI follows some **guiding principles**:
-- **simplicity**: our workflows strive to minimize the amount of moving parts (external actions and tooling);
-- **stability**: our workflows should be tested (e.g., statically and manually on [`o11y-tester`](https://github.com/canonical/o11y-tester-operator)) and versioned, to avoid breaking us and other users;
-- **repeatability**: when possible, workflows should be composed of commands that are also executable locally, in order to ease testing;
-- **decoupling from GitHub CI**: minimize the amount of GitHub-specific features (e.g., actions), relying on Bash where possible.
-
-To contribute, please read CONTRIBUTING.md # TODO: add a link to the file! (move guiding principles there and change the wording to "to read our guiding principles and learning how to contribute" or something similar
+To contribute, please read about our guiding principles and contribution guidelines in our [CONTRIBUTING.md](https://github.com/canonical/observability/blob/main/CONTRIBUTING.md).
 
 
 ### Charm Workflows

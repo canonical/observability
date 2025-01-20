@@ -10,6 +10,10 @@ Our CI adheres to these **guiding principles**:
 - **repeatability**: when possible, workflows should be composed of commands that are also executable locally, in order to ease testing;
 - **decoupling from GitHub CI**: minimize the amount of GitHub-specific features (e.g., actions), relying on Bash where possible.
 
+The workflow files follow a naming convention:
+- workflows starting with `_` are *“private”*, meaning they are used by other workflows and shouldn't be called from outside this repository;
+- the name should loosely follow a `{scope}-{function}.yaml` schema, to make the folder easily searchable.
+
 The workflows are versioned via GitHub tags. When making a change, please follow this process:
 1. open a PR to `main` and use `just` to lint your workflows;
 2. test your changes manually on [`o11y-tester`](https://github.com/canonical/o11y-tester-operator) by pointing its workflows to your dev branch;
