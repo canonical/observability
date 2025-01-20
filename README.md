@@ -47,7 +47,7 @@ block-beta
     columns 1
     qualitychecksfast["<b>Quality Checks (fast)</b>"]
     prlabels["Check libraries (PRs only)"]
-    lint["Linting"]
+    lint["Linting (code, alerts, terraform)"]
     static["Static analysis"]
     unit["Unit tests"]
     inclusivenaming["Inclusive naming"]
