@@ -45,11 +45,11 @@ jobs:
           # If a Juju version is passed from the inputs use that, otherwise use the defaults
           # we picked for each track name
           if [[ -n "${{ inputs.juju-channel }}" ]]; then
-            echo "juju-channel=${{ inputs.juju-channel }}" >> $GITHUB_OUTPUT
+            echo "juju-channel=${{ inputs.juju-channel }}" >> "$GITHUB_OUTPUT"
           elif [[ "${BRANCH_NAME#refs/heads/}" == "track/1" ]]; then
-            echo "juju-channel=3.1/stable" >> $GITHUB_OUTPUT
+            echo "juju-channel=3.1/stable" >> "$GITHUB_OUTPUT"
           else
-            echo "juju-channel=3.6/stable" >> $GITHUB_OUTPUT
+            echo "juju-channel=3.6/stable" >> "$GITHUB_OUTPUT"
           fi
 
   call-inclusive-naming-check:
@@ -195,7 +195,8 @@ jobs:
         run: |
           cd ${{ inputs.charm-path }}
           charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | tail -n1)"
-          export CHARM_PATH="$(realpath $charm_relative_path)"
+          CHARM_PATH="$(realpath "$charm_relative_path")"
+          export CHARM_PATH
           uvx tox -e integration
 
   integration-matrix:
@@ -213,7 +214,7 @@ jobs:
         run: |
           list="$(find tests/integration -name 'test_*.py' -printf '%f\n' | jq -r -ncR '[inputs]')"
           echo "suites=$list"
-          echo "suites=$list" >> $GITHUB_OUTPUT
+          echo "suites=$list" >> "$GITHUB_OUTPUT"
           
   integration-test:
     name: Integration Tests (parallel)
@@ -244,5 +245,6 @@ jobs:
         run: |
           cd ${{ inputs.charm-path }}
           charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | tail -n1)"
-          export CHARM_PATH="$(realpath $charm_relative_path)"
+          CHARM_PATH="$(realpath "$charm_relative_path")"
+          export CHARM_PATH
           uvx tox -e integration -- -k "${{ matrix.suite }}"
