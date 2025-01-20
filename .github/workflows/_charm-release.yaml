@@ -62,7 +62,7 @@ jobs:
           # Enable non-root user control
           sudo chmod a+wr /var/snap/lxd/common/lxd/unix.socket
           lxd_user="$USER"
-          sudo usermod -a -G lxd $lxd_user
+          sudo usermod -a -G lxd "$lxd_user"
           # Ensure that LXD containers can talk to the internet
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
@@ -75,7 +75,7 @@ jobs:
           # Read charm name from metadata.yaml or charmcraft.yaml
           cd "${{ inputs.charm-path }}"
           charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
-          echo "charm_name=$charm_name" >> $GITHUB_OUTPUT
+          echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
       - name: Cache wheels
         uses: actions/cache@v4
         with:
@@ -91,9 +91,9 @@ jobs:
         run: |
           cd "${{ inputs.charm-path }}"
           charmcraft pack -v
-          export CHARMS=$(basename -a *.charm | jq -R -s -c 'split("\n")[:-1]')
-          echo "charms=$CHARMS"
-          echo "charms=$CHARMS" >> $GITHUB_OUTPUT
+          charms="$(basename -a ./*.charm | jq -R -s -c 'split("\n")[:-1]')"
+          echo "charms=$charms"
+          echo "charms=$charms" >> "$GITHUB_OUTPUT"
       - name: Store charm(s)
         uses: actions/upload-artifact@v4
         with:
@@ -115,7 +115,7 @@ jobs:
           # ]}
           set -x
           cd "${{ inputs.charm-path }}"
-          file_paths="$(find -name '*.charm' -printf '%f ')"
+          file_paths="$(find . -name '*.charm' -printf '%f ')"
           # For all the charms built on this architecture: release them
           for path in ${file_paths}; do
             uvx --quiet --from git+https://github.com/lucabello/noctua noctua charm release \
@@ -142,10 +142,10 @@ jobs:
             release_title="Revision $revision"
             echo "Peparing GitHub release: $release_title"
             ## Add the charm information to the release body
-            body_charm="$(printf "\`\`\`json\n${pretty_uploaded_charm}\n\`\`\`")"
+            body_charm="$(printf "\`\`\`json\n%s\n\`\`\`" "$pretty_uploaded_charm")"
             current_date="$(date -u +"%B %e, %Y at %H:%M UTC")"
-            body_meta="$(printf "Released to *${RELEASE_CHANNEL}* on ${current_date}")"
-            body="$(printf "${body_charm}\n\n${body_meta}")"
+            body_meta="$(printf "Released to *%s* on %s" "$RELEASE_CHANNEL" "$current_date")"
+            body="$(printf "%s\n\n%s" "$body_charm" "$body_meta")"
             ## Create the GitHub release from the previously-created tag
             gh release create "${TAG_PREFIX}rev${revision}" \
               --title="$release_title" \
