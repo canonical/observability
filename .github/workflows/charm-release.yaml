@@ -78,7 +78,7 @@ jobs:
             jq -rc \
           )"
           echo "runners=$runners"
-          echo "runners=$runners" >> $GITHUB_OUTPUT
+          echo "runners=$runners" >> "$GITHUB_OUTPUT"
       - name: Define release channel
         id: define-channel
         env:
@@ -91,7 +91,7 @@ jobs:
             release_channel="${GIT_BRANCH#track/}/edge"
           fi
           echo "release_channel=$release_channel"
-          echo "release_channel=$release_channel" >> $GITHUB_OUTPUT
+          echo "release_channel=$release_channel" >> "$GITHUB_OUTPUT"
 
   quality-checks:
     name: Quality Checks
@@ -134,17 +134,19 @@ jobs:
       - name: Release libraries
         env:
           CHARMCRAFT_AUTH: "${{ secrets.CHARMHUB_TOKEN }}"
+          CHARMCRAFT_CHANNEL: "${{ inputs.charmcraft-channel }}"
+          CHARM_PATH: "${{ inputs.charm-path }}"
         run: |
           # Install Charmcraft
-          sudo snap install charmcraft --classic --channel ${{ inputs.charmcraft-channel }}
-          cd $GITHUB_WORKSPACE/charm/${{ inputs.charm-path }}
+          sudo snap install charmcraft --classic --channel "$CHARMCRAFT_CHANNEL"
+          cd "${GITHUB_WORKSPACE}/charm/${CHARM_PATH}"
           # Get the charm name
-          charm_name=$((yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
+          charm_name=$( (yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
           if [[ $charm_name = "" ]]; then echo "Error: can't extract the charm name." && exit 1; fi
           # For each library belonging to the charm, publish it
-          if [ -d lib/charms/$charm_name ]; then
-            for lib in $(find lib/charms/$charm_name -type f | sed 's|lib/||' | sed 's/.py//' | sed 's|/|.|g'); do
-              result="$(charmcraft publish-lib $lib)" || true
+          if [ -d "lib/charms/${charm_name}" ]; then
+            for lib in $(find "lib/charms/${charm_name}" -type f | sed 's|lib/||' | sed 's/.py//' | sed 's|/|.|g'); do
+              result="$(charmcraft publish-lib "$lib")" || true
               # Filter out the succesfull publish-lib messages: https://github.com/canonical/charmcraft/issues/1981
               if [[ "$result" == *"sent to the store with version"* ]]; then
                 echo "$result"
