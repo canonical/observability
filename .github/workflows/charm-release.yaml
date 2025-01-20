@@ -82,7 +82,7 @@ jobs:
       - name: Define release channel
         id: define-channel
         env:
-          GIT_BRANCH: ${{ github.ref_name }}
+          GIT_BRANCH: ${{ github.ref_name }}  # branch name as shown in GitHub
           DEFAULT_TRACK: ${{ inputs.default-track }}
         run: |
           if [[ "$GIT_BRANCH" == "main" ]]; then
