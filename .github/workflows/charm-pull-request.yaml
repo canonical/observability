@@ -66,7 +66,7 @@ jobs:
         run: |
           echo "Changes made: ${{ steps.changed-files.outputs.any_modified }}"
           echo "Modified files: ${{ steps.changed-files.outputs.all_modified_files }}"
-          echo "any_modified=${{ steps.changed-files.outputs.any_modified }}" >> $GITHUB_OUTPUT
+          echo "any_modified=${{ steps.changed-files.outputs.any_modified }}" >> "$GITHUB_OUTPUT"
 
   lib-check:
     name: Check libraries  # Check if the charm libraries are updated and add the relevant label to the PR
@@ -79,7 +79,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install charmcraft
-        run: sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
+        env:
+          CHARMCRAFT_CHANNEL: "${{ inputs.charmcraft-channel }}"
+        run: sudo snap install charmcraft --classic --channel="$CHARMCRAFT_CHANNEL"
       - name: Check charm libraries
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
