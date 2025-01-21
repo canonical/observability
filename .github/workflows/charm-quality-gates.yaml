@@ -26,7 +26,6 @@ jobs:
   quality-gate-edge:
     name: Quality gate (edge -> beta)
     runs-on: ubuntu-latest
-    needs: [define-matrix]
     strategy:
       matrix:
         track: ${{ fromJSON(inputs.tracks) }}
@@ -61,7 +60,6 @@ jobs:
   quality-gate-beta:
     name: Quality gate (beta -> candidate)
     runs-on: ubuntu-latest
-    needs: [define-matrix]
     strategy:
       matrix:
         track: ${{ fromJSON(inputs.tracks) }}
