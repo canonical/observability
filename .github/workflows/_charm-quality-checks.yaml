@@ -241,7 +241,7 @@ jobs:
         suite: ${{ fromJSON(needs.integration-matrix.outputs.suites) }}
     env:
       CONCIERGE_JUJU_CHANNEL: ${{ needs.snap-channels.outputs.juju-channel }}
-      CONCIERGE_MICROK8S_CHANNEL: 1.31-strict/stable
+      CONCIERGE_MICROK8S_CHANNEL: 1.31/stable
       CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
     steps:
       - name: Checkout
