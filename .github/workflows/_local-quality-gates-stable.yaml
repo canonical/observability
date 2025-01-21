@@ -1,0 +1,49 @@
+name: Quality Gates (candidate -> stable)
+
+on:
+  workflow_dispatch:
+    inputs:
+      charms:
+        # TODO: figure out if stable gates run per-charm or not
+        description: Json list of charms on which to run quality gates.
+        type: string
+        required: false
+        default: '["o11y-tester"]' # FIXME: change this to the actual list of repos
+      tracks:
+        description: Json list of track names on which to run quality gates.
+        type: string
+        required: false
+        default: '["0", "1"]'
+
+concurrency:
+  group: quality-gates
+  cancel-in-progress: true
+
+jobs:
+  quality-gate-stable:
+    name: Quality gate (candidate -> stable)
+    runs-on: ubuntu-latest
+    needs: [define-matrix]
+    strategy:
+      matrix:
+        track: ${{ fromJSON(inputs.tracks) }}
+        charm: ${{ fromJSON(inputs.charms) }}
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo snap install astral-uv --classic
+      - name: "(fake) Run the quality gates"
+        run: |
+            echo "(fake) Running quality checks for track ${{ matrix.track }} and charm ${{ matrix.charm}}"
+      - name: (fake) Promote from candidate to stable
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+          CHARM_NAME: ${{ matrix.charm }}
+          CHARM_PATH: ${{ inputs.charm-path }}
+          TRACK: ${{ matrix.track }}
+        run: |
+          cd "$CHARM_PATH"
+          # uvx --quiet --from git+https://github.com/lucabello/noctua \
+          #   noctua charm promote "$CHARM_NAME" --from="$TRACK/candidate" --dry-run
+          echo "(fake) Promoting from candidate to stable!"
+
