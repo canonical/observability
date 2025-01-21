@@ -1,0 +1,100 @@
+name: Quality Gates
+
+on:
+  workflow_call:
+    inputs:
+      charm-path:
+        description: |
+          Path to the charm we want to promote. Defaults to the current working directory.
+        default: '.'
+        required: false
+        type: string
+      tracks:
+        description: Json list of track names on which to run quality gates.
+        type: string
+        required: false
+        default: '["0", "1"]'
+    secrets:
+      CHARMHUB_TOKEN:
+        required: true
+
+concurrency:
+  group: quality-gates
+  cancel-in-progress: true
+
+jobs:
+  define-matrix:
+    name: Define track matrix
+    runs-on: ubuntu-latest
+    outputs:
+      charm_name: ${{ steps.get-charm-name.outputs.charm_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install charmcraft --classic
+      - name: Get charm name
+        id: get-charm-name
+        run: |
+          # Read charm name from metadata.yaml or charmcraft.yaml
+          cd "${{ inputs.charm-path }}"
+          charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
+          if [[ "$charm_name" = "" ]]; then echo "Error: can't extract the charm name." && exit 1; fi
+          echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
+          
+  quality-gate-edge:
+    name: Quality gate (edge -> beta)
+    runs-on: ubuntu-latest
+    needs: [define-matrix]
+    strategy:
+      matrix:
+        track: ${{ fromJSON(inputs.tracks) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install astral-uv --classic
+      - name: "(fake) Run the quality gates"
+        run: |
+            echo "(fake) Running quality checks for track ${{ matrix.track }}"
+      - name: (fake) Promote from edge to beta
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+          CHARM_NAME: ${{ needs.define-matrix.outputs.charm_name }}
+          CHARM_PATH: ${{ inputs.charm-path }}
+          TRACK: ${{ matrix.track }}
+        run: |
+          cd "$CHARM_PATH"
+          # uvx --quiet --from git+https://github.com/lucabello/noctua \
+          #   noctua charm promote "$CHARM_NAME" --from="$TRACK/edge" --dry-run
+          echo "(fake) Promoting from edge to beta!"
+              
+  quality-gate-beta:
+    name: Quality gate (beta -> candidate)
+    runs-on: ubuntu-latest
+    needs: [define-matrix]
+    strategy:
+      matrix:
+        track: ${{ fromJSON(inputs.tracks) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install astral-uv --classic
+      - name: "Run the quality gates (fake)"
+        run: |
+            echo "(fake) Running quality checks for track ${{ matrix.track }}"
+      - name: Promote from beta to candidate
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+          CHARM_NAME: ${{ needs.define-matrix.outputs.charm_name }}
+          CHARM_PATH: ${{ inputs.charm-path }}
+          TRACK: ${{ matrix.track }}
+        run: |
+          cd "$CHARM_PATH"
+          # uvx --quiet --from git+https://github.com/lucabello/noctua \
+          #   noctua charm promote "$CHARM_NAME" --from="$TRACK/beta" --dry-run
+          echo "(fake) Promoting from beta to candidate!"
