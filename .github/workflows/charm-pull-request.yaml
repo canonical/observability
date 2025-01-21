@@ -34,6 +34,11 @@ on:
     secrets:
        CHARMHUB_TOKEN:
          required: false
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ci-ignore:
     name: Check against ignorelist
