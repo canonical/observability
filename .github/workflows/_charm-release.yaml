@@ -66,7 +66,7 @@ jobs:
           export CHARMS=$(basename -a ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
           echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
       - name: Store charms
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: charms
           path: ${{ inputs.charm-path }}/*.charm
@@ -107,7 +107,7 @@ jobs:
           export CHARMS=$(basename -a ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
           echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
       - name: Store charms
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: charms-arm
           path: ${{ inputs.charm-path }}/*.charm
