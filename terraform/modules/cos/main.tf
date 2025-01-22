@@ -302,6 +302,20 @@ resource "juju_integration" "tempo_catalogue" {
   }
 }
 
+resource "juju_integration" "mimir_catalogue" {
+  model = var.model_name
+
+  application {
+    name     = module.catalogue.app_name
+    endpoint = module.catalogue.endpoints.catalogue
+  }
+
+  application {
+    name     = module.mimir.app_names.mimir_coordinator
+    endpoint = module.mimir.endpoints.catalogue
+  }
+}
+
 # Provided by Traefik
 
 resource "juju_integration" "catalogue_ingress" {
