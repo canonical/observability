@@ -199,7 +199,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo snap install concierge --classic
-          sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv
+          sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv,kubectl
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
@@ -249,7 +249,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo snap install concierge --classic
-          sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv
+          sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv,kubectl
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
