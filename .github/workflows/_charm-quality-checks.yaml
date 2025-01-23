@@ -254,6 +254,7 @@ jobs:
           sudo groupadd -f microk8s
           sudo usermod -a -G microk8s "$USER"
           sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv
+          sudo snap install kubectl --classic
           echo "+++ Groups for $USER:"
           groups "$USER"
       - name: Download charm artifact
