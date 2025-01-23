@@ -72,3 +72,16 @@ The user of `juju-doctor` is responsible for defining the remote probes required
 2. A directory of probes (run all inside)
 
 `juju-doctor` would download these into a temp FS and execute them.
+
+### (4) Subfolders per Juju artifact
+
+The probes folder (in charm repo) will be structured so that we have 
+
+```
+/probes/status
+/probes/bundle
+/probes/show-unit
+/probes/compound  # Inputs include juju-status.yaml, juju-bundle.yaml, and juju-show-unit.yaml
+```
+
+A compound probe cannot use stdin and instead uses argument flags. This could be a compelling argument for enforcing all checks to use flags instead of stdin for consistency.
