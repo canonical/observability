@@ -249,14 +249,8 @@ jobs:
       - name: Install dependencies
         run: |
           sudo snap install concierge --classic
-          echo "+++ Groups for $USER:"
-          groups "$USER"
-          sudo groupadd -f microk8s
-          sudo usermod -a -G microk8s "$USER"
           sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv
           sudo snap install kubectl --classic
-          echo "+++ Groups for $USER:"
-          groups "$USER"
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
@@ -264,8 +258,6 @@ jobs:
           path: ${{ inputs.charm-path }}
       - name: Run integration tests
         run: |
-          echo "+++ Groups for $USER:"
-          groups "$USER"
           cd ${{ inputs.charm-path }}
           charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | tail -n1)"
           CHARM_PATH="$(realpath "$charm_relative_path")"
