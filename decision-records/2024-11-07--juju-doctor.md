@@ -85,3 +85,16 @@ The probes folder (in charm repo) will be structured so that we have
 ```
 
 A compound probe cannot use stdin and instead uses argument flags. This could be a compelling argument for enforcing all checks to use flags instead of stdin for consistency.
+
+### (5) Protocols and terraform notation for probe paths
+
+Format for probes follows:
+- `file://path-to-probe/probe.py`
+- `github://org/repo//probes/probe.py?my-branch`
+  - `//` signifies a sub-dir in the repo
+  - `?` signifies a branch, default to main
+
+Suggestions:
+1. Name probes with `-` rather than `_`. i.e. `my-probe.py` in case we chose to flatten the provided probe path to the local FS
+  - i.e. `org_repo__probes_my-probe.py`, now I know that it is not `my/probe.py` rather `my-probe.py`.
+2. For probes from the `main` branch, leave `?` out of the probe.
