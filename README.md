@@ -13,19 +13,20 @@ block-beta
   block
     columns 1
     charm["<b>Charm Workflows</b>"]
-    charmpr["<a href='https://github.com/canonical/observability/blob/feature/v1/.github/workflows/charm-pull-request.yaml'>Quality checks (on PRs)</a>"]
-    charmrelease["<a href='https://github.com/canonical/observability/blob/feature/v1/.github/workflows/charm-release.yaml' >Release (push to <i>main</i> or <i>track/N</i>)</a>"]
-    charmupdate["<a href='https://github.com/canonical/observability/blob/feature/v1/.github/workflows/charm-update-libs.yaml'>🕛 Update charm libraries</a>"]
-    charmpromote["<a href='https://github.com/canonical/observability/blob/feature/v1/.github/workflows/charm-promote.yaml'>🖐 Promote charm</a>"]
+    charmpr["<a href='https://github.com/canonical/observability/blob/v1/.github/workflows/charm-pull-request.yaml'>Quality checks (on PRs)</a>"]
+    charmrelease["<a href='https://github.com/canonical/observability/blob/v1/.github/workflows/charm-release.yaml' >Release (push to <i>main</i> or <i>track/N</i>)</a>"]
+    charmupdate["<a href='https://github.com/canonical/observability/blob/v1/.github/workflows/charm-update-libs.yaml'>🕛 Update charm libraries</a>"]
+    charmqualitygates["<a href='https://github.com/canonical/observability/blob/v1/.github/workflows/charm-quality-gates.yaml'>🕛 Quality Gates</a>"]
+    charmpromote["<a href='https://github.com/canonical/observability/blob/v1/.github/workflows/charm-promote.yaml'>🖐 Promote charm</a>"]
   end
 
   block
     columns 1
     rock["<b>Rock Workflows</b>"]
-    rockpr["<a href='https://github.com/canonical/observability/blob/feature/v1/.github/workflows/rock-pull-request.yaml'>Goss checks (on PRs)</a>"]
-    rockreleasedev["<a href='https://github.com/canonical/observability/blob/feature/v1/.github/workflows/rock-release-dev.yaml'>Release to GHCR:dev</a>"]
-    rockreleaseoci["<a href='https://github.com/canonical/observability/blob/feature/v1/.github/workflows/rock-release-oci-factory.yaml'>Open PR to OCI Factory</a>"]
-    rockupdate["<a href='https://github.com/canonical/observability/blob/feature/v1/.github/workflows/rock-update.yaml'>🕛 Update from upstream</a>"]
+    rockpr["<a href='https://github.com/canonical/observability/blob/v1/.github/workflows/rock-pull-request.yaml'>Goss checks (on PRs)</a>"]
+    rockreleasedev["<a href='https://github.com/canonical/observability/blob/v1/.github/workflows/rock-release-dev.yaml'>Release to GHCR:dev</a>"]
+    rockreleaseoci["<a href='https://github.com/canonical/observability/blob/v1/.github/workflows/rock-release-oci-factory.yaml'>Open PR to OCI Factory</a>"]
+    rockupdate["<a href='https://github.com/canonical/observability/blob/v1/.github/workflows/rock-update.yaml'>🕛 Update from upstream</a>"]
   end
 
 style charm fill:darkslategray,stroke-width:4px
@@ -85,9 +86,15 @@ style codeql opacity:0.5,stroke-dasharray:10
 ```
 
 > [!tip]
-> Integration tests are executed in parallel: each `test_*.py` file is executed on a separate runner. This behavior can be disabled via a [flag](https://github.com/canonical/observability/blob/feature/v1/.github/workflows/charm-pull-request.yaml#L28-L33).
+> Integration tests are executed in parallel: each `test_*.py` file is executed on a separate runner. This behavior can be disabled via a [flag](https://github.com/canonical/observability/blob/v1/.github/workflows/charm-pull-request.yaml#L28-L33).
 >
 > The charm is packed before the tests are executed and exposed via the `CHARM_PATH` environment variable. Make sure to [use it](https://github.com/canonical/o11y-tester-operator/blob/f9fa9f4014c248c07d664069422a47a18f9befea/tests/integration/conftest.py#L40-L49) in your integration tests to avoid re-packing.
+
+#### Periodic Workflows
+
+The following workflows are executed on a schedule:
+- [Update charm libraries](https://github.com/canonical/observability/blob/v1/.github/workflows/charm-update-libs.yaml) checks whether the charm libraries are up-to-date or not: if there is a new major version for a charm library, a GitHub issue is opened; if there's minor version updates, a PR is automatically created and (eventually, when CI passes) auto-merged;
+- [Quality Gates](https://github.com/canonical/observability/blob/v1/.github/workflows/charm-quality-gates.yaml) runs the checks we are using to gate promotions between channel; if those checks are successful, this workflows takes care of the promotions (up to the `candidate` risk).
 
 ### Rock Workflows
 
