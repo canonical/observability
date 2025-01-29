@@ -44,6 +44,13 @@ on:
         default: true
         required: false
         type: boolean
+      automatically-retry-hooks:
+        description: |
+          Whether Juju models should automatically-retry hooks.
+          Sets the `automatically-retry-hooks` in the model-defaults config.
+        default: false
+        required: false
+        type: boolean
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -104,6 +111,7 @@ jobs:
       charmcraft-channel: ${{ inputs.charmcraft-channel }}
       juju-channel: ${{ inputs.juju-channel }}
       parallelize-integration: ${{ inputs.parallelize-integration }}
+      automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
     
   release-charm:
     name: Release the charm

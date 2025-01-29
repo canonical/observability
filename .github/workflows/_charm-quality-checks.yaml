@@ -27,6 +27,13 @@ on:
           Parallelize integration tests by spinning up one runner per Python file.
         required: true
         type: boolean
+      automatically-retry-hooks:
+        description: |
+          Whether Juju models should automatically-retry hooks.
+          Sets the `automatically-retry-hooks` in the model-defaults config.
+        default: false
+        required: false
+        type: boolean
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -200,6 +207,8 @@ jobs:
         run: |
           sudo snap install concierge --classic
           sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv
+          sudo snap install kubectl --classic
+          juju model-defaults automatically-retry-hooks="${{ inputs.automatically-retry-hooks }}"
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
@@ -251,6 +260,7 @@ jobs:
           sudo snap install concierge --classic
           sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv
           sudo snap install kubectl --classic
+          juju model-defaults automatically-retry-hooks="${{ inputs.automatically-retry-hooks }}"
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
