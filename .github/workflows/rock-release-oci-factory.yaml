@@ -86,7 +86,7 @@ jobs:
           cwd: './oci-factory'
           message: 'chore: Add new ${{ inputs.rock-name }} releases'
           new_branch: 'update-${{ steps.update-releases.outputs.now_epoch }}'
-          push: 'origin main --force'
+          push: 'origin update-${{ steps.update-releases.outputs.now_epoch }} --force'
       - name: Open a PR from the fork to upstream
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         id: upstream-pr
