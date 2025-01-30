@@ -56,23 +56,27 @@ jobs:
       - name: Update releases in image.yaml
         id: update-releases
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
+        shell: bash  # The for-loop parsing is bash-specific
+        env:
+          ROCK_NAME: ${{ inputs.rock-name }}
+          # CHANGED_FILES is a space-separated list
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_and_modified_files }}
         run: |
           cd rock
           # Export current time to create a unique branch name for the fork
-          echo "now_epoch=$(date -d now +%s)" >> $GITHUB_OUTPUT
-          # Get the commit SHA for the rock repo
+          echo "now_epoch=$(date -d now +%s)" >> "$GITHUB_OUTPUT"
           sha="$(git rev-parse HEAD)"
-          files="$(echo ${{ steps.changed-files.outputs.all_changed_and_modified_files }})"
-          versions="$(echo $files | sed 's@/rockcraft.yaml@@g')"  # space-separated versions
+          versions="${CHANGED_FILES//\/rockcraft.yaml/}"  # space-separated versions
           # Build the --version flags for noctua
           versions_flags="$(for v in $versions; do echo -n "--version=$v "; done)"
           # Generate the manifest via noctua
+          # shellcheck disable=SC2086 # Intended word-splitting of $versions_flags
           uvx --from=git+https://github.com/lucabello/noctua noctua rock manifest \
             "${{ github.repository }}" \
             --commit="$sha" \
             --base=24.04 \
             $versions_flags \
-            > $GITHUB_WORKSPACE/oci-factory/oci/${{ inputs.rock-name }}/image.yaml
+            > "$GITHUB_WORKSPACE/oci-factory/oci/$ROCK_NAME/image.yaml"
       - name: Commit to the fork
         id: fork-commit
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
@@ -87,16 +91,17 @@ jobs:
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         id: upstream-pr
         env:
-          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
+          GH_TOKEN: "${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
+          NOW_EPOCH: "${{ steps.update-releases.outputs.now_epoch }}"
         run: |
-          cd $GITHUB_WORKSPACE/oci-factory
-          PR_URL="$(gh pr list --repo canonical/oci-factory --head observability-noctua-bot:update-${{ steps.update-releases.outputs.now_epoch }})"
+          cd "$GITHUB_WORKSPACE/oci-factory"
+          PR_URL="$(gh pr list --repo canonical/oci-factory --head "observability-noctua-bot:update-$NOW_EPOCH")"
           if [[ -n "${PR_URL}" ]]; then
             echo "PR already exists: ${PR_URL}"
             exit 0
           else
             gh pr create --repo canonical/oci-factory \
-              --head observability-noctua-bot:update-${{ steps.update-releases.outputs.now_epoch }} \
+              --head "observability-noctua-bot:update-${NOW_EPOCH}" \
               --title "chore: Add new ${{ inputs.rock-name }} releases" \
               --body "This is an automatic PR opened by the Observability Noctua bot."
           fi

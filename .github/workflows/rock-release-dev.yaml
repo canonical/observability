@@ -20,33 +20,37 @@ jobs:
     - name: Install dependencies
       run: |
         sudo snap install concierge --classic
-        sudo concierge prepare -p microk8s --extra-snaps just,yq
+        sudo concierge prepare -p microk8s --extra-snaps=just,yq
         # Install Syft
         curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh \
           | sh -s -- -b /usr/local/bin
     - name: Build rock
       run: |
-        latest_version=$(find . -maxdepth 1 -type d | sort -V | tail -n1 | sed 's@./@@')
+        latest_version="$(find . -maxdepth 1 -type d | sort -V | tail -n1 | sed 's@./@@')"
         just pack "$latest_version"
     - name: Upload rock to ghcr.io
+      env:
+        ROCK_NAME: ${{ inputs.rock-name }}
+        OBSERVABILITY_NOCTUA_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
       run: |
-        latest_version=$(find . -maxdepth 1 -type d | sort -V | tail -n1 | sed 's@./@@')
+        latest_version="$(find . -maxdepth 1 -type d | sort -V | tail -n1 | sed 's@./@@')"
         cd "$latest_version"
         sudo skopeo --insecure-policy copy \
-          oci-archive:$(realpath ./*.rock) \
-          docker://ghcr.io/canonical/${{ inputs.rock-name }}:dev \
-          --dest-creds "observability-noctua-bot:${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
+          "oci-archive:$(realpath ./*.rock)" \
+          "docker://ghcr.io/canonical/$ROCK_NAME:dev" \
+          --dest-creds "observability-noctua-bot:$OBSERVABILITY_NOCTUA_TOKEN"
     - name: Create SBOM
       run: |
-        latest_version=$(find . -maxdepth 1 -type d | sort -V | tail -n1 | sed 's@./@@')
-        syft $(realpath ./$latest_version/${{ inputs.rock-name }}_*.rock) -o spdx-json=${{ inputs.rock-name }}.sbom.json
+        latest_version="$(find . -maxdepth 1 -type d | sort -V | tail -n1 | sed 's@./@@')"
+        syft "$(realpath "./${latest_version}/${ROCK_NAME}_*.rock")" \
+          -o "spdx-json=${ROCK_NAME}.sbom.json"
     - name: Upload SBOM
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.rock-name }}-sbom
         path: "${{ inputs.rock-name}}.sbom.json"
     - name: Upload locally built rock artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.rock-name }}-rock
         path: "${{ inputs.rock-name }}_*.rock"
