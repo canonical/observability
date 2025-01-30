@@ -90,7 +90,7 @@ jobs:
     needs:
       - ci-ignore
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v0
     secrets: inherit
     with:
       charm-path: "${{ inputs.charm-path }}"
@@ -101,7 +101,7 @@ jobs:
     name: Release Charm and Libraries
     needs:
       - quality-checks
-    uses: canonical/observability/.github/workflows/_charm-release.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-release.yaml@v0
     secrets: inherit
     with:
       artifact: "${{ inputs.artifact }}"

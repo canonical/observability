@@ -70,7 +70,7 @@ jobs:
         run: |
           sudo snap install --classic astral-uv
       - name: Run tests
-        uses: canonical/observability/.github/actions/charm-run-task@main
+        uses: canonical/observability/.github/actions/charm-run-task@v0
         with:
           charm-path: ${{ inputs.charm-path }}
           test-type: integration

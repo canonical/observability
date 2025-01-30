@@ -62,7 +62,7 @@ jobs:
     needs:
       - ci-ignore
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-codeql-analysis.yml@main
+    uses: canonical/observability/.github/workflows/_charm-codeql-analysis.yml@v0
     with:
       charm-path: "${{ inputs.bundle-path }}"
 
@@ -71,7 +71,7 @@ jobs:
     needs:
       - ci-ignore
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-linting.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-linting.yaml@v0
     with:
       charm-path: "${{ inputs.bundle-path }}"
 
@@ -82,7 +82,7 @@ jobs:
       - codeql
       - linting
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-tests-integration.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-tests-integration.yaml@v0
     with:
       charm-path: "${{ inputs.bundle-path }}"
       provider: "${{ inputs.provider }}"
