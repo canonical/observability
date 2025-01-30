@@ -137,7 +137,7 @@ jobs:
 
   quality-checks:
     name: Quality Checks
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@feature/v1
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v1
     needs: [define-matrix]
     secrets: inherit
     with:
@@ -153,7 +153,7 @@ jobs:
     needs:
       - define-matrix
       - quality-checks
-    uses: canonical/observability/.github/workflows/_charm-release.yaml@feature/v1
+    uses: canonical/observability/.github/workflows/_charm-release.yaml@v1
     permissions:
       contents: write
     secrets: inherit
