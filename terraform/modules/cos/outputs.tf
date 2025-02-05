@@ -5,8 +5,22 @@ output "app_names" {
       grafana   = module.grafana.app_name,
       loki      = module.loki.app_names,
       mimir     = module.mimir.app_names,
-      # ssc       = try(module.ssc.app_name),
       traefik   = module.traefik.app_name,
     }
   )
+}
+
+output "tempo" {
+  description = "Outputs from the Tempo module"
+  value       = module.tempo
+}
+
+output "mimir" {
+  description = "Outputs from the Mimir module"
+  value       = module.mimir
+}
+
+output "loki" {
+  description = "Outputs from the Loki module"
+  value       = module.loki
 }

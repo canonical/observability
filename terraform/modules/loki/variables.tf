@@ -9,6 +9,12 @@ variable "model_name" {
   type        = string
 }
 
+variable "bucket_name" {
+  description = "Bucket name"
+  type        = string
+  default     = "loki"
+}
+
 # -------------- # App Names --------------
 
 variable "backend_name" {
@@ -29,6 +35,11 @@ variable "write_name" {
   default     = "loki-write"
 }
 
+variable "s3_integrator_name" {
+  description = "Name of the Loki app with the write role"
+  type        = string
+  default     = "loki-s3-integrator"
+}
 # -------------- # Units Per App --------------
 
 variable "backend_units" {

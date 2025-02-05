@@ -1,0 +1,32 @@
+name: Pull Requests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint-terraform:
+    name: Terraform lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install terraform --classic
+          sudo snap install just --classic
+      - name: Lint the Terraform modules
+        run: just lint-terraform
+  lint-workflows:
+    name: Workflows Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install astral-uv --classic
+          sudo snap install just --classic
+      - name: Lint the workflows
+        run: just lint-workflows

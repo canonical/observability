@@ -1,6 +1,6 @@
 # TODO: Replace s3_integrator resource to use its remote terraform module once available
 resource "juju_application" "s3_integrator" {
-  name = "loki-s3-bucket"
+  name  = var.s3_integrator_name
   model = var.model_name
   trust = true
 
@@ -24,7 +24,7 @@ module "loki_backend" {
   model_name = var.model_name
   channel    = var.channel
   config = {
-    role-backend  = true
+    role-backend = true
   }
   units = var.backend_units
 }
@@ -35,7 +35,7 @@ module "loki_read" {
   model_name = var.model_name
   channel    = var.channel
   config = {
-    role-read   = true
+    role-read = true
   }
   units = var.read_units
 }
@@ -46,7 +46,7 @@ module "loki_write" {
   model_name = var.model_name
   channel    = var.channel
   config = {
-    role-write  = true
+    role-write = true
   }
   units = var.write_units
 }

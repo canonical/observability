@@ -1,6 +1,6 @@
 # TODO: Replace s3_integrator resource to use its remote terraform module once available
 resource "juju_application" "s3_integrator" {
-  name = "mimir-s3-bucket"
+  name  = var.s3_integrator_name
   model = var.model_name
   trust = true
 
@@ -19,136 +19,37 @@ module "mimir_coordinator" {
   channel    = var.channel
 }
 
-module "mimir_alertmanager" {
+module "mimir_read" {
   source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.alertmanager_name
+  app_name   = var.read_name
   model_name = var.model_name
   channel    = var.channel
   config = {
-    role-all          = false
-    role-alertmanager = true
+    role-read = true
   }
-  units = var.alertmanager_units
+  units = var.read_units
 }
 
-module "mimir_compactor" {
+module "mimir_write" {
   source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.compactor_name
+  app_name   = var.write_name
   model_name = var.model_name
   channel    = var.channel
   config = {
-    role-all       = false
-    role-compactor = true
+    role-write = true
   }
-  units = var.compactor_units
+  units = var.write_units
 }
 
-module "mimir_distributor" {
+module "mimir_backend" {
   source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.distributor_name
+  app_name   = var.backend_name
   model_name = var.model_name
   channel    = var.channel
   config = {
-    role-all         = false
-    role-distributor = true
+    role-backend = true
   }
-  units = var.distributor_units
-}
-
-module "mimir_flusher" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.flusher_name
-  model_name = var.model_name
-  channel    = var.channel
-  config = {
-    role-all     = false
-    role-flusher = true
-  }
-  units = var.flusher_units
-}
-
-module "mimir_ingester" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.ingester_name
-  model_name = var.model_name
-  channel    = var.channel
-  config = {
-    role-all      = false
-    role-ingester = true
-  }
-  units = var.ingester_units
-}
-
-module "mimir_overrides_exporter" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.overrides_exporter_name
-  model_name = var.model_name
-  channel    = var.channel
-  config = {
-    role-all                = false
-    role-overrides-exporter = true
-  }
-  units = var.overrides_exporter_units
-}
-
-module "mimir_querier" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.querier_name
-  model_name = var.model_name
-  channel    = var.channel
-  config = {
-    role-all     = false
-    role-querier = true
-  }
-  units = var.querier_units
-}
-
-module "mimir_query_frontend" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.query_frontend_name
-  model_name = var.model_name
-  channel    = var.channel
-  config = {
-    role-all            = false
-    role-query-frontend = true
-  }
-  units = var.query_frontend_units
-}
-
-module "mimir_query_scheduler" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.query_scheduler_name
-  model_name = var.model_name
-  channel    = var.channel
-  config = {
-    role-all             = false
-    role-query-scheduler = true
-  }
-  units = var.query_scheduler_units
-}
-
-module "mimir_ruler" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.ruler_name
-  model_name = var.model_name
-  channel    = var.channel
-  config = {
-    role-all   = false
-    role-ruler = true
-  }
-  units = var.ruler_units
-}
-
-module "mimir_store_gateway" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.store_gateway_name
-  model_name = var.model_name
-  channel    = var.channel
-  config = {
-    role-all           = false
-    role-store-gateway = true
-  }
-  units = var.store_gateway_units
+  units = var.backend_units
 }
 
 # -------------- # Integrations --------------
@@ -166,7 +67,7 @@ resource "juju_integration" "coordinator_to_s3_integrator" {
   }
 }
 
-resource "juju_integration" "coordinator_to_alertmanager" {
+resource "juju_integration" "coordinator_to_read" {
   model = var.model_name
 
   application {
@@ -175,12 +76,12 @@ resource "juju_integration" "coordinator_to_alertmanager" {
   }
 
   application {
-    name     = module.mimir_alertmanager.app_name
+    name     = module.mimir_read.app_name
     endpoint = "mimir-cluster"
   }
 }
 
-resource "juju_integration" "coordinator_to_compactor" {
+resource "juju_integration" "coordinator_to_write" {
   model = var.model_name
 
   application {
@@ -189,12 +90,12 @@ resource "juju_integration" "coordinator_to_compactor" {
   }
 
   application {
-    name     = module.mimir_compactor.app_name
+    name     = module.mimir_write.app_name
     endpoint = "mimir-cluster"
   }
 }
 
-resource "juju_integration" "coordinator_to_distributor" {
+resource "juju_integration" "coordinator_to_backend" {
   model = var.model_name
 
   application {
@@ -203,119 +104,7 @@ resource "juju_integration" "coordinator_to_distributor" {
   }
 
   application {
-    name     = module.mimir_distributor.app_name
-    endpoint = "mimir-cluster"
-  }
-}
-
-resource "juju_integration" "coordinator_to_flusher" {
-  model = var.model_name
-
-  application {
-    name     = module.mimir_coordinator.app_name
-    endpoint = "mimir-cluster"
-  }
-
-  application {
-    name     = module.mimir_flusher.app_name
-    endpoint = "mimir-cluster"
-  }
-}
-
-resource "juju_integration" "coordinator_to_ingester" {
-  model = var.model_name
-
-  application {
-    name     = module.mimir_coordinator.app_name
-    endpoint = "mimir-cluster"
-  }
-
-  application {
-    name     = module.mimir_ingester.app_name
-    endpoint = "mimir-cluster"
-  }
-}
-
-resource "juju_integration" "coordinator_to_overrides_exporter" {
-  model = var.model_name
-
-  application {
-    name     = module.mimir_coordinator.app_name
-    endpoint = "mimir-cluster"
-  }
-
-  application {
-    name     = module.mimir_overrides_exporter.app_name
-    endpoint = "mimir-cluster"
-  }
-}
-
-resource "juju_integration" "coordinator_to_querier" {
-  model = var.model_name
-
-  application {
-    name     = module.mimir_coordinator.app_name
-    endpoint = "mimir-cluster"
-  }
-
-  application {
-    name     = module.mimir_querier.app_name
-    endpoint = "mimir-cluster"
-  }
-}
-
-resource "juju_integration" "coordinator_to_query_frontend" {
-  model = var.model_name
-
-  application {
-    name     = module.mimir_coordinator.app_name
-    endpoint = "mimir-cluster"
-  }
-
-  application {
-    name     = module.mimir_query_frontend.app_name
-    endpoint = "mimir-cluster"
-  }
-}
-
-resource "juju_integration" "coordinator_to_query_scheduler" {
-  model = var.model_name
-
-  application {
-    name     = module.mimir_coordinator.app_name
-    endpoint = "mimir-cluster"
-  }
-
-  application {
-    name     = module.mimir_query_scheduler.app_name
-    endpoint = "mimir-cluster"
-  }
-}
-
-resource "juju_integration" "coordinator_to_ruler" {
-  model = var.model_name
-
-  application {
-    name     = module.mimir_coordinator.app_name
-    endpoint = "mimir-cluster"
-  }
-
-  application {
-    name     = module.mimir_ruler.app_name
-    endpoint = "mimir-cluster"
-  }
-}
-
-resource "juju_integration" "coordinator_to_store_gateway" {
-  model = var.model_name
-
-  application {
-    name     = module.mimir_coordinator.app_name
-    endpoint = "mimir-cluster"
-  }
-
-  application {
-    name     = module.mimir_store_gateway.app_name
+    name     = module.mimir_backend.app_name
     endpoint = "mimir-cluster"
   }
 }

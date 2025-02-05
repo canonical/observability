@@ -8,40 +8,49 @@ on:
         default: '.'
         required: false
         type: string
-      release-tag-prefix:
-        description: "Tag prefix to use for the tag of the GitHub release."
-        default: ''
-        required: false
-        type: string
-      artifact:
-        description: "Name of artifact to download before building. Must contain the file artifact.tar.gz."
-        default: ''
-        required: false
-        type: string
       provider:
         description: "The provider to choose for either machine or k8s tests ('lxd' or 'microk8s')"
         default: 'microk8s'
         required: false
         type: string
-      ip-range:
-        type: string
-        description: |
-          The IP range in the address pool for the load balancer to use.
-          It can be either a subnet(IP/mask) or a range (<IP1>-<IP2>)
-        required: false
-        default: null
-      build-for-arm:
-        type: boolean
-        default: false
-        required: false
-        description: |
-          Whether or not to also build the charm for arm64. Defaults to false.
       charmcraft-channel:
         type: string
         default: "3.x/candidate"
         required: false
         description: |
           The snap channel from which to install Charmcraft.
+      juju-channel:
+        type: string
+        required: false
+        description: |
+          The snap channel from which to install Juju.
+          Overrides the default branch-dependant selection of the Juju version.
+      default-track:
+        type: string
+        required: false
+        description: |
+          The default track to release to when pushing to the 'main' branch.
+          If the push happens to a branch named 'track/X', the charm will be
+          released to the channel 'X/edge'.
+        default: "latest"  # TODO: replace with 1 when we have a guardrail
+      git-tag-prefix:
+        description: "Tag prefix to use for the tag of the GitHub release."
+        default: ''
+        required: false
+        type: string
+      parallelize-integration:
+        description: |
+          Parallelize integration tests by spinning up one runner per Python file.
+        default: true
+        required: false
+        type: boolean
+      automatically-retry-hooks:
+        description: |
+          Whether Juju models should automatically-retry hooks.
+          Sets the `automatically-retry-hooks` in the model-defaults config.
+        default: true
+        required: false
+        type: boolean
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -53,51 +62,141 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  ci-ignore:
+    name: Check against ignorelist
+    runs-on: ubuntu-latest
+    outputs:
+      any_modified: ${{ steps.echo-changes.outputs.any_modified }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }} # To be compatible with PRs from forks
+          fetch-depth: 0
+
+      - name: Determine changed files in the PR
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files_ignore: |
+            README.md
+            CONTRIBUTING.md
+            INTEGRATING.md
+            CODEOWNERS
+            LICENSE
+            icon.svg
+            .gitignore
+            .github/**
+
+      - name: Echo changed files
+        id: echo-changes
+        run: |
+          echo "Changes made: ${{ steps.changed-files.outputs.any_modified }}"
+          echo "Modified files: ${{ steps.changed-files.outputs.all_modified_files }}"
+          echo "any_modified=${{ steps.changed-files.outputs.any_modified }}" >> "$GITHUB_OUTPUT"
+
+  define-matrix:
+    name: Define runner and build matrix
+    runs-on: ubuntu-latest
+    needs: [ci-ignore]
+    if: needs.ci-ignore.outputs.any_modified == 'true'
+    outputs:
+      runners: ${{ steps.build-matrix.outputs.runners }}
+      release-channel: ${{ steps.define-channel.outputs.release_channel }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install yq
+      - name: Define build matrix
+        id: build-matrix
+        run: |
+          cd "${{ inputs.charm-path }}"
+          runners="$( \
+            yq -o json '.platforms | to_entries | map(.key)' charmcraft.yaml | \
+            sed 's/".*amd64.*"/"ubuntu-latest"/' | \
+            sed 's/".*arm64.*"/"Ubuntu_ARM64_4C_16G_03"/' | \
+            jq -rc \
+          )"
+          echo "runners=$runners"
+          echo "runners=$runners" >> "$GITHUB_OUTPUT"
+      - name: Define release channel
+        id: define-channel
+        env:
+          GIT_BRANCH: ${{ github.ref_name }}  # branch name as shown in GitHub
+          DEFAULT_TRACK: ${{ inputs.default-track }}
+        run: |
+          if [[ "$GIT_BRANCH" == "main" ]]; then
+            release_channel="${DEFAULT_TRACK}/edge"
+          elif [[ "${GIT_BRANCH%/*}" == "track" ]]; then
+            release_channel="${GIT_BRANCH#track/}/edge"
+          fi
+          echo "release_channel=$release_channel"
+          echo "release_channel=$release_channel" >> "$GITHUB_OUTPUT"
+
   quality-checks:
     name: Quality Checks
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v1
+    needs: [define-matrix]
     secrets: inherit
     with:
-      charm-path: "${{ inputs.charm-path }}"
-      provider: "${{ inputs.provider }}"
-      ip-range: "${{ inputs.ip-range }}"
+      charm-path: ${{ inputs.charm-path }}
+      provider: ${{ inputs.provider }}
       charmcraft-channel: ${{ inputs.charmcraft-channel }}
+      juju-channel: ${{ inputs.juju-channel }}
+      parallelize-integration: ${{ inputs.parallelize-integration }}
+      automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
+    
   release-charm:
-    name: Release Charm and Libraries
+    name: Release the charm
     needs:
+      - define-matrix
       - quality-checks
-    uses: canonical/observability/.github/workflows/_charm-release.yaml@main
+    uses: canonical/observability/.github/workflows/_charm-release.yaml@v1
+    permissions:
+      contents: write
     secrets: inherit
     with:
-      artifact: "${{ inputs.artifact }}"
+      release-channel: "${{ needs.define-matrix.outputs.release-channel }}"
       charm-path: "${{ inputs.charm-path }}"
-      release-tag-prefix: "${{ inputs.release-tag-prefix }}"
-      build-for-arm: ${{ inputs.build-for-arm }}
+      runners: "${{ needs.define-matrix.outputs.runners }}"
+      charmcraft-channel: "${{ inputs.charmcraft-channel }}"
+      git-tag-prefix: "${{ inputs.git-tag-prefix }}"
+      
   release-libs:
     name: Release any bumped charm library
     needs:
-      - quality-checks
+      - release-charm
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the source
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
           path: charm
-
       - name: Release libraries
-        run: |
-          # Install Charmcraft
-          sudo snap install charmcraft --classic --channel ${{ inputs.charmcraft-channel }}
-          cd $GITHUB_WORKSPACE/charm/${{ inputs.charm-path }}
-          # Get the charm name
-          charm_name=$((yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
-          if [[ $charm_name = "" ]]; then echo "Error: can't extract the charm name." && exit 1; fi
-          # For each library belonging to the charm, publish it
-          if [ -d lib/charms/$charm_name ]; then
-            for lib in $(find lib/charms/$charm_name -type f | sed 's|lib/||' | sed 's/.py//' | sed 's|/|.|g'); do
-              charmcraft publish-lib $lib
-            done
-          fi
         env:
           CHARMCRAFT_AUTH: "${{ secrets.CHARMHUB_TOKEN }}"
+          CHARMCRAFT_CHANNEL: "${{ inputs.charmcraft-channel }}"
+          CHARM_PATH: "${{ inputs.charm-path }}"
+        run: |
+          # Install Charmcraft
+          sudo snap install charmcraft --classic --channel "$CHARMCRAFT_CHANNEL"
+          cd "${GITHUB_WORKSPACE}/charm/${CHARM_PATH}"
+          # Get the charm name
+          charm_name=$( (yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
+          if [[ $charm_name = "" ]]; then echo "Error: can't extract the charm name." && exit 1; fi
+          # For each library belonging to the charm, publish it
+          if [ -d "lib/charms/${charm_name}" ]; then
+            for lib in $(find "lib/charms/${charm_name}" -type f | sed 's|lib/||' | sed 's/.py//' | sed 's|/|.|g'); do
+              result="$(charmcraft publish-lib "$lib")" || true
+              # Filter out the succesfull publish-lib messages: https://github.com/canonical/charmcraft/issues/1981
+              if [[ "$result" == *"sent to the store with version"* ]]; then
+                echo "$result"
+              elif [[ "$result" == *"already updated"* ]]; then
+                echo "$result"
+              else
+                echo "$result" && exit 1
+              fi
+            done
+          fi
