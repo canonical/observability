@@ -9,7 +9,7 @@ on:
         required: false
         type: string
       provider:
-        description: "The provider to choose for either machine or k8s tests ('lxd' or 'microk8s')"
+        description: "The provider to choose for either machine or k8s tests ('machine' or 'microk8s')"
         default: 'microk8s'
         required: false
         type: string
