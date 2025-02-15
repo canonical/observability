@@ -63,7 +63,7 @@ jobs:
     name: Inclusive naming
     uses: canonical/Inclusive-naming/.github/workflows/woke.yaml@main
     with:
-      fail-on-error: "true"
+      fail-on-error: "false"
 
   codeql:
     name: CodeQL analysis

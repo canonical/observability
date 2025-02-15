@@ -108,6 +108,8 @@ jobs:
           version="${source_tag#v}"
           # Explicitly filter for specific rocks because we'd rather notice if a new rock has a different release schema
           version="${version#mimir-}"
+          # Filter out opentelemetry-collector prefixes
+          version=${version#"cmd/builder/v"}
           if [ ! -f "$GITHUB_WORKSPACE/main/$version/rockcraft.yaml" ]; then
             echo "version=$version" >> "$GITHUB_OUTPUT"
             echo "release=${{steps.latest-release.outputs.release}}" >> "$GITHUB_OUTPUT"
