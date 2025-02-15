@@ -10,21 +10,12 @@ alert rules.
 
 ## Accepted Solution
 
-The folowing alert rule group should be used in each charm:
+The folowing alert rule group should be used in each charm via proposals `(1)` and `(2)`:
 
 ```
 groups:
 - name: HostHealth
   rules:
-  - alert: HostUnreachable
-    expr: up < 1
-    for: 0m
-    labels:
-      severity: warning
-    annotations:
-      summary: Host '{{ $labels.instance }}' is unreachable.
-      description: >-
-        Host '{{ $labels.instance }}' is unreachable. This could indicate an availability issue and should be investigated.
   - alert: HostDown
     expr: up < 1
     for: 5m
@@ -47,9 +38,7 @@ groups:
 
 ## Rationale
 
-This alert group provides 3 alerts.
-
-HostUnreachable: This is a useful informative rule but in many situations can be way to noisy, and so we put it at warning.
+This alert group provides 2 alerts.
 
 HostDown: This unit has been unreachable for five minutes. At this point it is safe to assume it is down and an alert should be sent.
 
@@ -59,7 +48,7 @@ HostMetricsMissing: There is no up metrics for this host whatsoever. This can ha
 
 We are currently using `$labels.instance` in the summary and description fields. We should instead be using `$labels.juju_unit`, but, many of our charms currently do not attach a `juju_unit` to their metrics. Once this has been fixed, we should switch to `$labels.juju_unit`.
 
-## Alternatives
+## Proposals
 ### (1) Centralized alert rules
 Charm authors should not have to implement their own HostHealth rules per charm and instead should be centrally managed in Prometheus (also Mimir) and aggregators like Grafana Agent. This reduces implementation error and avoids deviating from O11y team's best practice for up/absent alert rules.
 
@@ -72,3 +61,4 @@ We use absent(up) with for: 5m because the alert transitions from Pending to Fir
 ## History
 
 2024-11-12 Initial adr by @dstatis
+2025-02-14 Initial adr by @michaelthamm
