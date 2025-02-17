@@ -26,14 +26,14 @@ jobs:
           | sh -s -- -b /usr/local/bin
     - name: Build rock
       run: |
-        latest_version="$(find . -maxdepth 1 -type d | sort -V | tail -n1 | sed 's@./@@')"
+        latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
         just pack "$latest_version"
     - name: Upload rock to ghcr.io
       env:
         ROCK_NAME: ${{ inputs.rock-name }}
         OBSERVABILITY_NOCTUA_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
       run: |
-        latest_version="$(find . -maxdepth 1 -type d | sort -V | tail -n1 | sed 's@./@@')"
+        latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
         cd "$latest_version"
         sudo skopeo --insecure-policy copy \
           "oci-archive:$(realpath ./*.rock)" \
@@ -41,7 +41,7 @@ jobs:
           --dest-creds "observability-noctua-bot:$OBSERVABILITY_NOCTUA_TOKEN"
     - name: Create SBOM
       run: |
-        latest_version="$(find . -maxdepth 1 -type d | sort -V | tail -n1 | sed 's@./@@')"
+        latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
         syft "$(realpath "./${latest_version}/${ROCK_NAME}_*.rock")" \
           -o "spdx-json=${ROCK_NAME}.sbom.json"
     - name: Upload SBOM
