@@ -24,6 +24,7 @@ jobs:
           - cos-proxy-operator
           - grafana-agent-k8s-operator
           - grafana-agent-operator
+          - grafana-cloud-integrator
           - grafana-k8s-operator
           - istio-beacon-k8s-operator
           - istio-ingress-k8s-operator
