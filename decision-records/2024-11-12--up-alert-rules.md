@@ -58,6 +58,19 @@ With a standard for up/absent rules in place, it would be great if these alert r
 ### (3) Using absent_over_time instead of absent
 We use absent(up) with for: 5m because the alert transitions from Pending to Firing. If query portability is desired, absent_over_time(up[5m]) is an alternative, but this will trigger without a Pending state after 5 minutes.
 
+### (4) HostIsNotStable alert
+```
+- alert: HostIsNotStable
+  expr: avg_over_time(up[10m]) < 0.5
+  for: 0m
+  labels:
+    severity: warning
+  annotations:
+    summary: '{{ $labels.instance }}' service is not stable.
+    description: >-
+      Host '{{ $labels.instance }}' has been unreachable at least 50% of the time over the last 10 minutes.
+```
+
 ## History
 
 2024-11-12 Initial adr by @dstatis
