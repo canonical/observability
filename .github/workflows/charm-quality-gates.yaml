@@ -28,6 +28,7 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         track: ${{ fromJSON(inputs.tracks) }}
     steps:
@@ -63,6 +64,7 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         track: ${{ fromJSON(inputs.tracks) }}
     steps:
