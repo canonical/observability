@@ -37,6 +37,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo snap install astral-uv --classic
+          sudo snap install charmcraft --classic
       - name: Get charm name
         id: get-charm-name
         run: |
@@ -73,6 +74,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo snap install astral-uv --classic
+          sudo snap install charmcraft --classic
       - name: Get charm name
         id: get-charm-name
         run: |
