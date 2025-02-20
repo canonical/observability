@@ -46,7 +46,7 @@ jobs:
           echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
       - name: "Run the quality gates"
         run: |
-            tox -e qualitygate-beta
+            uvx tox -e qualitygate-beta
       - name: Promote from edge to beta
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
@@ -82,7 +82,7 @@ jobs:
           echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
       - name: "Run the quality gates"
         run: |
-            tox -e qualitygate-candidate
+            uvx tox -e qualitygate-candidate
       - name: Promote from beta to candidate
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
