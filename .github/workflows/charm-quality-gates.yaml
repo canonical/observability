@@ -25,6 +25,7 @@ concurrency:
 jobs:
   quality-gate-edge:
     name: Quality gate (edge -> beta)
+    if: always()
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -59,6 +60,7 @@ jobs:
               
   quality-gate-beta:
     name: Quality gate (beta -> candidate)
+    if: always()
     runs-on: ubuntu-latest
     strategy:
       matrix:
