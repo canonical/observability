@@ -42,10 +42,10 @@ jobs:
           charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
           echo "charm_name=$charm_name"
           echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
-      - name: "(fake) Run the quality gates"
+      - name: "Run the quality gates"
         run: |
-            echo "(fake) Running quality checks for track ${{ matrix.track }}"
-      - name: (fake) Promote from edge to beta
+            tox -e qualitygate-beta
+      - name: Promote from edge to beta
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
           CHARM_NAME: ${{ steps.get-charm-name.outputs.charm_name }}
@@ -53,9 +53,9 @@ jobs:
           TRACK: ${{ matrix.track }}
         run: |
           cd "$CHARM_PATH"
-          # uvx --quiet --from git+https://github.com/lucabello/noctua \
-          #   noctua charm promote "$CHARM_NAME" --from="$TRACK/edge" --dry-run
-          echo "(fake) Promoting from edge to beta!"
+          uvx --quiet --from git+https://github.com/lucabello/noctua \
+            noctua charm promote "$CHARM_NAME" --from="$TRACK/edge"
+          echo "Promoted from edge to beta!"
               
   quality-gate-beta:
     name: Quality gate (beta -> candidate)
@@ -76,9 +76,9 @@ jobs:
           charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
           echo "charm_name=$charm_name"
           echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
-      - name: "Run the quality gates (fake)"
+      - name: "Run the quality gates"
         run: |
-            echo "(fake) Running quality checks for track ${{ matrix.track }}"
+            tox -e qualitygate-candidate
       - name: Promote from beta to candidate
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
@@ -87,6 +87,6 @@ jobs:
           TRACK: ${{ matrix.track }}
         run: |
           cd "$CHARM_PATH"
-          # uvx --quiet --from git+https://github.com/lucabello/noctua \
-          #   noctua charm promote "$CHARM_NAME" --from="$TRACK/beta" --dry-run
-          echo "(fake) Promoting from beta to candidate!"
+          uvx --quiet --from git+https://github.com/lucabello/noctua \
+            noctua charm promote "$CHARM_NAME" --from="$TRACK/beta"
+          echo "Promoted from beta to candidate!"
