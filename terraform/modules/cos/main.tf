@@ -1,7 +1,7 @@
 # -------------- # Applications --------------
 
 module "alertmanager" {
-  source     = "git::https://github.com/canonical/alertmanager-k8s-operator//terraform?ref=terraform"
+  source     = "git::https://github.com/canonical/alertmanager-k8s-operator//terraform"
   app_name   = "grafana"
   model_name = var.model_name
   channel    = var.channel
