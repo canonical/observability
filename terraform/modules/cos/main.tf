@@ -1,5 +1,12 @@
 # -------------- # Applications --------------
 
+module "alertmanager" {
+  source     = "git::https://github.com/canonical/alertmanager-k8s-operator//terraform?ref=terraform"
+  app_name   = "grafana"
+  model_name = var.model_name
+  channel    = var.channel
+}
+
 module "catalogue" {
   source     = "git::https://github.com/canonical/catalogue-k8s-operator//terraform"
   app_name   = "catalogue"
@@ -67,6 +74,64 @@ module "grafana_agent" {
 
 
 # -------------- # Integrations --------------
+
+# Provided by Alertmanager
+
+resource "juju_integration" "mimir_alertmanager" {
+  model = var.model_name
+
+  application {
+    name     = module.mimir.app_names.mimir_coordinator
+    endpoint = module.mimir.endpoints.alertmanager
+  }
+
+  application {
+    name     = module.alertmanager.app_name
+    endpoint = module.alertmanager.endpoints.alerting
+  }
+}
+
+resource "juju_integration" "loki_alertmanager" {
+  model = var.model_name
+
+  application {
+    name     = module.loki.app_names.loki_coordinator
+    endpoint = module.loki.endpoints.alertmanager
+  }
+
+  application {
+    name     = module.alertmanager.app_name
+    endpoint = module.alertmanager.endpoints.alerting
+  }
+}
+
+resource "juju_integration" "agent_alertmanager_metrics" {
+  model = var.model_name
+
+  application {
+    name     = module.alertmanager.app_name
+    endpoint = module.alertmanager.endpoints.self_metrics_endpoint
+  }
+
+  application {
+    name     = module.grafana_agent.app_name
+    endpoint = module.grafana_agent.requires.metrics_endpoint
+  }
+}
+
+resource "juju_integration" "grafana_source_alertmanager" {
+  model = var.model_name
+
+  application {
+    name     = module.alertmanager.app_name
+    endpoint = module.alertmanager.endpoints.grafana_source
+  }
+
+  application {
+    name     = module.grafana.app_name
+    endpoint = module.grafana.endpoints.grafana_source
+  }
+}
 
 # Provided by Mimir
 
@@ -274,6 +339,20 @@ resource "juju_integration" "tempo_send_remote_write_mimir_receive_remote_write"
 
 # Provided by Catalogue
 
+resource "juju_integration" "alertmanager_catalogue" {
+  model = var.model_name
+
+  application {
+    name     = module.catalogue.app_name
+    endpoint = module.catalogue.endpoints.catalogue
+  }
+
+  application {
+    name     = module.alertmanager.app_name
+    endpoint = module.alertmanager.endpoints.catalogue
+  }
+}
+
 resource "juju_integration" "grafana_catalogue" {
   model = var.model_name
 
@@ -317,6 +396,21 @@ resource "juju_integration" "mimir_catalogue" {
 }
 
 # Provided by Traefik
+
+resource "juju_integration" "alertmanager_ingress" {
+  model = var.model_name
+
+  application {
+    name     = module.traefik.app_name
+    endpoint = module.traefik.endpoints.traefik_route
+  }
+
+  application {
+    name     = module.alertmanager.app_name
+    endpoint = module.alertmanager.endpoints.ingress
+  }
+}
+
 
 resource "juju_integration" "catalogue_ingress" {
   model = var.model_name
@@ -431,5 +525,19 @@ resource "juju_integration" "grafana_tracing_grafana_agent_traicing_provider" {
   application {
     name     = module.grafana_agent.app_name
     endpoint = module.grafana_agent.provides.tracing_provider
+  }
+}
+
+resource "juju_integration" "alertmanager_grafana_dashboards" {
+  model = var.model_name
+
+  application {
+    name     = module.alertmanager.app_name
+    endpoint = module.alertmanager.endpoints.grafana_dashboard
+  }
+
+  application {
+    name     = module.grafana.app_name
+    endpoint = module.grafana.endpoints.grafana_dashboard
   }
 }

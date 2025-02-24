@@ -3,7 +3,8 @@ Terraform module for COS HA solution
 This is a Terraform module facilitating the deployment of COS HA solution, using the [Terraform juju provider](https://github.com/juju/terraform-provider-juju/). For more information, refer to the provider [documentation](https://registry.terraform.io/providers/juju/juju/latest/docs).
 
 The HA solution consists of the following Terraform modules:
-- [grafana-k8s](https://github.com/canonical/grafana-k8s-operator): Visualization, monitoring,and dashboards.
+- [grafana-k8s](https://github.com/canonical/grafana-k8s-operator): Visualization, monitoring, and dashboards.
+- [alertmanager-k8s](https://github.com/canonical/alertmanager-k8s-operator): Handles alerts sent by clients applications.
 - [mimir](https://github.com/canonical/observability/tree/main/terraform/modules/mimir): Storage, metrics, and scalability.
 - [s3-integrator](https://github.com/canonical/s3-integrator): facade for S3 storage configurations.
 - [self-signed-certificates](https://github.com/canonical/self-signed-certificates-operator): certificates operator to secure traffic with TLS.
