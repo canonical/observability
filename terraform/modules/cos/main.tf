@@ -2,7 +2,7 @@
 
 module "alertmanager" {
   source     = "git::https://github.com/canonical/alertmanager-k8s-operator//terraform"
-  app_name   = "grafana"
+  app_name   = "alertmanager"
   model_name = var.model_name
   channel    = var.channel
 }
@@ -76,6 +76,20 @@ module "grafana_agent" {
 # -------------- # Integrations --------------
 
 # Provided by Alertmanager
+
+resource "juju_integration" "alertmanager_grafana_dashboards" {
+  model = var.model_name
+
+  application {
+    name     = module.alertmanager.app_name
+    endpoint = module.alertmanager.endpoints.grafana_dashboard
+  }
+
+  application {
+    name     = module.grafana.app_name
+    endpoint = module.grafana.endpoints.grafana_dashboard
+  }
+}
 
 resource "juju_integration" "mimir_alertmanager" {
   model = var.model_name
@@ -525,19 +539,5 @@ resource "juju_integration" "grafana_tracing_grafana_agent_traicing_provider" {
   application {
     name     = module.grafana_agent.app_name
     endpoint = module.grafana_agent.provides.tracing_provider
-  }
-}
-
-resource "juju_integration" "alertmanager_grafana_dashboards" {
-  model = var.model_name
-
-  application {
-    name     = module.alertmanager.app_name
-    endpoint = module.alertmanager.endpoints.grafana_dashboard
-  }
-
-  application {
-    name     = module.grafana.app_name
-    endpoint = module.grafana.endpoints.grafana_dashboard
   }
 }
