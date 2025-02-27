@@ -13,6 +13,7 @@ output "app_names" {
 output "endpoints" {
   value = {
     # Requires
+    alertmanager     = "alertmanager",
     certificates     = "certificates",
     ingress          = "ingress",
     logging_consumer = "logging-consumer",
