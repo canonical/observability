@@ -40,6 +40,8 @@ jobs:
           "docker://ghcr.io/canonical/$ROCK_NAME:dev" \
           --dest-creds "observability-noctua-bot:$OBSERVABILITY_NOCTUA_TOKEN"
     - name: Create SBOM
+      env:
+        ROCK_NAME: ${{ inputs.rock-name }}
       run: |
         latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
         syft "$(realpath "./${latest_version}/${ROCK_NAME}_*.rock")" \
