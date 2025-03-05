@@ -45,7 +45,8 @@ jobs:
       run: |
         latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
         cd "$latest_version"
-        syft "$(realpath "./${ROCK_NAME}_*.rock")" -o "spdx-json=${ROCK_NAME}.sbom.json"
+        # shellcheck disable=SC2086 # glob passed to realpath can't be wrapped
+        syft "$(realpath ./${ROCK_NAME}_*.rock)" -o "spdx-json=${ROCK_NAME}.sbom.json"
     - name: Upload SBOM
       uses: actions/upload-artifact@v4
       with:
