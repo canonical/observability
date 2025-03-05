@@ -44,8 +44,8 @@ jobs:
         ROCK_NAME: ${{ inputs.rock-name }}
       run: |
         latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
-        syft "$(realpath "./${latest_version}/${ROCK_NAME}_*.rock")" \
-          -o "spdx-json=${ROCK_NAME}.sbom.json"
+        cd "$latest_version"
+        syft "$(realpath "./${ROCK_NAME}_*.rock")" -o "spdx-json=${ROCK_NAME}.sbom.json"
     - name: Upload SBOM
       uses: actions/upload-artifact@v4
       with:
