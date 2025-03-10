@@ -32,8 +32,8 @@ output "endpoints" {
   }
 }
 
-output "bucket_name" {
-  value       = var.bucket_name
+output "tempo_bucket" {
+  value       = var.tempo_bucket
   description = "The bucket name for Tempo"
 }
 

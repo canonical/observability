@@ -69,14 +69,29 @@ variable "query_frontend_units" {
   }
 }
 
-variable "bucket_name" {
-  description = "Model name"
-  type        = string
-  default     = "tempo"
-}
-
 variable "s3_integrator_name" {
   description = "Name of the Loki app with the write role"
   type        = string
   default     = "tempo-s3-integrator"
+}
+
+variable "tempo_bucket" {
+  description = "Bucket name"
+  type        = string
+  default     = "tempo"
+}
+
+variable "s3_user" {
+  description = "S3 user"
+  type        = string
+}
+
+variable "s3_password" {
+  description = "S3 password"
+  type        = string
+}
+
+variable "s3_endpoint" {
+  description = "S3 endpoint"
+  type        = string
 }

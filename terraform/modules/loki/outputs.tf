@@ -29,8 +29,8 @@ output "endpoints" {
   }
 }
 
-output "bucket_name" {
-  value       = var.bucket_name
+output "loki_bucket" {
+  value       = var.loki_bucket
   description = "The bucket name for Loki"
 }
 

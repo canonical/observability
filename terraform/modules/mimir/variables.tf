@@ -9,10 +9,25 @@ variable "model_name" {
   type        = string
 }
 
-variable "bucket_name" {
-  description = "Model name"
+variable "mimir_bucket" {
+  description = "Bucket name"
   type        = string
   default     = "mimir"
+}
+
+variable "s3_user" {
+  description = "S3 user"
+  type        = string
+}
+
+variable "s3_password" {
+  description = "S3 password"
+  type        = string
+}
+
+variable "s3_endpoint" {
+  description = "S3 endpoint"
+  type        = string
 }
 
 # -------------- # App Names --------------

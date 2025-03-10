@@ -22,21 +22,31 @@ module "grafana" {
 }
 
 module "loki" {
-  source        = "git::https://github.com/canonical/observability//terraform/modules/loki"
+  # source        = "git::https://github.com/canonical/observability//terraform/modules/loki"
+  source        = "../loki"
   model_name    = var.model_name
   channel       = var.channel
   backend_units = var.loki_backend_units
   read_units    = var.loki_read_units
   write_units   = var.loki_write_units
+  loki_bucket   = var.loki_bucket
+  s3_endpoint   = var.s3_endpoint
+  s3_password   = var.s3_password
+  s3_user       = var.s3_user
 }
 
 module "mimir" {
-  source        = "git::https://github.com/canonical/observability//terraform/modules/mimir"
+  # source        = "git::https://github.com/canonical/observability//terraform/modules/mimir"
+  source        = "../mimir"
   model_name    = var.model_name
   channel       = var.channel
   backend_units = var.mimir_backend_units
   read_units    = var.mimir_read_units
   write_units   = var.mimir_write_units
+  mimir_bucket  = var.mimir_bucket
+  s3_endpoint   = var.s3_endpoint
+  s3_password   = var.s3_password
+  s3_user       = var.s3_user
 }
 
 module "ssc" {
@@ -47,7 +57,8 @@ module "ssc" {
 }
 
 module "tempo" {
-  source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo"
+  # source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo"
+  source                  = "../tempo"
   model_name              = var.model_name
   channel                 = var.channel
   compactor_units         = var.tempo_compactor_units
@@ -56,6 +67,10 @@ module "tempo" {
   metrics_generator_units = var.tempo_metrics_generator_units
   querier_units           = var.tempo_querier_units
   query_frontend_units    = var.tempo_query_frontend_units
+  tempo_bucket            = var.tempo_bucket
+  s3_endpoint             = var.s3_endpoint
+  s3_password             = var.s3_password
+  s3_user                 = var.s3_user
 }
 
 module "traefik" {

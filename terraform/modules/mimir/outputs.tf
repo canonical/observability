@@ -30,8 +30,8 @@ output "endpoints" {
   }
 }
 
-output "bucket_name" {
-  value       = var.bucket_name
+output "mimir_bucket" {
+  value       = var.mimir_bucket
   description = "The bucket name for Mimir"
 }
 
