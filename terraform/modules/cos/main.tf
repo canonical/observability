@@ -28,7 +28,7 @@ module "loki" {
   backend_units = var.loki_backend_units
   read_units    = var.loki_read_units
   write_units   = var.loki_write_units
-  loki_bucket   = var.loki_bucket
+  s3_bucket     = var.loki_bucket
   s3_endpoint   = var.s3_endpoint
   s3_password   = var.s3_password
   s3_user       = var.s3_user
@@ -41,7 +41,7 @@ module "mimir" {
   backend_units = var.mimir_backend_units
   read_units    = var.mimir_read_units
   write_units   = var.mimir_write_units
-  mimir_bucket  = var.mimir_bucket
+  s3_bucket     = var.mimir_bucket
   s3_endpoint   = var.s3_endpoint
   s3_password   = var.s3_password
   s3_user       = var.s3_user
@@ -64,7 +64,7 @@ module "tempo" {
   metrics_generator_units = var.tempo_metrics_generator_units
   querier_units           = var.tempo_querier_units
   query_frontend_units    = var.tempo_query_frontend_units
-  tempo_bucket            = var.tempo_bucket
+  s3_bucket               = var.tempo_bucket
   s3_endpoint             = var.s3_endpoint
   s3_password             = var.s3_password
   s3_user                 = var.s3_user

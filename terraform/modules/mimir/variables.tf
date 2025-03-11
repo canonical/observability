@@ -9,7 +9,7 @@ variable "model_name" {
   type        = string
 }
 
-variable "mimir_bucket" {
+variable "s3_bucket" {
   description = "Bucket name"
   type        = string
   default     = "mimir"

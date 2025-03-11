@@ -75,7 +75,7 @@ variable "s3_integrator_name" {
   default     = "tempo-s3-integrator"
 }
 
-variable "tempo_bucket" {
+variable "s3_bucket" {
   description = "Bucket name"
   type        = string
   default     = "tempo"

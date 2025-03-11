@@ -10,7 +10,7 @@ resource "juju_application" "s3_integrator" {
   }
   config = {
     endpoint = var.s3_endpoint
-    bucket   = var.loki_bucket
+    bucket   = var.s3_bucket
   }
   units = 1
 }
