@@ -30,11 +30,6 @@ output "endpoints" {
   }
 }
 
-output "mimir_bucket" {
-  value       = var.mimir_bucket
-  description = "The bucket name for Mimir"
-}
-
 output "s3_integrator_name" {
   value       = var.s3_integrator_name
   description = "Name of the s3-integrator for Mimir"
