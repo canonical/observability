@@ -1,8 +1,8 @@
-Terraform module for Mimir HA solution
+Terraform module for Mimir solution
 
-This is a Terraform module facilitating the deployment of Mimir HA solution, using the [Terraform juju provider](https://github.com/juju/terraform-provider-juju/). For more information, refer to the provider [documentation](https://registry.terraform.io/providers/juju/juju/latest/docs). 
+This is a Terraform module facilitating the deployment of Mimir solution, using the [Terraform juju provider](https://github.com/juju/terraform-provider-juju/). For more information, refer to the provider [documentation](https://registry.terraform.io/providers/juju/juju/latest/docs).
 
-The HA solution consists of the following Terraform modules:
+The solution consists of the following Terraform modules:
 - [mimir-coordinator-k8s](https://github.com/canonical/mimir-coordinator-k8s-operator): ingress, cluster coordination, single integration facade.
 - [mimir-worker-k8s](https://github.com/canonical/mimir-worker-k8s-operator): run one or more mimir application components.
 - [s3-integrator](https://github.com/canonical/s3-integrator): facade for S3 storage configurations.
@@ -11,7 +11,7 @@ The HA solution consists of the following Terraform modules:
 This Terraform module deploys Mimir in its [microservices mode](https://grafana.com/docs/mimir/latest/references/architecture/deployment-modes/#microservices-mode), which runs each one of the required roles in distinct processes.
 
 
-> [!NOTE]  
+> [!NOTE]
 > `s3-integrator` itself doesn't act as an S3 object storage system. For the HA solution to be functional, `s3-integrator` needs to point to an S3-like storage. See [this guide](https://discourse.charmhub.io/t/cos-lite-docs-set-up-minio/15211) to learn how to connect to an S3-like storage for traces.
 
 ## Requirements
@@ -36,6 +36,12 @@ The module offers the following configurable inputs:
 | `query_scheduler_units`| number | Number of Mimir worker units with the query-scheduler role | 1 |
 | `ruler_units`| number | Number of Mimir worker units with the ruler role | 1 |
 | `store_gateway_units`| number | Number of Mimir worker units with the store-gateway role | 1 |
+| `s3_integrator_name` | string | Name of the s3-integrator app | 1 |
+| `s3_bucket` | string | Name of the bucke in which Mimir stores metrics | 1 |
+| `s3_user` | string | User to connect to the S3 provider | 1 |
+| `s3_password` | string | Password to connect to the S3 provider | 1 |
+| `s3_endpoint` | string | Endpoint of the S3 provider | 1 |
+
 
 ### Outputs
 Upon application, the module exports the following outputs:
@@ -55,7 +61,7 @@ Users should ensure that Terraform is aware of the `juju_model` dependency of th
 
 To deploy this module with its needed dependency, you can run `terraform apply -var="model_name=<MODEL_NAME>" -auto-approve`. This would deploy all Mimir HA solution modules in the same model.
 
-### High Availability 
+### Microservice deployment
 
 By default, this Terraform module will deploy each Mimir worker with `1` unit. To configure the module to run `x` units of any worker role, you can run `terraform apply -var="model_name=<MODEL_NAME>" -var="<ROLE>_units=<x>" -auto-approve`.
 See [Mimir worker roles](https://discourse.charmhub.io/t/mimir-worker-roles/15484) for the recommended scale for each role.

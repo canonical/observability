@@ -1,8 +1,8 @@
-Terraform module for Loki HA solution
+Terraform module for Loki solution
 
-This is a Terraform module facilitating the deployment of Loki HA solution, using the [Terraform juju provider](https://github.com/juju/terraform-provider-juju/). For more information, refer to the provider [documentation](https://registry.terraform.io/providers/juju/juju/latest/docs). 
+This is a Terraform module facilitating the deployment of Loki solution, using the [Terraform juju provider](https://github.com/juju/terraform-provider-juju/). For more information, refer to the provider [documentation](https://registry.terraform.io/providers/juju/juju/latest/docs).
 
-The HA solution consists of the following Terraform modules:
+The solution consists of the following Terraform modules:
 - [loki-coordinator-k8s](https://github.com/canonical/loki-coordinator-k8s-operator): ingress, cluster coordination, single integration facade.
 - [loki-worker-k8s](https://github.com/canonical/loki-worker-k8s-operator): run one or more Loki application components.
 - [s3-integrator](https://github.com/canonical/s3-integrator): facade for S3 storage configurations.
@@ -11,7 +11,7 @@ The HA solution consists of the following Terraform modules:
 This Terraform module deploys Loki in its [microservices mode](https://grafana.com/docs/enterprise-logs/latest/get-started/deployment-modes/#microservices-mode), which runs each one of the required roles in distinct processes.
 
 
-> [!NOTE]  
+> [!NOTE]
 > `s3-integrator` itself doesn't act as an S3 object storage system. For the HA solution to be functional, `s3-integrator` needs to point to an S3-like storage. See [this guide](https://discourse.charmhub.io/t/cos-lite-docs-set-up-minio/15211) to learn how to connect to an S3-like storage for traces.
 
 ## Requirements
@@ -29,6 +29,11 @@ The module offers the following configurable inputs:
 | `model_name`| string | Name of the model that the charm is deployed on |  |
 | `read_units`| number | Number of Loki worker units with the read role | 1 |
 | `write_units`| number | Number of Loki worker units with the write role | 1 |
+| `s3_integrator_name` | string | Name of the s3-integrator app | 1 |
+| `s3_bucket` | string | Name of the bucke in which Loki stores logs | 1 |
+| `s3_user` | string | User to connect to the S3 provider | 1 |
+| `s3_password` | string | Password to connect to the S3 provider | 1 |
+| `s3_endpoint` | string | Endpoint of the S3 provider | 1 |
 
 ### Outputs
 Upon application, the module exports the following outputs:
@@ -48,7 +53,7 @@ Users should ensure that Terraform is aware of the `juju_model` dependency of th
 
 To deploy this module with its needed dependency, you can run `terraform apply -var="model_name=<MODEL_NAME>" -auto-approve`. This would deploy all Loki HA solution modules in the same model.
 
-### High Availability 
+### Microservice deployment
 
 By default, this Terraform module will deploy each Loki worker with `1` unit. To configure the module to run `x` units of any worker role, you can run `terraform apply -var="model_name=<MODEL_NAME>" -var="<ROLE>_units=<x>" -auto-approve`.
 See [Loki worker roles](https://discourse.charmhub.io/t/loki-worker-roles/15484) for the recommended scale for each role.
