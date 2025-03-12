@@ -54,8 +54,6 @@ on:
     secrets:
       CHARMHUB_TOKEN:
         required: true
-      OBSERVABILITY_NOCTUA_TOKEN:
-        required: true
 
 concurrency:
   group: release
