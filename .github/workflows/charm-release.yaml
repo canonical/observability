@@ -42,6 +42,12 @@ on:
         required: false
         description: |
           The snap channel from which to install Charmcraft.
+      juju-channel:
+        type: string
+        default: "3.4/stable"
+        required: false
+        description: |
+          The snap channel from which to install Juju.
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -97,6 +103,7 @@ jobs:
       provider: "${{ inputs.provider }}"
       ip-range: "${{ inputs.ip-range }}"
       charmcraft-channel: ${{ inputs.charmcraft-channel }}
+      juju-channel: ${{ inputs.juju-channel }}
   release-charm:
     name: Release Charm and Libraries
     needs:
