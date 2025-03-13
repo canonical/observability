@@ -43,7 +43,7 @@ jobs:
       - name: Move results to necessary folder for TICS
         run: |
           mkdir -p .cover
-          mv coverage.xml .cover/coverage.xml
+          mv coverage.xml cover/coverage.xml
 
       - name: Run TICS analysis with github-action
         uses: tiobe/tics-github-action@v3
