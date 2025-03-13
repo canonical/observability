@@ -33,7 +33,7 @@ jobs:
           sudo snap install charmcraft --classic
 
       - name: Run tox tests to create coverage.xml
-        run: tox run -e unit && coverage xml
+        run: uvx tox -e unit && coverage xml
 
       - name: Move results to necessary folder for TICS
         run: |
