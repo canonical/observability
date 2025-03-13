@@ -34,6 +34,7 @@ jobs:
 
       - name: Run tox tests to create coverage.xml
         run: |
+          sudo apt install python3.10-venv
           python -m venv venv
           source venv/bin/activate
           pip install coverage
