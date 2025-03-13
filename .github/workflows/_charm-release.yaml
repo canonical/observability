@@ -124,7 +124,7 @@ jobs:
             uploaded_charm="$(jq -rc . .upload_results)"
             pretty_uploaded_charm="$(jq -r . .upload_results)"
             rm -f .upload_results
-            ubuntu_base="$(echo "${CHARM_NAME}" | sed -E 's/.*ubuntu@([0-9]{2}\.[0-9]{2})-(.+)\.charm/ubuntu@\1 (\2)/')"
+            ubuntu_base="$(find . -name '*.charm' | sed -E 's/.*ubuntu@([0-9]{2}\.[0-9]{2})-(.+)\.charm/ubuntu@\1 (\2)/')"
             echo "${CHARM_NAME} has been released to ${RELEASE_CHANNEL}:"
             echo "$pretty_uploaded_charm"
             # Create a git tag and push it
