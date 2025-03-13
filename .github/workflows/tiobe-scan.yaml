@@ -25,7 +25,7 @@ jobs:
       - name: Checkout the project
         uses: actions/checkout@v4
         with:
-          repository: canonical/${{ github.event.inputs.repo }
+          repository: canonical/${{ github.event.inputs.repo }}
 
       - name: Install dependencies
         run: |
