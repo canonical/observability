@@ -1,0 +1,51 @@
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Usage documentation: static-code-analysis.md
+
+name: TICS run self-hosted test (github-action)
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        type: choice
+        description: Repo to analyze
+        options: 
+        - prometheus-k8s-operator
+        - catalogue-k8s-operator
+        # TODO: add a workflow workflow_call once stable, and then run on a cron from each repo.
+
+jobs:
+  tiobe-scan:
+    name: Tiobe scan
+    runs-on: [self-hosted, tiobe]
+    timeout-minutes: 60
+    steps:
+      - name: Checkout the project
+        uses: actions/checkout@v4
+        with:
+          repository: canonical/${{ github.event.inputs.repo }
+
+      - name: Install dependencies
+        run: |
+          sudo snap install astral-uv --classic
+          sudo snap install charmcraft --classic
+
+      - name: Run tox tests to create coverage.xml
+        run: tox run -e unit && coverage xml
+
+      - name: Move results to necessary folder for TICS
+        run: |
+          mkdir -p .cover
+          mv coverage.xml .cover/coverage.xml
+
+      - name: Run TICS analysis with github-action
+        uses: tiobe/tics-github-action@v3
+        with:
+          mode: qserver
+          project: ${{ github.event.inputs.repo }}
+          branchdir: .
+          viewerUrl: https://canonical.tiobe.com/tiobeweb/TICS/api/cfg?name=default
+          ticsAuthToken: ${{ secrets.TICSAUTHTOKEN }}
+          installTics: true
