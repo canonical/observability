@@ -38,7 +38,7 @@ jobs:
           python -m venv venv
           source venv/bin/activate
           pip install coverage coverage[toml]
-          pip install flake8
+          pip install flake8 pylint
           uvx tox -e unit && coverage xml
 
       - name: Move results to necessary folder for TICS
