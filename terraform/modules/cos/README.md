@@ -5,7 +5,8 @@ This is a Terraform module facilitating the deployment of COS solution, using th
 The HA solution consists of the following Terraform modules:
 - [grafana-k8s](https://github.com/canonical/grafana-k8s-operator): Visualization, monitoring, and dashboards.
 - [alertmanager-k8s](https://github.com/canonical/alertmanager-k8s-operator): Handles alerts sent by clients applications.
-- [mimir](https://github.com/canonical/observability/tree/main/terraform/modules/mimir): Storage, metrics, and scalability.
+- [mimir](https://github.com/canonical/observability/tree/main/terraform/modules/mimir): Backend for metrics
+- [loki](https://github.com/canonical/observability/tree/main/terraform/modules/loki): Backend for logs
 - [s3-integrator](https://github.com/canonical/s3-integrator): facade for S3 storage configurations.
 - [self-signed-certificates](https://github.com/canonical/self-signed-certificates-operator): certificates operator to secure traffic with TLS.
 
