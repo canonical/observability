@@ -168,7 +168,55 @@ service:
       exporters: [tempo]
 ```
 
-## Alternative 2
+
+On the other hand of we need to add `extensions` we may execute:
+
+```shell
+juju config otel-col extensions_file='@path/to/extensions-config.yaml'
+```
+
+The `extensions-config.yaml` would contain something like this:
+
+```yaml
+health_check:
+  endpoint: 0.0.0.0:13133
+pprof:
+  endpoint: 0.0.0.0:1777
+```
+
+And the config will have a new `extensions` section like this:
+
+```yaml
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  pprof:
+    endpoint: 0.0.0.0:1777
+```
+
+and the `service` section will have a new `extensions` section:
+
+```yaml
+service:
+  extensions: [health_check, pprof]
+  pipelines:
+    metrics:
+      receivers: [prometheus]
+      processors: [metricsgenerator]
+      exporters: [prometheus]
+
+    logs:
+      receivers: [loki, filelog]
+      exporters: [loki]
+
+    traces:
+      receivers: [otlp]
+      exporters: [tempo]
+```
+
+## Alternative 2: juju actions
+
+
 
 
 ## Alternative 3
