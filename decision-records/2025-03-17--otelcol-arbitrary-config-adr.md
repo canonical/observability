@@ -103,7 +103,7 @@ With configs like those ones we can replicate grafana-agent behaviour. Now we ne
 In order to include `processors` or `extensions` we may use `juju config`, like this:
 
 ```shell
-juju config otel-col processors_file='@path/to/processors-config.yaml' to_pripelines='metrics'
+juju config otel-col processors_file='@path/to/processors-config.yaml' to_pipelines='metrics'
 ```
 
 Let's imagine we want to enable the [`metricsgeneratorprocessor`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricsgenerationprocessor) to the `metrics` pipeline, we need to create a file with like this one:
@@ -219,7 +219,7 @@ service:
 In order to include `processors` or `extensions` we may also use `juju run [ACTION]`, like this:
 
 ```shell
-juju run otel-col/leader add_processors='@path/to/processors-config.yaml' to_pripelines='metrics'
+juju run otel-col/leader add_processors='@path/to/processors-config.yaml' to_pipelines='metrics'
 ```
 
 Let's imagine we want to enable the [`metricsgeneratorprocessor`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricsgenerationprocessor) to the `metrics` pipeline, we need to create a file with like this one:
