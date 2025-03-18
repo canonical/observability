@@ -61,7 +61,7 @@ receivers:
 ```
 
 
-The `exporters` sections could be ato-generated also based on the relations established, for example:
+The `exporters` sections could be auto-generated also based on the relations established, for example:
 
 ```yaml
 exporters:
