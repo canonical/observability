@@ -219,7 +219,7 @@ service:
 
 
 
-## Alternative 3
+## Alternative 3: Integrator charm
 
 
 
