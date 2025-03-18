@@ -106,7 +106,7 @@ In order to include `processors` or `extensions` we may use `juju config`, like 
 juju config otel-col processors_file='@path/to/processors-config.yaml' to_pripelines='metrics'
 ```
 
-Let's imagin we want to enable the [`metricsgeneratorprocessor`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricsgenerationprocessor) to the `metrics` pipeline, we need to create a file with like this one:
+Let's imagine we want to enable the [`metricsgeneratorprocessor`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricsgenerationprocessor) to the `metrics` pipeline, we need to create a file with like this one:
 
 ```yaml
 metricsgenerator:
@@ -216,8 +216,119 @@ service:
 
 ## Alternative 2: juju actions
 
+In order to include `processors` or `extensions` we may also use `juju run [ACTION]`, like this:
+
+```shell
+juju run otel-col/leader add_processors='@path/to/processors-config.yaml' to_pripelines='metrics'
+```
+
+Let's imagine we want to enable the [`metricsgeneratorprocessor`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricsgenerationprocessor) to the `metrics` pipeline, we need to create a file with like this one:
+
+```yaml
+metricsgenerator:
+    rules:
+        # create pod.cpu.utilized following (pod.cpu.usage / node.cpu.limit)
+        - name: pod.cpu.utilized
+          type: calculate
+          metric1: pod.cpu.usage
+          metric2: node.cpu.limit
+          operation: divide
+
+        # create pod.memory.usage.bytes from pod.memory.usage.megabytes
+        - name: pod.memory.usage.bytes
+          unit: Bytes
+          type: scale
+          metric1: pod.memory.usage.megabytes
+          operation: multiply
+          scale_by: 1048576
+```
+
+Once this config is added, the config file will have a new section `processors` like this:
+
+```yaml
+processors:
+  metricsgenerator:
+      rules:
+          # create pod.cpu.utilized following (pod.cpu.usage / node.cpu.limit)
+          - name: pod.cpu.utilized
+            type: calculate
+            metric1: pod.cpu.usage
+            metric2: node.cpu.limit
+            operation: divide
+
+          # create pod.memory.usage.bytes from pod.memory.usage.megabytes
+          - name: pod.memory.usage.bytes
+            unit: Bytes
+            type: scale
+            metric1: pod.memory.usage.megabytes
+            operation: multiply
+            scale_by: 1048576
+```
+
+and the `service` section will be like this:
+
+```yaml
+service:
+  pipelines:
+    metrics:
+      receivers: [prometheus]
+      processors: [metricsgenerator]
+      exporters: [prometheus]
+
+    logs:
+      receivers: [loki, filelog]
+      exporters: [loki]
+
+    traces:
+      receivers: [otlp]
+      exporters: [tempo]
+```
 
 
+On the other hand of we need to add `extensions` we may execute:
+
+```shell
+juju run add_extension otel-col/leader extensions_file='@path/to/extensions-config.yaml'
+```
+
+The `extensions-config.yaml` would contain something like this:
+
+```yaml
+health_check:
+  endpoint: 0.0.0.0:13133
+pprof:
+  endpoint: 0.0.0.0:1777
+```
+
+And the config will have a new `extensions` section like this:
+
+```yaml
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  pprof:
+    endpoint: 0.0.0.0:1777
+```
+
+and the `service` section will have a new `extensions` section:
+
+```yaml
+service:
+  extensions: [health_check, pprof]
+  pipelines:
+    metrics:
+      receivers: [prometheus]
+      processors: [metricsgenerator]
+      exporters: [prometheus]
+
+    logs:
+      receivers: [loki, filelog]
+      exporters: [loki]
+
+    traces:
+      receivers: [otlp]
+      exporters: [tempo]
+```
 
 ## Alternative 3: Integrator charm
 
