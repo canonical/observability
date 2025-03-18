@@ -103,13 +103,14 @@ With configs like those ones we can replicate grafana-agent behaviour. Now we ne
 In order to include `processors` or `extensions` we may use `juju config`, like this:
 
 ```shell
-juju config otel-col processors_file='@path/to/processors-config.yaml' to_pipelines='metrics'
+juju config otel-col processors='@path/to/processors-config.yaml'
 ```
 
-Let's imagine we want to enable the [`metricsgeneratorprocessor`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricsgenerationprocessor) to the `metrics` pipeline, we need to create a file with like this one:
+Let's imagine we want to enable the [`metricsgeneratorprocessor`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricsgenerationprocessor) to the `metrics` pipeline, we need to create a file like this one:
 
 ```yaml
 metricsgenerator:
+    pipelines: [metrics]
     rules:
         # create pod.cpu.utilized following (pod.cpu.usage / node.cpu.limit)
         - name: pod.cpu.utilized
@@ -126,6 +127,8 @@ metricsgenerator:
           operation: multiply
           scale_by: 1048576
 ```
+
+Note that to the regular processor config, we have added a custom `pipelines` key to indicate to which pipelines these processors should be attached.
 
 Once this config is added, the config file will have a new section `processors` like this:
 
@@ -226,6 +229,7 @@ Let's imagine we want to enable the [`metricsgeneratorprocessor`](https://github
 
 ```yaml
 metricsgenerator:
+    pipelines: [metrics]
     rules:
         # create pod.cpu.utilized following (pod.cpu.usage / node.cpu.limit)
         - name: pod.cpu.utilized
@@ -242,6 +246,8 @@ metricsgenerator:
           operation: multiply
           scale_by: 1048576
 ```
+
+Note that to the regular processor config, we have added a custom `pipelines` key to indicate to which pipelines these processors should be attached.
 
 Once this config is added, the config file will have a new section `processors` like this:
 
