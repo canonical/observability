@@ -172,7 +172,7 @@ service:
 ```
 
 
-On the other hand of we need to add `extensions` we may execute:
+On the other hand if we need to add `extensions` we may execute:
 
 ```shell
 juju config otel-col extensions_file='@path/to/extensions-config.yaml'
