@@ -9,7 +9,7 @@ Unlike Grafana-agent, OpenTelemetry Collector allows us enable multiple receiver
 
 Generating complex configurations is not trivial nor flexible in an event-driven system like Juju. So we need to come up with a solution that produces out-of-the-box a simple and functional configuration but with the possibility of enhance it with arbitrary configs.
 
-The OpenTelemetry config file has 5 main sections:
+The OpenTelemetry Collector config file has 5 main sections:
 
 
 | Section     | Description                                                                   |
@@ -61,7 +61,7 @@ receivers:
 ```
 
 
-The `exporters` sections could be auto-generated also based on the relations established, for example:
+The `exporters` sections could also be auto-generated based on the relations established, for example:
 
 ```yaml
 exporters:
@@ -95,7 +95,7 @@ service:
 ```
 
 
-With configs like those ones we can replicate grafana-agent behaviour. Now we need to decide how to add `processors` and `extensions` to the config field.
+With configs like those ones we can replicate grafana-agent behaviour. Now we need to decide how to add `processors` and `extensions` to the config file.
 
 
 ## Alternative 1: `juju config`
@@ -130,7 +130,7 @@ metricsgenerator:
 
 Note that to the regular processor config, we have added a custom `pipelines` key to indicate to which pipelines these processors should be attached.
 
-Once this config is added, the config file will have a new section `processors` like this:
+Once this config is added, the config file will have a new section `processors` like this one:
 
 ```yaml
 processors:
