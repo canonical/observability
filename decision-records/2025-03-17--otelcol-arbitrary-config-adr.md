@@ -95,7 +95,7 @@ service:
 ```
 
 
-With configs like those ones we can replicate grafana-agent behaviour. Now we need to decide how to add `processors` and `extensions` to the config fiel.
+With configs like those ones we can replicate grafana-agent behaviour. Now we need to decide how to add `processors` and `extensions` to the config field.
 
 
 ## Alternative 1: `juju config`
