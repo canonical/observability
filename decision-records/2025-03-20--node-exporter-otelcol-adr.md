@@ -16,13 +16,7 @@ Since there is no `node-exporter` embedded in `otelcol` we need to come up with 
 
 ## Alternative 1: Add `node-exporter` as a second `app` in [`opentelemetry-collector-snap`](https://github.com/canonical/opentelemetry-collector-snap)
 
-```mermaid
-flowchart TD
-    subgraph snap
-        otelcol
-        node-exporter
-    end
-```
+[![](https://mermaid.ink/img/pako:eNpFj7EOwjAMRH-l8lx-IHMZmWBCWUziNpWSOEodAar676Qt0Jvsp_PJN4NhS6Cg9_w0DrM0t07HpmoqjyFjcs0UMe1oFQt5w_4AsQac6JU4C-UdU7TQQqAccLQ1fF6xBnEUSIOqo6UeixcNOi7VWpJFobMdhTOoHv1ELWARvr6jASW50M_UjVjfCn8XbUeXvcVWpoWE8c58eDKXwX235QOFjVDa?type=png)](https://mermaid.live/edit#pako:eNpFj7EOwjAMRH-l8lx-IHMZmWBCWUziNpWSOEodAar676Qt0Jvsp_PJN4NhS6Cg9_w0DrM0t07HpmoqjyFjcs0UMe1oFQt5w_4AsQac6JU4C-UdU7TQQqAccLQ1fF6xBnEUSIOqo6UeixcNOi7VWpJFobMdhTOoHv1ELWARvr6jASW50M_UjVjfCn8XbUeXvcVWpoWE8c58eDKXwX235QOFjVDa)
 
 Although this alternative is quite simple in terms of the modification of the snap, we should also modify the snap name since it won't only be `otelcol`. It will be `otelcol` + `node-exporter`.
 
