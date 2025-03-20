@@ -32,32 +32,20 @@ receivers:
           static_configs:
             - targets: ["localhost:9090"]
 
+  prometheus_remote_write:
+    endpoint: 0.0.0.0:12345
+
   # To read logs from disk
   filelog:
     include: ["/var/log/my-app.log"]
     start_at: beginning
-    include_file_path: true
-    include_file_name: false
-    operators:
-      - type: regex_parser
-        regex: '^(?P<timestamp>\S+) (?P<log_level>\S+) (?P<message>.*)$'
-        timestamp:
-          parse_from: timestamp
-          layout: "%Y-%m-%dT%H:%M:%S.%fZ"
-
-  # To receive logs
-  loki:
-    protocols:
-      http:
-        endpoint: 0.0.0.0:3500
-    use_incoming_timestamp: true
 
   otlp:
     protocols:
       grpc:
-        endpoint: 0.0.0.0:4317
+        endpoint: "0.0.0.0:4317"
       http:
-        endpoint: 0.0.0.0:4318
+        endpoint: "0.0.0.0:4318"
 ```
 
 
@@ -65,14 +53,14 @@ The `exporters` sections could also be auto-generated based on the relations est
 
 ```yaml
 exporters:
-  prometheus:
-    endpoint: "http://prometheus-server:9090/metrics"
+  otlphttp/cos-loki:
+    endpoint: "http://cos-loki:3100/otlp"
 
-  loki:
-    endpoint: "http://loki-server:3100/loki/api/v1/push"
+  otlphttp/cos-mimir:
+    endpoint: "http://cos-mimir/otlp"
 
-  tempo:
-    endpoint: "http://tempo-server:3200/api/traces"
+  otlphttp/cos-tempo:
+    endpoint: "http://cos-tempo"
 ```
 
 
@@ -82,55 +70,27 @@ Finally the `service` section will relate `receivers` and `exporters`
 service:
   pipelines:
     metrics:
-      receivers: [prometheus]
-      exporters: [prometheus]
+      receivers: [otlp, prometheus_remote_write, prometheus]
+      exporters: [otlphttp/cos-mimir]
 
     logs:
-      receivers: [loki, filelog]
-      exporters: [loki]
+      receivers: [otlp, filelog]
+      exporters: [otlphttp/cos-loki]
 
     traces:
       receivers: [otlp]
-      exporters: [tempo]
+      exporters: [otlphttp/cos-tempo]
 ```
 
 
-With configs like those ones we can replicate grafana-agent behaviour. Now we need to decide how to add `processors` and `extensions` to the config file.
+Now we need to decide how to add `processors` and `extensions` to the config file.
 
 
 ## Alternative 1: `juju config`
 
-In order to include `processors` or `extensions` we may use `juju config`, like this:
+In order to include `processors` or `extensions` we may use `juju config`.
 
-```shell
-juju config otel-col processors='@path/to/processors-config.yaml'
-```
-
-Let's imagine we want to enable the [`metricsgeneratorprocessor`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricsgenerationprocessor) to the `metrics` pipeline, we need to create a file like this one:
-
-```yaml
-metricsgenerator:
-    pipelines: [metrics]
-    rules:
-        # create pod.cpu.utilized following (pod.cpu.usage / node.cpu.limit)
-        - name: pod.cpu.utilized
-          type: calculate
-          metric1: pod.cpu.usage
-          metric2: node.cpu.limit
-          operation: divide
-
-        # create pod.memory.usage.bytes from pod.memory.usage.megabytes
-        - name: pod.memory.usage.bytes
-          unit: Bytes
-          type: scale
-          metric1: pod.memory.usage.megabytes
-          operation: multiply
-          scale_by: 1048576
-```
-
-Note that to the regular processor config, we have added a custom `pipelines` key to indicate to which pipelines these processors should be attached.
-
-Once this config is added, the config file will have a new section `processors` like this one:
+Let's imagine we want to enable the [`metricsgeneratorprocessor`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricsgenerationprocessor) to the `metrics` pipeline, and the [`batch`](https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor) processor to the `logs` and `metrics` pipelines, we need to create a file like this one:
 
 ```yaml
 processors:
@@ -150,25 +110,38 @@ processors:
             metric1: pod.memory.usage.megabytes
             operation: multiply
             scale_by: 1048576
+
+    batch:
+      send_batch_max_size: 10000
+      timeout: 0s
 ```
 
-and the `service` section will be like this:
+
+And then run:
+
+```shell
+juju config otel-col processors='@path/to/processors-config.yaml' proc_pipeline_map="metricsgenerator:metrics;batch:metrics,logs"
+```
+
+
+Once this config is added, the new section `processors` will be added, and the `service` section will be like this:
 
 ```yaml
 service:
   pipelines:
     metrics:
-      receivers: [prometheus]
-      processors: [metricsgenerator]
-      exporters: [prometheus]
+      receivers: [otlp, prometheus_remote_write, prometheus]
+      processors: [batch, metricsgenerator]
+      exporters: [otlphttp/cos-mimir]
 
     logs:
-      receivers: [loki, filelog]
-      exporters: [loki]
+      receivers: [otlp, filelog]
+      processors: [batch]
+      exporters: [otlphttp/cos-loki]
 
     traces:
       receivers: [otlp]
-      exporters: [tempo]
+      exporters: [otlphttp/cos-tempo]
 ```
 
 
@@ -204,142 +177,207 @@ service:
   extensions: [health_check, pprof]
   pipelines:
     metrics:
-      receivers: [prometheus]
-      processors: [metricsgenerator]
-      exporters: [prometheus]
+      receivers: [otlp, prometheus_remote_write, prometheus]
+      processors: [batch, metricsgenerator]
+      exporters: [otlphttp/cos-mimir]
 
     logs:
-      receivers: [loki, filelog]
-      exporters: [loki]
+      receivers: [otlp, filelog]
+      processors: [batch]
+      exporters: [otlphttp/cos-loki]
 
     traces:
       receivers: [otlp]
-      exporters: [tempo]
+      exporters: [otlphttp/cos-tempo]
 ```
 
-## Alternative 2: juju actions
 
-In order to include `processors` or `extensions` we may also use `juju run [ACTION]`, like this:
+### A more real example
 
-```shell
-juju run otel-col/leader add_processors='@path/to/processors-config.yaml' to_pipelines='metrics'
-```
+Let's imagine this deployment in which we want to:
 
-Let's imagine we want to enable the [`metricsgeneratorprocessor`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricsgenerationprocessor) to the `metrics` pipeline, we need to create a file with like this one:
+- Send unmodified telemetry to COS
+- Send modified/anonymised telemetry to Grafana Cloud
+- Send modified/anonymised telemetry to Splunk
 
-```yaml
-metricsgenerator:
-    pipelines: [metrics]
-    rules:
-        # create pod.cpu.utilized following (pod.cpu.usage / node.cpu.limit)
-        - name: pod.cpu.utilized
-          type: calculate
-          metric1: pod.cpu.usage
-          metric2: node.cpu.limit
-          operation: divide
 
-        # create pod.memory.usage.bytes from pod.memory.usage.megabytes
-        - name: pod.memory.usage.bytes
-          unit: Bytes
-          type: scale
-          metric1: pod.memory.usage.megabytes
-          operation: multiply
-          scale_by: 1048576
-```
+[![](https://mermaid.ink/img/pako:eNqNlMtugzAQRX8FeR36ASyySapuGnWRrFpXkWsPYMUvGbtRlOTfaxsCiiCkXsCM78U-gx9nRDUDVKBS6COtiXXZbo0VVo3_qSwxdcbACH2SoNwXRi8YfUc161rvskCB_4JtBi02Y7UEV4N_2L-3ILWD_dFyB_emkgsQurrv1E6YoQcUG5IwjKBaBMwuSrA3tSfM8nx588ZaWktfCRXas2aixMYIrw5h9G0K7gaPLaA2QX0Pr5EWirWcRnnTRiOHs4RCNOxScKenKieIwrMkiuQJOXz61ubZKuYTfAdeJcADHwNyyW1UNzEY04E0Osq7GPwLjupYzepjOwkyyzGP8ZiiDzqmbpHDgufLS9wVwtTOGYwuiWHWkEBmHQnm6STV81mq59NMW6Lc7kqs0AJJsJJwFg7zOf4LjMIBk4BREUIGJfHCYYTVNVi9YcTBK-NOW1SURDSwQMQ7vT0pigpnPdxMa07CgsreBemjTXtrpMtjgQxRn1oPHqt9VXfZ9Q8B0mHl?type=png)](https://mermaid.live/edit#pako:eNqNlMtugzAQRX8FeR36ASyySapuGnWRrFpXkWsPYMUvGbtRlOTfaxsCiiCkXsCM78U-gx9nRDUDVKBS6COtiXXZbo0VVo3_qSwxdcbACH2SoNwXRi8YfUc161rvskCB_4JtBi02Y7UEV4N_2L-3ILWD_dFyB_emkgsQurrv1E6YoQcUG5IwjKBaBMwuSrA3tSfM8nx588ZaWktfCRXas2aixMYIrw5h9G0K7gaPLaA2QX0Pr5EWirWcRnnTRiOHs4RCNOxScKenKieIwrMkiuQJOXz61ubZKuYTfAdeJcADHwNyyW1UNzEY04E0Osq7GPwLjupYzepjOwkyyzGP8ZiiDzqmbpHDgufLS9wVwtTOGYwuiWHWkEBmHQnm6STV81mq59NMW6Lc7kqs0AJJsJJwFg7zOf4LjMIBk4BREUIGJfHCYYTVNVi9YcTBK-NOW1SURDSwQMQ7vT0pigpnPdxMa07CgsreBemjTXtrpMtjgQxRn1oPHqt9VXfZ9Q8B0mHl)
 
-Note that to the regular processor config, we have added a custom `pipelines` key to indicate to which pipelines these processors should be attached.
 
-Once this config is added, the config file will have a new section `processors` like this:
+In order to do that, we need to create a file with the following processors' definition:
 
 ```yaml
 processors:
-  metricsgenerator:
-      rules:
-          # create pod.cpu.utilized following (pod.cpu.usage / node.cpu.limit)
-          - name: pod.cpu.utilized
-            type: calculate
-            metric1: pod.cpu.usage
-            metric2: node.cpu.limit
-            operation: divide
+  batch:
+  resource:
+    attributes:
+      - key: service.name
+        value: "principal_charm"
+        action: upsert
 
-          # create pod.memory.usage.bytes from pod.memory.usage.megabytes
-          - name: pod.memory.usage.bytes
-            unit: Bytes
-            type: scale
-            metric1: pod.memory.usage.megabytes
-            operation: multiply
-            scale_by: 1048576
-```
-
-and the `service` section will be like this:
-
-```yaml
-service:
-  pipelines:
-    metrics:
-      receivers: [prometheus]
-      processors: [metricsgenerator]
-      exporters: [prometheus]
-
-    logs:
-      receivers: [loki, filelog]
-      exporters: [loki]
-
-    traces:
-      receivers: [otlp]
-      exporters: [tempo]
+  attributes/anonymizer:
+    actions:
+      - action: delete
+        key: user.id
+      - action: update
+        key: client.ip
+        value: "CLIENT.IP"
 ```
 
 
-On the other hand of we need to add `extensions` we may execute:
+
+and run:
 
 ```shell
-juju run add_extension otel-col/leader extensions_file='@path/to/extensions-config.yaml'
+juju config otel-col processors='@path/to/processors-config.yaml' proc_pipeline_map="batch:logs/cos,logs/grafana,logs/splunk,metrics/cos,metrics/grafana,metrics/splunk,traces/cos,traces/grafana,traces/splunk;resources:logs/cos,logs/grafana,logs/splunk,metrics/cos,metrics/grafana,metrics/splunk,traces/cos,traces/grafana,traces/splunk;attributes/anonymizer:logs/grafana,logs/splunk"
 ```
 
-The `extensions-config.yaml` would contain something like this:
+
+In a deployment like this one, a `otelcol` config would look like this way:
 
 ```yaml
-health_check:
-  endpoint: 0.0.0.0:13133
-pprof:
-  endpoint: 0.0.0.0:1777
-```
 
-And the config will have a new `extensions` section like this:
+# The receivers and exportes should be added automatically based on the established relations:
+# - otelcol --> mimir
+# - otelcol --> loki
+# - otelcol --> tempo
 
-```yaml
-extensions:
-  health_check:
-    endpoint: 0.0.0.0:13133
-  pprof:
-    endpoint: 0.0.0.0:1777
-```
+# About otlp and Mimir, Loki and Tempo:
+# - https://grafana.com/docs/mimir/latest/configure/configure-otel-collector/#configure-the-opentelemetry-collector-to-write-metrics-into-mimir
+# - https://grafana.com/docs/loki/latest/send-data/otel/#configure-the-opentelemetry-collector-to-write-logs-into-loki
+# - https://medium.com/cloud-native-daily/level-up-your-tracing-platform-opentelemetry-grafana-tempo-8db66d7462e2
 
-and the `service` section will have a new `extensions` section:
+receivers:
+  # to scrape principal/node metrics endpoint
+  #
+  # this receiver can be added when the relation with the principal is established
+  # since we are going to install node-exporter alongside otelcol
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: "principal_charm"
+          static_configs:
+            - targets: ["localhost:9090"]
 
-```yaml
+
+  # to receive metrics through remote-write
+  #
+  # This receiver can be added when a relation with Grafana-agent is established.
+  prometheus_remote_write:
+    endpoint: 0.0.0.0:12345
+
+  # to "scrape" principal/node log files.
+  #
+  # This receiver can be added when the relation with the Principal is established.
+  filelog:
+    include: ["/var/log/principal-charm.log"]
+    start_at: beginning
+
+  # to receive traces, logs and metrics
+  #
+  # This receiver is added at deployment time since it is the default one.
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "localhost:4317"
+      http:
+        endpoint: "localhost:4318"
+
+exporters:
+  # COS
+  otlphttp/cos-loki:
+    endpoint: "http://cos-loki:3100/otlp"
+  otlphttp/cos-mimir:
+    endpoint: "http://cos-mimir/otlp"
+  otlphttp/cos-tempo:
+    endpoint: "http://cos-tempo"
+
+  # Grafana Cloud
+  otlphttp/grafana-loki:
+    endpoint: "https://grafana-loki.com:3100/otlp"
+  otlphttp/grafana-mimir:
+    endpoint: "https://grafana-mimir.com/api/v1/push"
+  otlphttp/grafana-tempo:
+    endpoint: "https://grafana-tempo.com"
+
+  # Splunk
+  otlp/splunk:
+    endpoint: "https://splunk-endpoint"
+
+
+# The processors can be added using `juju config` or with a configurator charm.
+
+processors:
+  batch:
+  resource:
+    attributes:
+      - key: service.name
+        value: "principal_charm"
+        action: upsert
+
+  attributes/anonymizer:
+    actions:
+      - action: delete
+        key: user.id
+      - action: update
+        key: client.ip
+        value: "CLIENT.IP"
+
+
+# The pipelines should be created taking into account:
+# - The receivers
+# - The exporters
+# - The processors added to each pipeline using `juju config` and/or a configurator charm
 service:
-  extensions: [health_check, pprof]
   pipelines:
-    metrics:
-      receivers: [prometheus]
-      processors: [metricsgenerator]
-      exporters: [prometheus]
+    logs/cos:
+      receivers: [filelog, otlp]
+      processors: [batch, resource]
+      exporters: [otlphttp/cos-loki]
 
-    logs:
-      receivers: [loki, filelog]
-      exporters: [loki]
+    logs/grafana:
+      receivers: [filelog, otlp]
+      processors: [batch, resource, attributes/anonymizer]
+      exporters: [otlphttp/grafana-loki]
 
-    traces:
+    logs/splunk:
+      receivers: [filelog, otlp]
+      processors: [batch, resource, attributes/anonymizer]
+      exporters: [otlp/splunk]
+
+    metrics/cos:
+      receivers: [prometheus, prometheus_remote_write, otlp]
+      processors: [batch, resource]
+      exporters: [otlphttp/cos-mimir]
+
+    metrics/grafana:
+      receivers: [prometheus, prometheus_remote_write, otlp]
+      processors: [batch, resource]
+      exporters: [otlphttp/grafana-mimir]
+
+    metrics/splunk:
+      receivers: [prometheus, prometheus_remote_write, otlp]
+      processors: [batch, resource]
+      exporters: [otlp/splunk]
+
+    traces/cos:
       receivers: [otlp]
-      exporters: [tempo]
+      processors: [batch, resource]
+      exporters: [otlphttp/cos-tempo]
+
+    traces/grafana:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [otlphttp/grafana-tempo]
+
+    traces/splunk:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [otlp/splunk]
+
 ```
 
 ## Alternative 3: Integrator charm
-
-
-
 
 
 ## History
