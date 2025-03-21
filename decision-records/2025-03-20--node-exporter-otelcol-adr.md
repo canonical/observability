@@ -3,6 +3,24 @@
 
 **Authors:** Jose Massón
 
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+**Table of Contents**
+
+- [Node-exporter inside or alongside otelcol charm](#node-exporter-inside-or-alongside-otelcol-charm)
+    - [Context and Problem Statement](#context-and-problem-statement)
+    - [One `otelcol` + `node-exporter` per Principal charm (make use of snaps `parallel install` feature)](#one-otelcol--node-exporter-per-principal-charm-make-use-of-snaps-parallel-install-feature)
+        - [Alternative 1: Add `node-exporter` as a second `app` in [`opentelemetry-collector-snap`](https://github.com/canonical/opentelemetry-collector-snap)](#alternative-1-add-node-exporter-as-a-second-app-in-opentelemetry-collector-snaphttpsgithubcomcanonicalopentelemetry-collector-snap)
+        - [Alternative 2: Install [`node-exporter` as a separate snap](https://snapcraft.io/node-exporter)](#alternative-2-install-node-exporter-as-a-separate-snaphttpssnapcraftionode-exporter)
+    - [General comments about Alternative 1 and Alternative 2](#general-comments-about-alternative-1-and-alternative-2)
+        - [Enable the feature in the host.](#enable-the-feature-in-the-host)
+        - [Parallel installation of snaps](#parallel-installation-of-snaps)
+    - [One otelcol + node-exporter ](#one-otelcol--node-exporter)
+
+<!-- markdown-toc end -->
+
+
+
+
 ## Context and Problem Statement
 
 The [Prometheus Node Exporter](https://prometheus.io/docs/guides/node-exporter/) binary exposes a wide variety of hardware and kernel-related metrics.
@@ -20,7 +38,7 @@ Besides Managed Solutions team mentioned that the `subordinate` approach we use 
 The downside of the approach implemented in `grafana-agent` charm is that we may end up with only [one agent running and more than one charm deployed which led us to problematic situations](https://discourse.charmhub.io/t/one-grafana-agent-charm-to-rule-them-all/16014/1).
 
 
-## One `otelcol` + `node-exporter` per Principal charmm (make use of snaps `parallel install` feature)
+## One `otelcol` + `node-exporter` per Principal charm (make use of snaps `parallel install` feature)
 
 
 ### Alternative 1: Add `node-exporter` as a second `app` in [`opentelemetry-collector-snap`](https://github.com/canonical/opentelemetry-collector-snap)
