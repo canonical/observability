@@ -14,7 +14,12 @@ on:
         options: 
         - prometheus-k8s-operator
         - catalogue-k8s-operator
-        # TODO: add a workflow workflow_call once stable, and then run on a cron from each repo.
+  workflow_call:
+    inputs:
+      repo:
+        description: Repository to analyze
+        required: true
+        type: string
 
 jobs:
   scan:
