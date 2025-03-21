@@ -14,7 +14,8 @@
         - [General comments about Alternative 1 and Alternative 2](#general-comments-about-alternative-1-and-alternative-2)
             - [Enable the feature in the host.](#enable-the-feature-in-the-host)
             - [Parallel installation of snaps](#parallel-installation-of-snaps)
-    - [One `otelcol` + `node-exporter` binaries per `cos-collector` charm](#one-otelcol--node-exporter-binaries-per-cos-collector-charm)
+            - [Questions and doubts about this approach](#questions-and-doubts-about-this-approach)
+    - [Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per host)](#only-one-otelcol--node-exporter-binaries-per-cos-collector-charm-and-per-host)
 
 <!-- markdown-toc end -->
 
@@ -73,7 +74,7 @@ This way we could also potentially install several snaps of the same type in the
 
 ### General comments about Alternative 1 and Alternative 2
 
-As we have said, both alternatives relies on the [parallel installs](https://snapcraft.io/docs/parallel-installs) feature of snaps which has aspect that must be considered:
+As we have said, both alternatives relies on the [parallel installs](https://snapcraft.io/docs/parallel-installs) feature of snaps which has aspects that must be considered:
 
 #### Enable the feature in the host.
 
@@ -85,10 +86,6 @@ $ sudo snap set system experimental.parallel-instances=true
 
 > *We recommend rebooting the system after toggling the experimental.parallel-instances flag state to avoid potential namespace problems with snap applications that have already been run*
 
-So some questions arise:
-
-* Is it OK for a charm to enable a snap feature on the running host?
-* Is it OK for a charm to reboot the host in which it is running?
 
 #### Parallel installation of snaps
 
@@ -114,6 +111,29 @@ hello-world_baz  6.4                 29     latest/stable       canonical**  -
 hello-world_foo  6.4                 29     latest/stable       canonical**  -
 ```
 
+#### Questions and doubts about this approach
 
-## One `otelcol` + `node-exporter` binaries per `cos-collector` charm
+With this approach some questions arise:
+
+* Is it OK for a charm to enable a snap feature on the running host?
+* Is it OK for a charm to reboot the host in which it is running?
+* Having more than one `otelcol` and `node-exporter` running on the same host will consume extra resources. Are those over-consumed resources significant?
+
+
+## Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per host)
+
+Something would be great to improve with `otelcol` charm is [the behaviour we have with `grafana-agent` when more than one charm is related to the same principal or running in the same host](https://discourse.charmhub.io/t/one-grafana-agent-charm-to-rule-them-all/16014).
+
+[![](https://mermaid.ink/img/pako:eNqlVE1PxCAQ_SvNnJdku5q49rAHoze9qCfFAwK7JWmBUBo1u_vfHbaV2m73w8iFGXjvzfACrIEbISGDZWE-eM6cT-4fqa7q95VjNk9yU3mqExxxyTqlubKsIAFfps12GIMdwqxtd6UWx1VmR1VmUSVMAyVuKsJNUUjujWs4DUIoh2vK6OTmuZOPPI0HJ_LTGuelI5VmtgP1W0VElb5SSCi89TGHy8TTIPk6nU6RHsIsCcmoTq-fUK63cAYlIWQR6_XB0f-9JJ7SeFmgjSeNmP3DiMuL9CoaEZJRnRY5_42cjyLbnoNZbXgUFg3alT4LNt_zsUtGHI3B8JGgJllsKKCXxgmlmZcUNofv7vB5_IVPNbYBEyilK5kS-LjXQZSCz2WJtAxDIZesLjwFqrcIra1AxTuhUAayJSsqOQFWe_P0pTlk3tXyB3SrGN6GMqLkjvTQ_CK7z2QClukXYzqMM_Uqb7PtN-GyUh8?type=png)](https://mermaid.live/edit#pako:eNqlVE1PxCAQ_SvNnJdku5q49rAHoze9qCfFAwK7JWmBUBo1u_vfHbaV2m73w8iFGXjvzfACrIEbISGDZWE-eM6cT-4fqa7q95VjNk9yU3mqExxxyTqlubKsIAFfps12GIMdwqxtd6UWx1VmR1VmUSVMAyVuKsJNUUjujWs4DUIoh2vK6OTmuZOPPI0HJ_LTGuelI5VmtgP1W0VElb5SSCi89TGHy8TTIPk6nU6RHsIsCcmoTq-fUK63cAYlIWQR6_XB0f-9JJ7SeFmgjSeNmP3DiMuL9CoaEZJRnRY5_42cjyLbnoNZbXgUFg3alT4LNt_zsUtGHI3B8JGgJllsKKCXxgmlmZcUNofv7vB5_IVPNbYBEyilK5kS-LjXQZSCz2WJtAxDIZesLjwFqrcIra1AxTuhUAayJSsqOQFWe_P0pTlk3tXyB3SrGN6GMqLkjvTQ_CK7z2QClukXYzqMM_Uqb7PtN-GyUh8)
+
+In order to do that, everytime a `cos-collector` subordinate charm is related to a principal charm, the `cos-collector` charm must:
+
+* Verify whether `otelcol` and `node-exporter` snaps are already installed or not to avoid trying to install them again.
+* Merge the `otelcol` configuration resulting from the established relationship with any previously existing configuration.
+
+
+When a relation between `cos-collector` and a principal charm is removed, the `cos-collector` charm must:
+
+* Remove from the `otelcol` config file the configuration resulting from the departing relation.
+* Uninstall `otelcol` and `node-exporter` snaps only if there is no other subordinate relation.
 
