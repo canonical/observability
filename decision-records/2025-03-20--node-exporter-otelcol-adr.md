@@ -13,8 +13,15 @@ On the other hand OpenTelemetry Collector has a [Host Metrics Receiver](https://
 
 Since there is no `node-exporter` embedded in `otelcol` binary we need to come up with a solution in order to keep the feature parity between `grafana-agent` charm and `otelcol` charm.
 
+Besides Managed Solutions team mentioned that the `subordinate` approach we use in `grafana-agent` charm is the approach [they prefer](https://chat.canonical.com/canonical/pl/3xd5cffzff84iyhg37m1idw8qy) for the otelcol story:
 
-## Alternatives that make use of `parallel install` feature
+> *i think a subordinate is best for when expansions happen, as we would simply e.g. `juju add-unit nova-compute` and then we get a consistent set of monitoring on that compute automaticaly*
+
+The downside of the approach implemented in `grafana-agent` charm is that we may end up with only [one agent running and more than one charm deployed which led us to problematic situations](https://discourse.charmhub.io/t/one-grafana-agent-charm-to-rule-them-all/16014/1).
+
+
+## One `otelcol` + `node-exporter` per Principal charmm (make use of snaps `parallel install` feature)
+
 
 ### Alternative 1: Add `node-exporter` as a second `app` in [`opentelemetry-collector-snap`](https://github.com/canonical/opentelemetry-collector-snap)
 
@@ -22,7 +29,7 @@ Since there is no `node-exporter` embedded in `otelcol` binary we need to come u
 
 Although this alternative is quite simple in terms of the modification of the snap, we should also modify the snap name (and the charm name?) since it won't be only `otelcol`. It will be `otelcol` + `node-exporter`. Say for instance: `cos-collector`.
 
-By default `node-exporter` exports host metrics in the port `9100`. In order to support [parallel installs](https://snapcraft.io/docs/parallel-installs) we should add a config option to the snap so we can [arbitrary change the port number](https://stackoverflow.com/a/57215681) `node-exporter` uses.
+By default `node-exporter` exports host metrics in the port `9100`. In order to support [parallel installs](https://snapcraft.io/docs/parallel-installs) we should add a config option to the snap so we can [arbitrary change the port number](https://stackoverflow.com/a/57215681) `node-exporter` uses. The same happens with `otelcol` which exposes several ports.
 
 This way we could potentially install the same snap several times in the same `host`.
 
@@ -35,9 +42,9 @@ This way we could potentially install the same snap several times in the same `h
 
 This way provides a better separation of concerns: Each binary is installed and managed by its own snap: [opentelemetry-collector](https://github.com/canonical/opentelemetry-collector-snap) and [node-exporter](https://snapcraft.io/node-exporter)
 
-By default `node-exporter` exports host metrics in the port `9100`. In order to support [parallel installs](https://snapcraft.io/docs/parallel-installs) we should add a config option to the snap so we can [arbitrary change the port number](https://stackoverflow.com/a/57215681) `node-exporter` uses.
+By default `node-exporter` exports host metrics in the port `9100`. In order to support [parallel installs](https://snapcraft.io/docs/parallel-installs) we should add a config option to the snap so we can [arbitrary change the port number](https://stackoverflow.com/a/57215681) `node-exporter` uses. The same happens with `otelcol` which exposes several ports.
 
-This way we could potentially install several snaps of the same type in the same `host`.
+This way we could also potentially install several snaps of the same type in the same `host`.
 
 [![](https://mermaid.ink/img/pako:eNqdlE1vgzAMhv9K5HORWoPUjsMO03bbLttOW3bIiFuQIEEhaJuq_vcllPGhqrA2B7DjxwqveZU9JFoSxLDN9VeSCmPZ4zNXVf25M6JMWaoryxVzq9uqlChX7xyaN4ePY3mElNrYyjNsVPdLZoYSm2nF7l7HFd90s1ouXZsPY-aTk37lPjegb0-Q8UeMNmZwFgS33Tk9SEoeky4YicVWLE6IxSvERuFq3Yn1yUl_S22G1OaE0pbyROd-GG14FukG0Bw3i2xGM-rZqWmF7bTCiWmF11gDh9bAOWvgZdbA3hp4gTWiVmw0ITa6yho4tAaeswYOrYFnrYHz1sDBf8f1PPIPa7gHLKAgU4hMuitm72scbEoFcYhdKGkr6txy4Org0LqUwtKDzKw2EG9FXtECRG31y49KILampj_oPhNuxEVHUdP0dLzLmittAaVQb1r3jNH1Lm2zwy-WTmtH?type=png)](https://mermaid.live/edit#pako:eNqdlE1vgzAMhv9K5HORWoPUjsMO03bbLttOW3bIiFuQIEEhaJuq_vcllPGhqrA2B7DjxwqveZU9JFoSxLDN9VeSCmPZ4zNXVf25M6JMWaoryxVzq9uqlChX7xyaN4ePY3mElNrYyjNsVPdLZoYSm2nF7l7HFd90s1ouXZsPY-aTk37lPjegb0-Q8UeMNmZwFgS33Tk9SEoeky4YicVWLE6IxSvERuFq3Yn1yUl_S22G1OaE0pbyROd-GG14FukG0Bw3i2xGM-rZqWmF7bTCiWmF11gDh9bAOWvgZdbA3hp4gTWiVmw0ITa6yho4tAaeswYOrYFnrYHz1sDBf8f1PPIPa7gHLKAgU4hMuitm72scbEoFcYhdKGkr6txy4Org0LqUwtKDzKw2EG9FXtECRG31y49KILampj_oPhNuxEVHUdP0dLzLmittAaVQb1r3jNH1Lm2zwy-WTmtH)
 
@@ -48,7 +55,7 @@ As we have said, both alternatives relies on the [parallel installs](https://sna
 
 ### Enable the feature in the host.
 
-This feature is currently considered experimental. As a result, to experiment with parallel installs, an experimental feature-flag must first be enabled:
+This feature is currently considered experimental. As a result, to experiment with parallel installs, an experimental feature-flag must first be enabled in the host:
 
 ```shell
 $ sudo snap set system experimental.parallel-instances=true
@@ -84,3 +91,6 @@ hello-world_bar  6.4                 29     latest/stable       canonical**  -
 hello-world_baz  6.4                 29     latest/stable       canonical**  -
 hello-world_foo  6.4                 29     latest/stable       canonical**  -
 ```
+
+
+## One otelcol + node-exporter 
