@@ -8,13 +8,13 @@
 
 - [Node-exporter inside or alongside otelcol charm](#node-exporter-inside-or-alongside-otelcol-charm)
     - [Context and Problem Statement](#context-and-problem-statement)
-    - [One `otelcol` + `node-exporter` per Principal charm (make use of snaps `parallel install` feature)](#one-otelcol--node-exporter-per-principal-charm-make-use-of-snaps-parallel-install-feature)
+    - [One `otelcol` + `node-exporter` binaries per Principal charm (make use of snaps `parallel install` feature)](#one-otelcol--node-exporter-binaries-per-principal-charm-make-use-of-snaps-parallel-install-feature)
         - [Alternative 1: Add `node-exporter` as a second `app` in `opentelemetry-collector-snap`](#alternative-1-add-node-exporter-as-a-second-app-in-opentelemetry-collector-snap)
         - [Alternative 2: Install `node-exporter` as a separate snap](#alternative-2-install-node-exporter-as-a-separate-snap)
-    - [General comments about Alternative 1 and Alternative 2](#general-comments-about-alternative-1-and-alternative-2)
-        - [Enable the feature in the host.](#enable-the-feature-in-the-host)
-        - [Parallel installation of snaps](#parallel-installation-of-snaps)
-    - [One otelcol + node-exporter ](#one-otelcol--node-exporter)
+        - [General comments about Alternative 1 and Alternative 2](#general-comments-about-alternative-1-and-alternative-2)
+            - [Enable the feature in the host.](#enable-the-feature-in-the-host)
+            - [Parallel installation of snaps](#parallel-installation-of-snaps)
+    - [One `otelcol` + `node-exporter` binaries per `cos-collector` charm](#one-otelcol--node-exporter-binaries-per-cos-collector-charm)
 
 <!-- markdown-toc end -->
 
