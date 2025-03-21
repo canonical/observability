@@ -38,7 +38,7 @@ Besides Managed Solutions team mentioned that the `subordinate` approach we use 
 The downside of the approach implemented in `grafana-agent` charm is that we may end up with only [one agent running and more than one charm deployed which led us to problematic situations](https://discourse.charmhub.io/t/one-grafana-agent-charm-to-rule-them-all/16014/1).
 
 
-## One `otelcol` + `node-exporter` per Principal charm (make use of snaps `parallel install` feature)
+## One `otelcol` + `node-exporter` binaries per Principal charm (make use of snaps `parallel install` feature)
 
 
 ### Alternative 1: Add `node-exporter` as a second `app` in `opentelemetry-collector-snap`
@@ -67,11 +67,11 @@ This way we could also potentially install several snaps of the same type in the
 [![](https://mermaid.ink/img/pako:eNqdlE1vgzAMhv9K5HORWoPUjsMO03bbLttOW3bIiFuQIEEhaJuq_vcllPGhqrA2B7DjxwqveZU9JFoSxLDN9VeSCmPZ4zNXVf25M6JMWaoryxVzq9uqlChX7xyaN4ePY3mElNrYyjNsVPdLZoYSm2nF7l7HFd90s1ouXZsPY-aTk37lPjegb0-Q8UeMNmZwFgS33Tk9SEoeky4YicVWLE6IxSvERuFq3Yn1yUl_S22G1OaE0pbyROd-GG14FukG0Bw3i2xGM-rZqWmF7bTCiWmF11gDh9bAOWvgZdbA3hp4gTWiVmw0ITa6yho4tAaeswYOrYFnrYHz1sDBf8f1PPIPa7gHLKAgU4hMuitm72scbEoFcYhdKGkr6txy4Org0LqUwtKDzKw2EG9FXtECRG31y49KILampj_oPhNuxEVHUdP0dLzLmittAaVQb1r3jNH1Lm2zwy-WTmtH?type=png)](https://mermaid.live/edit#pako:eNqdlE1vgzAMhv9K5HORWoPUjsMO03bbLttOW3bIiFuQIEEhaJuq_vcllPGhqrA2B7DjxwqveZU9JFoSxLDN9VeSCmPZ4zNXVf25M6JMWaoryxVzq9uqlChX7xyaN4ePY3mElNrYyjNsVPdLZoYSm2nF7l7HFd90s1ouXZsPY-aTk37lPjegb0-Q8UeMNmZwFgS33Tk9SEoeky4YicVWLE6IxSvERuFq3Yn1yUl_S22G1OaE0pbyROd-GG14FukG0Bw3i2xGM-rZqWmF7bTCiWmF11gDh9bAOWvgZdbA3hp4gTWiVmw0ITa6yho4tAaeswYOrYFnrYHz1sDBf8f1PPIPa7gHLKAgU4hMuitm72scbEoFcYhdKGkr6txy4Org0LqUwtKDzKw2EG9FXtECRG31y49KILampj_oPhNuxEVHUdP0dLzLmittAaVQb1r3jNH1Lm2zwy-WTmtH)
 
 
-## General comments about Alternative 1 and Alternative 2
+### General comments about Alternative 1 and Alternative 2
 
 As we have said, both alternatives relies on the [parallel installs](https://snapcraft.io/docs/parallel-installs) feature of snaps which has aspect that must be considered:
 
-### Enable the feature in the host.
+#### Enable the feature in the host.
 
 This feature is currently considered experimental. As a result, to experiment with parallel installs, an experimental feature-flag must first be enabled in the host:
 
@@ -86,7 +86,7 @@ So some questions arise:
 * Is it OK for a charm to enable a snap feature on the running host?
 * Is it OK for a charm to reboot the host in which it is running?
 
-### Parallel installation of snaps
+#### Parallel installation of snaps
 
 In order to install several instances of the same snap, for instance the `hello-world` snap, we need append an `_INSTANCENAME` to the snap name:
 
@@ -111,4 +111,4 @@ hello-world_foo  6.4                 29     latest/stable       canonical**  -
 ```
 
 
-## One otelcol + node-exporter 
+## One `otelcol` + `node-exporter` binaries per `cos-collector` charm
