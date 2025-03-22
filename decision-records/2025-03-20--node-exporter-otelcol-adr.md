@@ -16,6 +16,7 @@
             - [Parallel installation of snaps](#parallel-installation-of-snaps)
             - [Questions and doubts about this approach](#questions-and-doubts-about-this-approach)
     - [Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per host)](#only-one-otelcol--node-exporter-binaries-per-cos-collector-charm-and-per-host)
+        - [Some considerations to be taken into account when implementing this solution](#some-considerations-to-be-taken-into-account-when-implementing-this-solution)
 
 <!-- markdown-toc end -->
 
