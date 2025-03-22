@@ -130,15 +130,17 @@ On the other hand, when we think of any kind of agent, service, daemon, etc. run
 
 With these ideas in mind, the question is why should `otelcol` and `node-exporter` be the exception?
 
+So let's explore this idea further, starting with a simple diagram of what the deployment would look like.
 
 
-[![](https://mermaid.ink/img/pako:eNqlVE1PxCAQ_SvNnJdku5q49rAHoze9qCfFAwK7JWmBUBo1u_vfHbaV2m73w8iFGXjvzfACrIEbISGDZWE-eM6cT-4fqa7q95VjNk9yU3mqExxxyTqlubKsIAFfps12GIMdwqxtd6UWx1VmR1VmUSVMAyVuKsJNUUjujWs4DUIoh2vK6OTmuZOPPI0HJ_LTGuelI5VmtgP1W0VElb5SSCi89TGHy8TTIPk6nU6RHsIsCcmoTq-fUK63cAYlIWQR6_XB0f-9JJ7SeFmgjSeNmP3DiMuL9CoaEZJRnRY5_42cjyLbnoNZbXgUFg3alT4LNt_zsUtGHI3B8JGgJllsKKCXxgmlmZcUNofv7vB5_IVPNbYBEyilK5kS-LjXQZSCz2WJtAxDIZesLjwFqrcIra1AxTuhUAayJSsqOQFWe_P0pTlk3tXyB3SrGN6GMqLkjvTQ_CK7z2QClukXYzqMM_Uqb7PtN-GyUh8?type=png)](https://mermaid.live/edit#pako:eNqlVE1PxCAQ_SvNnJdku5q49rAHoze9qCfFAwK7JWmBUBo1u_vfHbaV2m73w8iFGXjvzfACrIEbISGDZWE-eM6cT-4fqa7q95VjNk9yU3mqExxxyTqlubKsIAFfps12GIMdwqxtd6UWx1VmR1VmUSVMAyVuKsJNUUjujWs4DUIoh2vK6OTmuZOPPI0HJ_LTGuelI5VmtgP1W0VElb5SSCi89TGHy8TTIPk6nU6RHsIsCcmoTq-fUK63cAYlIWQR6_XB0f-9JJ7SeFmgjSeNmP3DiMuL9CoaEZJRnRY5_42cjyLbnoNZbXgUFg3alT4LNt_zsUtGHI3B8JGgJllsKKCXxgmlmZcUNofv7vB5_IVPNbYBEyilK5kS-LjXQZSCz2WJtAxDIZesLjwFqrcIra1AxTuhUAayJSsqOQFWe_P0pTlk3tXyB3SrGN6GMqLkjvTQ_CK7z2QClukXYzqMM_Uqb7PtN-GyUh8)
+[![](https://mermaid.ink/img/pako:eNqlVMFOAyEQ_ZXNnEvSrSbWPfRg9KYX9aR4QKAuCQuEZaOm7b87dFfWbbe1US7MwHtvhhdgBdwKCQUstX3nJfMhu72npm5e3zxzZVbaOlCT4UhLzivDlWOaRHyVt9tx7OwQ5ly3K404rjI7qjJLKnHaUeK2JtxqLXmwvuW0CKE8rilrsqvHXj7xDB6cyA9nfZCe1Ia5HjRsFRF1_kwho_AyxBwuk06D5Mt8OkV6DIssJqM6g35iucHCCZSMkEWqNwQn__eSdEobpEYbfzVi9g8jzs_yi2RETEZ1OuT8J3I-iux6jmZ14VFYMmhb-iTYfM_HPhlxNAUjlxJlyWJNAe20XijDgqSwPvCc_szHp0INtgETqKSvmBL4uFdRlEIoZYWcAkMhl6zRgQI1G4Q2TqDcjVBYDYol07WcAGuCffg0HIrgG_kNulYMb0OVUHJLumt_ke1nMgHHzJO1Pcbb5q3sss0X8kRSHw?type=png)](https://mermaid.live/edit#pako:eNqlVMFOAyEQ_ZXNnEvSrSbWPfRg9KYX9aR4QKAuCQuEZaOm7b87dFfWbbe1US7MwHtvhhdgBdwKCQUstX3nJfMhu72npm5e3zxzZVbaOlCT4UhLzivDlWOaRHyVt9tx7OwQ5ly3K404rjI7qjJLKnHaUeK2JtxqLXmwvuW0CKE8rilrsqvHXj7xDB6cyA9nfZCe1Ia5HjRsFRF1_kwho_AyxBwuk06D5Mt8OkV6DIssJqM6g35iucHCCZSMkEWqNwQn__eSdEobpEYbfzVi9g8jzs_yi2RETEZ1OuT8J3I-iux6jmZ14VFYMmhb-iTYfM_HPhlxNAUjlxJlyWJNAe20XijDgqSwPvCc_szHp0INtgETqKSvmBL4uFdRlEIoZYWcAkMhl6zRgQI1G4Q2TqDcjVBYDYol07WcAGuCffg0HIrgG_kNulYMb0OVUHJLumt_ke1nMgHHzJO1Pcbb5q3sss0X8kRSHw)
+
+If the idea is so simple, why wouldn't we implement it? Well, the answer is that from a charm perspective is not that simple. In fact in `grafana-agent` charm it is not implemented, and because of this we have [some weird situations.](https://discourse.charmhub.io/t/one-grafana-agent-charm-to-rule-them-all/16014).
+
+### Some considerations to be taken into account when implementing this solution
 
 
-Something would be great to improve with `otelcol` charm is [the behaviour we have with `grafana-agent` when more than one charm is related to the same principal or running in the same host](https://discourse.charmhub.io/t/one-grafana-agent-charm-to-rule-them-all/16014).
-
-
-In order to do that, everytime a `cos-collector` subordinate charm is related to a principal charm, the `cos-collector` charm must:
+Everytime `cos-collector` subordinate charm is related to a principal charm, `cos-collector` charm must:
 
 * Verify whether `otelcol` and `node-exporter` snaps are already installed or not to avoid trying to install them again.
 * Merge the `otelcol` configuration resulting from the established relationship with any previously existing configuration.
@@ -147,5 +149,6 @@ In order to do that, everytime a `cos-collector` subordinate charm is related to
 When a relation between `cos-collector` and a principal charm is removed, the `cos-collector` charm must:
 
 * Remove from the `otelcol` config file the configuration resulting from the departing relation.
-* Uninstall `otelcol` and `node-exporter` snaps only if there is no other subordinate relation.
+* Uninstall `otelcol` and `node-exporter` snaps only if there is no other `cos-collector` charm deployed in the same host.
 
+https://mermaid.live/edit#pako:eNqVUz1vwyAQ_SvWzWFIRw8ZqnZrl7ZTSwcCOEbCHMKgNkry33s2_lASp2qZzo_33r0DcwCJSkMJlcUvWYsQi6cX7tq03QXh66LGNnJX0FImaBkNuuLtnruMTTSJLZNoLTEwsM6nyYxr5Yj2JNZ1n7HJzxHM9LfHEHVgrRN-JnXrbH_9weEMKLbGibDn8PmLilq7yuyutBlOQXSJzyy0UwtRMWpLoy-EHHaow1DdyjVaTIlG_h-zzEdZMLa5sLtJWzqNTO7Nc-mDcdJ4YfOlrknJNkcOND4GReNEzeF4-_4v9Hf_0VMMWEGjQyOMol_00FlyiLVuSFRSqXQlko0cuDsRNXlFfo_KkAmUlbCtXoFIEV_3TkIZQ9Ij6cEIur5mYule9JzfQv8kVuCFe0ecOQHTrh6-Tj9JsxDs
