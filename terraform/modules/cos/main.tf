@@ -48,10 +48,10 @@ module "mimir" {
 }
 
 module "ssc" {
-  count      = var.use_tls ? 1 : 0
-  source     = "git::https://github.com/canonical/self-signed-certificates-operator//terraform"
-  model_name = var.model_name
-  channel    = var.channel
+  count   = var.use_tls ? 1 : 0
+  source  = "git::https://github.com/canonical/self-signed-certificates-operator//terraform"
+  model   = var.model_name
+  channel = var.channel
 }
 
 module "tempo" {
