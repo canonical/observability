@@ -122,9 +122,21 @@ With this approach some questions arise:
 
 ## Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per host)
 
-Something would be great to improve with `otelcol` charm is [the behaviour we have with `grafana-agent` when more than one charm is related to the same principal or running in the same host](https://discourse.charmhub.io/t/one-grafana-agent-charm-to-rule-them-all/16014).
+When we think about software like text-editors, browsers, terminals, etc you may expect that more than one instance of that software could be running on the host.
+
+On the other hand, when we think of any kind of agent, service, daemon, etc. running in the background, we normally assume that there is only one instance of that software running. `snapd`, `cron` and `sshd` are just a few examples of this kind of software.
+
+`otelcol` and `node-exporters` are examples of the latter.
+
+With these ideas in mind, the question is why should `otelcol` and `node-exporter` be the exception?
+
+
 
 [![](https://mermaid.ink/img/pako:eNqlVE1PxCAQ_SvNnJdku5q49rAHoze9qCfFAwK7JWmBUBo1u_vfHbaV2m73w8iFGXjvzfACrIEbISGDZWE-eM6cT-4fqa7q95VjNk9yU3mqExxxyTqlubKsIAFfps12GIMdwqxtd6UWx1VmR1VmUSVMAyVuKsJNUUjujWs4DUIoh2vK6OTmuZOPPI0HJ_LTGuelI5VmtgP1W0VElb5SSCi89TGHy8TTIPk6nU6RHsIsCcmoTq-fUK63cAYlIWQR6_XB0f-9JJ7SeFmgjSeNmP3DiMuL9CoaEZJRnRY5_42cjyLbnoNZbXgUFg3alT4LNt_zsUtGHI3B8JGgJllsKKCXxgmlmZcUNofv7vB5_IVPNbYBEyilK5kS-LjXQZSCz2WJtAxDIZesLjwFqrcIra1AxTuhUAayJSsqOQFWe_P0pTlk3tXyB3SrGN6GMqLkjvTQ_CK7z2QClukXYzqMM_Uqb7PtN-GyUh8?type=png)](https://mermaid.live/edit#pako:eNqlVE1PxCAQ_SvNnJdku5q49rAHoze9qCfFAwK7JWmBUBo1u_vfHbaV2m73w8iFGXjvzfACrIEbISGDZWE-eM6cT-4fqa7q95VjNk9yU3mqExxxyTqlubKsIAFfps12GIMdwqxtd6UWx1VmR1VmUSVMAyVuKsJNUUjujWs4DUIoh2vK6OTmuZOPPI0HJ_LTGuelI5VmtgP1W0VElb5SSCi89TGHy8TTIPk6nU6RHsIsCcmoTq-fUK63cAYlIWQR6_XB0f-9JJ7SeFmgjSeNmP3DiMuL9CoaEZJRnRY5_42cjyLbnoNZbXgUFg3alT4LNt_zsUtGHI3B8JGgJllsKKCXxgmlmZcUNofv7vB5_IVPNbYBEyilK5kS-LjXQZSCz2WJtAxDIZesLjwFqrcIra1AxTuhUAayJSsqOQFWe_P0pTlk3tXyB3SrGN6GMqLkjvTQ_CK7z2QClukXYzqMM_Uqb7PtN-GyUh8)
+
+
+Something would be great to improve with `otelcol` charm is [the behaviour we have with `grafana-agent` when more than one charm is related to the same principal or running in the same host](https://discourse.charmhub.io/t/one-grafana-agent-charm-to-rule-them-all/16014).
+
 
 In order to do that, everytime a `cos-collector` subordinate charm is related to a principal charm, the `cos-collector` charm must:
 
