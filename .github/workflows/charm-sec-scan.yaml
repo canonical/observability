@@ -1,0 +1,79 @@
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Usage documentation: static-code-analysis.md
+
+name: Security vulnerability scan
+
+on:
+  workflow_call:
+    inputs:
+
+
+jobs:
+  pack:
+    name: Pack the charm
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout the project
+        uses: actions/checkout@v4
+        with:
+          repository: canonical/${{ github.event.repository.name }}
+      - name: Install dependencies
+        env:
+          CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
+        run: |
+          # Install LXD
+          # concierge breaks charmcraft: https://github.com/jnsgruk/concierge/issues/28
+          sudo snap install lxd
+          sudo lxd waitready
+          sudo lxd init --minimal
+          sudo lxc network set lxdbr0 ipv6.address none
+          # Enable non-root user control
+          sudo chmod a+wr /var/snap/lxd/common/lxd/unix.socket
+          lxd_user="$USER"
+          sudo usermod -a -G lxd "$lxd_user"
+          # Ensure that LXD containers can talk to the internet
+          sudo iptables -F FORWARD
+          sudo iptables -P FORWARD ACCEPT
+          # Install other snaps
+          sudo snap install charmcraft --classic --channel="$CHARMCRAFT_CHANNEL"
+          sudo snap install astral-uv --classic
+      - name: Get charm name
+        id: get-charm-name
+        run: |
+          # Read charm name from metadata.yaml or charmcraft.yaml
+          cd "${{ inputs.charm-path }}"
+          charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
+          echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
+      - name: Cache wheels
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/snap/charmcraft/common/cache/charmcraft
+          key: ${{ runner.os }}-wheel-cache-${{ hashFiles('./uv.lock') }}
+          # If the above cache key doesn't match, it's because the uv.lock has changed.
+          # Even so, pre-existing caches may still contain useful cached builds for some
+          # portion of the dependencies, and restore-keys can partially match a cache.
+          restore-keys: |
+            ${{ runner.os }}-wheel-cache-
+      - name: Pack charm(s)
+        id: pack
+        run: |
+          cd "${{ inputs.charm-path }}"
+          charmcraft pack -v
+          charms="$(basename -a ./*.charm | jq -R -s -c 'split("\n")[:-1]')"
+          echo "charms=$charms"
+          echo "charms=$charms" >> "$GITHUB_OUTPUT"
+      - name: Store charm(s)
+        uses: actions/upload-artifact@v4
+        with:
+          name: charms-${{ runner.arch }}
+          path: ${{ inputs.charm-path }}/*.charm
+      - name: Run a security scan
+        uses: canonical/observability/.github/workflows/_secscan@main
+        with:
+          artifacts-type: package
+          artifacts-format: charm
+          artifacts-key: charms-${{ runner.arch }}
+          artifact-path: ${{ inputs.charm-path }}/*.charm
