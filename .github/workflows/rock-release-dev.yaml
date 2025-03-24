@@ -21,9 +21,7 @@ jobs:
       run: |
         sudo snap install concierge --classic
         sudo concierge prepare -p microk8s --extra-snaps=just,yq
-        # Install Syft
-        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh \
-          | sh -s -- -b /usr/local/bin
+        uv tool install git+https://github.com/lucabello/noctua
     - name: Build rock
       run: |
         latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
@@ -45,13 +43,13 @@ jobs:
       run: |
         latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
         cd "$latest_version"
-        # shellcheck disable=SC2086 # glob passed to realpath can't be wrapped
-        syft "$(realpath ./${ROCK_NAME}_*.rock)" -o "spdx-json=${ROCK_NAME}.sbom.json"
+        # Run `noctua rock generate-sbom`
+        noctua rock generate-sbom "$(realpath ./${ROCK_NAME}_*.rock)" --output ~/sboms
     - name: Upload SBOM
       uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.rock-name }}-sbom
-        path: "${{ inputs.rock-name}}.sbom.json"
+        path: "~/sboms"
     - name: Upload locally built rock artifact
       uses: actions/upload-artifact@v4
       with:

@@ -152,3 +152,25 @@ jobs:
               --notes="$body" \
               --generate-notes
           done
+      - name: Generate SBOMs
+        id: sboms
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+          CHARM_NAME: ${{ steps.get-charm-name.outputs.charm_name }}
+          GH_TOKEN: ${{ github.token }}
+          TAG_PREFIX: ${{ inputs.git-tag-prefix }}
+          RELEASE_CHANNEL: ${{ inputs.release-channel }}
+        run: |
+          set -x
+          cd "${{ inputs.charm-path }}"
+          file_paths="$(find . -name '*.charm' -printf '%f ')"
+          # For all the charms built on this architecture: build sbom
+          for path in ${file_paths}; do
+            ## Generate SBOM
+            uvx --quiet --from git+https://github.com/lucabello/noctua charm generate-sbom "$path" --output ~/sboms
+          done
+      - name: Upload SBOMs
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.charm-path }}-sboms
+          path: "~/sboms"
