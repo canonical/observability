@@ -6,15 +6,7 @@
 name: Tiobe TiCS Analysis
 
 on:
-  workflow_dispatch:
-    inputs:
-      repo:
-        type: choice
-        description: Repo to analyze
-        options: 
-        - prometheus-k8s-operator
-        - catalogue-k8s-operator
-        # TODO: add a workflow workflow_call once stable, and then run on a cron from each repo.
+  workflow_call:
 
 jobs:
   scan:
@@ -25,7 +17,7 @@ jobs:
       - name: Checkout the project
         uses: actions/checkout@v4
         with:
-          repository: canonical/${{ github.event.inputs.repo }}
+          repository: canonical/${{ github.event.repository.name }}
 
       - name: Install dependencies
         run: |
@@ -50,7 +42,7 @@ jobs:
         uses: tiobe/tics-github-action@v3
         with:
           mode: qserver
-          project: ${{ github.event.inputs.repo }}
+          project: ${{ github.event.repository.name }}
           branchdir: .
           viewerUrl: https://canonical.tiobe.com/tiobeweb/TICS/api/cfg?name=default
           ticsAuthToken: ${{ secrets.TICSAUTHTOKEN }}
