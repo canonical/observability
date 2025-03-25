@@ -1,5 +1,6 @@
 # Node-exporter + otelcol
 **Date:** 2025-03-20
+
 **Authors:** Jose Massón
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
