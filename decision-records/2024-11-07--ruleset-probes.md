@@ -65,6 +65,7 @@ Disadvantages
   - Another ruleset; ruleset chaining (should guard against circular dependency)
   - Python probe; alternatives `(1)` or `(2)`
   - Built-in probe; universal for any deployment, e.g. `apps/has-relation`, `apps/has-subordinate`, `apps/unit-limit`
+  - Ad-hoc probe; non-standard in-line Python script
 
 Advantages
 - Non-technical authors can easily understand the deployment abstraction
