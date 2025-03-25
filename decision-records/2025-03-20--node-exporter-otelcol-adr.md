@@ -1,22 +1,23 @@
-# Node-exporter inside or alongside otelcol charm
+# Node-exporter + otelcol
 **Date:** 2025-03-20
-
 **Authors:** Jose Massón
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
 
-- [Node-exporter inside or alongside otelcol charm](#node-exporter-inside-or-alongside-otelcol-charm)
+- [Node-exporter + otelcol](#node-exporter--otelcol)
     - [Context and Problem Statement](#context-and-problem-statement)
     - [One `otelcol` + `node-exporter` binaries per Principal charm (make use of snaps `parallel install` feature)](#one-otelcol--node-exporter-binaries-per-principal-charm-make-use-of-snaps-parallel-install-feature)
         - [Alternative 1: Add `node-exporter` as a second `app` in `opentelemetry-collector-snap`](#alternative-1-add-node-exporter-as-a-second-app-in-opentelemetry-collector-snap)
         - [Alternative 2: Install `node-exporter` as a separate snap](#alternative-2-install-node-exporter-as-a-separate-snap)
         - [General comments about Alternative 1 and Alternative 2](#general-comments-about-alternative-1-and-alternative-2)
             - [Enable the feature in the host.](#enable-the-feature-in-the-host)
+            - [Ports management](#ports-management)
             - [Parallel installation of snaps](#parallel-installation-of-snaps)
             - [Questions and doubts about this approach](#questions-and-doubts-about-this-approach)
     - [Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per host)](#only-one-otelcol--node-exporter-binaries-per-cos-collector-charm-and-per-host)
         - [Some considerations to be taken into account when implementing this solution](#some-considerations-to-be-taken-into-account-when-implementing-this-solution)
+            - [Questions and doubts about this approach](#questions-and-doubts-about-this-approach-1)
 
 <!-- markdown-toc end -->
 
@@ -51,9 +52,6 @@ This alternative follows the concept: *"Everytime we relate the subordinate char
 
 Although this alternative is quite simple in terms of the modification of the [`opentelemetry-collector-snap`](https://github.com/canonical/opentelemetry-collector-snap), we should also modify the snap name (and the charm name?) since it won't be only `otelcol`. It will be `otelcol` + `node-exporter`. Say for instance: `cos-collector`.
 
-By default `node-exporter` exports host metrics in the port `9100`. In order to support [parallel installs](https://snapcraft.io/docs/parallel-installs) we should add a config option to the snap so we can [arbitrary change the port number](https://stackoverflow.com/a/57215681) `node-exporter` uses. The same happens with `otelcol` which exposes several ports.
-
-This way we could potentially install the same snap several times in the same `host`.
 
 [![](https://mermaid.ink/img/pako:eNqtlMFugzAMhl8F5Vyk4lYq47DDtN22y7bTlh1SYgoSJCgEbVXVd18CNFAhBJ2WQxQ7v-3Y-pQTiSVHEpEkl99xypT2nl-pqOr9QbEy9VJZaSo8s5yrEqwMPqkJrPxY5jnGWqrGS8lXq70snilzm0nhPbz3Ny7TPhNMHW0uYR7h408plUbV-Rdms8vG3QXrtclkj5FnjVH8VZFR1Rm55_v3rk4vRMEnGwNTQmrMzZCWtTRuarsJdq4pa4wydKpwqApHqu4ZQf-iSYlrtCk3KwmvZtFrW7cbzxU98Bd6Jse8-Sd-YMgPzPEDt_EDPT-wlJ_trfyMuYAhPTBFDwzpgUl6YJ4eGKABu3nJAnrMRlakQFWwjJuP6mTvKNEpFkhJZI4cE1bnmhIqzkZal5xpfOKZAYtECcsrXBFWa_l2FDGJtKrxInrMmBl44VTYBL20P2LzMa5IycSHlL1GyfqQdtb5F-o7huQ?type=png)](https://mermaid.live/edit#pako:eNqtlMFugzAMhl8F5Vyk4lYq47DDtN22y7bTlh1SYgoSJCgEbVXVd18CNFAhBJ2WQxQ7v-3Y-pQTiSVHEpEkl99xypT2nl-pqOr9QbEy9VJZaSo8s5yrEqwMPqkJrPxY5jnGWqrGS8lXq70snilzm0nhPbz3Ny7TPhNMHW0uYR7h408plUbV-Rdms8vG3QXrtclkj5FnjVH8VZFR1Rm55_v3rk4vRMEnGwNTQmrMzZCWtTRuarsJdq4pa4wydKpwqApHqu4ZQf-iSYlrtCk3KwmvZtFrW7cbzxU98Bd6Jse8-Sd-YMgPzPEDt_EDPT-wlJ_trfyMuYAhPTBFDwzpgUl6YJ4eGKABu3nJAnrMRlakQFWwjJuP6mTvKNEpFkhJZI4cE1bnmhIqzkZal5xpfOKZAYtECcsrXBFWa_l2FDGJtKrxInrMmBl44VTYBL20P2LzMa5IycSHlL1GyfqQdtb5F-o7huQ)
 
@@ -66,9 +64,6 @@ This alternative also follows the concept: *"Everytime we relate the subordinate
 
 This way provides a better separation of concerns: Each binary is installed and managed by its own snap: [opentelemetry-collector](https://github.com/canonical/opentelemetry-collector-snap) and [node-exporter](https://snapcraft.io/node-exporter)
 
-By default `node-exporter` exports host metrics in the port `9100`. In order to support [parallel installs](https://snapcraft.io/docs/parallel-installs) we should add a config option to the snap so we can [arbitrary change the port number](https://stackoverflow.com/a/57215681) `node-exporter` uses. The same happens with `otelcol` which exposes several ports.
-
-This way we could also potentially install several snaps of the same type in the same `host`.
 
 [![](https://mermaid.ink/img/pako:eNqtlD1PwzAQhv9KdHMjNddIDRkYEGywABOYwY2vTaTEjhxHUFX979hpyYeikrbgIfLHcznr1SPvIFGCIIZ1rj6TlGvjPT4zWdWrjeZl6qWqMkx6drRbleRl8M5A2kKfvkqlDelml8HHgR3wDqjGBatMcr0dlLghMk2JyZT07l6HJ67uJpjP7Z_cNPbcYlQ_aDLqOoF7vn_b9ulAkuKwaCeDMNB2UYbyROVTMfTRqwIIF8GyDcAtRvVHKupT0Yg6XiLo7nMSaUNp2k0i0SC3jv0twcWlOi3-SSfs64RTOuFlOmGnE16gU3i-TuHfdcK-TnhKJ-zrhCd1wmmdsOcKLqeRM3SyH5hBQbrgmbBP2c6dMTApFcQgtlNBa17nhgGTe4vWpeCGHkRmlIZ4zfOKZsBro162MoHY6Jp-oPuM27yLlqKm6OnwZjZP5wxKLt-U6hit6k16XO2_Aa0Mlgk?type=png)](https://mermaid.live/edit#pako:eNqtlD1PwzAQhv9KdHMjNddIDRkYEGywABOYwY2vTaTEjhxHUFX979hpyYeikrbgIfLHcznr1SPvIFGCIIZ1rj6TlGvjPT4zWdWrjeZl6qWqMkx6drRbleRl8M5A2kKfvkqlDelml8HHgR3wDqjGBatMcr0dlLghMk2JyZT07l6HJ67uJpjP7Z_cNPbcYlQ_aDLqOoF7vn_b9ulAkuKwaCeDMNB2UYbyROVTMfTRqwIIF8GyDcAtRvVHKupT0Yg6XiLo7nMSaUNp2k0i0SC3jv0twcWlOi3-SSfs64RTOuFlOmGnE16gU3i-TuHfdcK-TnhKJ-zrhCd1wmmdsOcKLqeRM3SyH5hBQbrgmbBP2c6dMTApFcQgtlNBa17nhgGTe4vWpeCGHkRmlIZ4zfOKZsBro162MoHY6Jp-oPuM27yLlqKm6OnwZjZP5wxKLt-U6hit6k16XO2_Aa0Mlgk)
 
@@ -86,6 +81,13 @@ $ sudo snap set system experimental.parallel-instances=true
 ```
 
 > *We recommend rebooting the system after toggling the experimental.parallel-instances flag state to avoid potential namespace problems with snap applications that have already been run*
+
+#### Ports management
+
+By default `node-exporter` exports host metrics in the port `9100` and `otelcol` exports several ports as well.
+In order to support [parallel installs](https://snapcraft.io/docs/parallel-installs) we should add a config option to the snaps so we can [arbitrary change the ports number](https://stackoverflow.com/a/57215681) `node-exporter` and `otelcol` uses.
+
+This way we could potentially install the same snap several times in the same `host`.
 
 
 #### Parallel installation of snaps
@@ -152,4 +154,13 @@ When a relation between `cos-collector` and a principal charm is removed, the `c
 * Remove from the `otelcol` config file the configuration resulting from the departing relation.
 * Uninstall `otelcol` and `node-exporter` snaps only if there is no other `cos-collector` charm deployed in the same host.
 
+
+#### Questions and doubts about this approach
+
+
+* When we think of a charm, we expect it to manage the lifecycle of an application, from installation, configuration, scaling to relationships. However, with this approach, multiple instances of `cos-collector` charm will handle a single binary and a single configuration file.
+
+
+
 [![](https://mermaid.ink/img/pako:eNqVUz1vwyAQ_SvWzWFIRw8ZqnZrl7ZTSwcCOEbCHMKgNkry33s2_lASp2qZzo_33r0DcwCJSkMJlcUvWYsQi6cX7tq03QXh66LGNnJX0FImaBkNuuLtnruMTTSJLZNoLTEwsM6nyYxr5Yj2JNZ1n7HJzxHM9LfHEHVgrRN-JnXrbH_9weEMKLbGibDn8PmLilq7yuyutBlOQXSJzyy0UwtRMWpLoy-EHHaow1DdyjVaTIlG_h-zzEdZMLa5sLtJWzqNTO7Nc-mDcdJ4YfOlrknJNkcOND4GReNEzeF4-_4v9Hf_0VMMWEGjQyOMol_00FlyiLVuSFRSqXQlko0cuDsRNXlFfo_KkAmUlbCtXoFIEV_3TkIZQ9Ij6cEIur5mYule9JzfQv8kVuCFe0ecOQHTrh6-Tj9JsxDs?type=png)](https://mermaid.live/edit#pako:eNqVUz1vwyAQ_SvWzWFIRw8ZqnZrl7ZTSwcCOEbCHMKgNkry33s2_lASp2qZzo_33r0DcwCJSkMJlcUvWYsQi6cX7tq03QXh66LGNnJX0FImaBkNuuLtnruMTTSJLZNoLTEwsM6nyYxr5Yj2JNZ1n7HJzxHM9LfHEHVgrRN-JnXrbH_9weEMKLbGibDn8PmLilq7yuyutBlOQXSJzyy0UwtRMWpLoy-EHHaow1DdyjVaTIlG_h-zzEdZMLa5sLtJWzqNTO7Nc-mDcdJ4YfOlrknJNkcOND4GReNEzeF4-_4v9Hf_0VMMWEGjQyOMol_00FlyiLVuSFRSqXQlko0cuDsRNXlFfo_KkAmUlbCtXoFIEV_3TkIZQ9Ij6cEIur5mYule9JzfQv8kVuCFe0ecOQHTrh6-Tj9JsxDs)
+
