@@ -6,7 +6,7 @@
 name: Security vulnerability scan
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       charmcraft-channel:
         type: string
@@ -19,6 +19,11 @@ on:
         default: '.'
         required: false
         type: string
+      repository:
+        description: "Repository that we want to run the scan for."
+        default: ${{ github.event.repository.name }}
+        required: false
+        type: string
 
 jobs:
   pack:
@@ -29,7 +34,7 @@ jobs:
       - name: Checkout the project
         uses: actions/checkout@v4
         with:
-          repository: canonical/${{ github.event.repository.name }}
+          repository: canonical/${{ inputs.repository }}
       - name: Install dependencies
         env:
           CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
