@@ -84,7 +84,7 @@ jobs:
     name: Run the security scan
     needs:
       - pack
-    uses: canonical/observability/.github/workflows/_secscan@main
+    uses: canonical/observability/.github/workflows/_secscan.yaml@main
     with:
       artifacts-type: package
       artifacts-format: charm
