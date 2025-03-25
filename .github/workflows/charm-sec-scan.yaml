@@ -8,7 +8,17 @@ name: Security vulnerability scan
 on:
   workflow_call:
     inputs:
-
+      charmcraft-channel:
+        type: string
+        default: "3.x/candidate"
+        required: false
+        description: |
+          The snap channel from which to install Charmcraft.
+      charm-path:
+        description: "Path to the charm we want to publish. Defaults to the current working directory."
+        default: '.'
+        required: false
+        type: string
 
 jobs:
   pack:
@@ -70,10 +80,13 @@ jobs:
         with:
           name: charms-${{ runner.arch }}
           path: ${{ inputs.charm-path }}/*.charm
-      - name: Run a security scan
-        uses: canonical/observability/.github/workflows/_secscan@main
-        with:
-          artifacts-type: package
-          artifacts-format: charm
-          artifacts-key: charms-${{ runner.arch }}
-          artifact-path: ${{ inputs.charm-path }}/*.charm
+  scan:
+    name: Run the security scan
+    needs:
+      - pack
+    uses: canonical/observability/.github/workflows/_secscan@main
+    with:
+      artifacts-type: package
+      artifacts-format: charm
+      artifacts-key: charms-${{ runner.arch }}
+      artifact-path: ${{ inputs.charm-path }}/*.charm
