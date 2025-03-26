@@ -106,7 +106,7 @@ $ sudo snap install hello-world_baz
 hello-world_baz 6.4 from Canonical✓ installed
 ```
 
-Now we verify that both instance are installed:
+Now we verify that all instances were installed:
 
 ```shell
 $ sudo snap list | grep hello
