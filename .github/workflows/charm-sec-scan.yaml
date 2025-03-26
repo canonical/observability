@@ -19,11 +19,6 @@ on:
         default: '.'
         required: false
         type: string
-      repository:
-        description: "Repository that we want to run the scan for."
-        default: ${{ github.event.repository.name }}
-        required: false
-        type: string
   workflow_call:
     inputs:
       charmcraft-channel:
@@ -37,11 +32,6 @@ on:
         default: '.'
         required: false
         type: string
-      repository:
-        description: "Repository that we want to run the scan for."
-        default: ${{ github.event.repository.name }}
-        required: false
-        type: string
 
 jobs:
   pack:
@@ -52,7 +42,7 @@ jobs:
       - name: Checkout the project
         uses: actions/checkout@v4
         with:
-          repository: canonical/${{ inputs.repository }}
+          repository: canonical/${{ github.event.repository.name }}
       - name: Install dependencies
         env:
           CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
@@ -84,12 +74,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /home/runner/snap/charmcraft/common/cache/charmcraft
-          key: ${{ runner.os }}-wheel-cache-${{ hashFiles('./uv.lock') }}
+          key: ubuntu-wheel-cache-${{ hashFiles('./uv.lock') }}
           # If the above cache key doesn't match, it's because the uv.lock has changed.
           # Even so, pre-existing caches may still contain useful cached builds for some
           # portion of the dependencies, and restore-keys can partially match a cache.
           restore-keys: |
-            ${{ runner.os }}-wheel-cache-
+            ubuntu-wheel-cache-
       - name: Pack charm(s)
         id: pack
         run: |
@@ -101,7 +91,7 @@ jobs:
       - name: Store charm(s)
         uses: actions/upload-artifact@v4
         with:
-          name: charms-${{ runner.arch }}
+          name: charms-amd64
           path: ${{ inputs.charm-path }}/*.charm
   scan:
     name: Run the security scan
@@ -111,5 +101,5 @@ jobs:
     with:
       artifacts-type: package
       artifacts-format: charm
-      artifacts-key: charms-${{ runner.arch }}
+      artifacts-key: charms-amd64
       artifact-path: ${{ inputs.charm-path }}/*.charm
