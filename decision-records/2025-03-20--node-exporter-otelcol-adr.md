@@ -16,9 +16,10 @@
             - [Ports management](#ports-management)
             - [Parallel installation of snaps](#parallel-installation-of-snaps)
             - [Questions and doubts about this approach](#questions-and-doubts-about-this-approach)
-    - [Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per host)](#only-one-otelcol--node-exporter-binaries-per-cos-collector-charm-and-per-host)
+    - [Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per principal charm and host)](#only-one-otelcol--node-exporter-binaries-per-cos-collector-charm-and-per-principal-charm-and-host)
         - [Some considerations to be taken into account when implementing this solution](#some-considerations-to-be-taken-into-account-when-implementing-this-solution)
             - [Questions and doubts about this approach](#questions-and-doubts-about-this-approach-1)
+    - [Decision](#decision)
 
 <!-- markdown-toc end -->
 
@@ -124,7 +125,7 @@ With this approach some questions arise:
 * Having more than one `otelcol` and `node-exporter` running on the same host will consume extra resources. Are those over-consumed resources significant?
 
 
-## Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per host)
+## Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per principal charm and host)
 
 When we think about software like text-editors, browsers, terminals, etc you may expect that more than one instance of that software could be running on the host.
 
