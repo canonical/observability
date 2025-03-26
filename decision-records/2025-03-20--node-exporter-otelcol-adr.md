@@ -119,7 +119,7 @@ hello-world_foo  6.4                 29     latest/stable       canonical**  -
 
 With this approach some questions arise:
 
-* Is it OK for a charm to enable a snap feature on the running host?
+* Is it OK for a charm to enable a snapd feature on the running host?
 * Is it OK for a charm to reboot the host in which it is running?
 * Having more than one `otelcol` and `node-exporter` running on the same host will consume extra resources. Are those over-consumed resources significant?
 
