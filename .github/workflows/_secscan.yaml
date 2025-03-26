@@ -34,9 +34,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.artifacts-key }}
-      - name: Print directory contents
-        id: print
-        run: ls
       - name: Run secscan
         id: secscan
         continue-on-error: true
