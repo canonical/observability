@@ -37,7 +37,7 @@ jobs:
       - name: Run secscan
         id: secscan
         continue-on-error: true
-        run: secscan-client --batch submit --scanner trivy --type ${{ inputs.artifacts-type }} --format ${{ inputs.artifacts-format }} ${{ inputs.artifacts-path }} --token token.yaml
+        run: secscan-client --batch submit --scanner trivy --type ${{ inputs.artifacts-type }} --format ${{ inputs.artifacts-format }} ${{ inputs.artifact-path }} --token token.yaml
       - name: Wait for the results
         id: secscan-wait
         continue-on-error: true
