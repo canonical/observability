@@ -108,4 +108,4 @@ Disadvantages
 - Another language to learn
 
 ## Decision
-The only way to write probes is with `(1)` with Python probes limited to `(2)`. 
+The only way to execute probes is using `(3)` with Python probes limited to `(2)`. 
