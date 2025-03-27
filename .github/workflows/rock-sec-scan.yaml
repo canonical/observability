@@ -36,4 +36,4 @@ jobs:
       artifacts-type: container-image
       artifacts-format: oci
       artifacts-key: ${{ inputs.rock-name }}-rock
-      artifact-path: "${{ inputs.rock-name }}_*.rock"
+      artifact-path: "./**/${{ inputs.rock-name }}_*.rock"
