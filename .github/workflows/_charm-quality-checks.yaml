@@ -6,101 +6,269 @@ on:
       charm-path:
         type: string
         required: false
+        default: .
       provider:
         type: string
-        description: "The provider to choose for either machine or k8s tests ('lxd' or 'microk8s')"
+        description: "The provider to choose for integration tests ('machine' or 'microk8s')"
         required: true
-      ip-range:
-        type: string
-        description: |
-          The IP range in the address pool for the load balancer to use.
-          It can be either a subnet(IP/mask) or a range (<IP1>-<IP2>)
-        required: false
-        default: null
       charmcraft-channel:
         type: string
-        default: "3.x/candidate"
-        required: false
+        required: true
         description: |
           The snap channel from which to install Charmcraft.
+      juju-channel:
+        type: string
+        required: true
+        description: |
+          The snap channel from which to install Juju.
+          Overrides the default branch-dependant selection of the Juju version.
+      parallelize-integration:
+        description: |
+          Parallelize integration tests by spinning up one runner per Python file.
+        required: true
+        type: boolean
+      automatically-retry-hooks:
+        description: |
+          Whether Juju models should automatically-retry hooks.
+          Sets the `automatically-retry-hooks` in the model-defaults config.
+        required: true
+        type: boolean
     secrets:
       CHARMHUB_TOKEN:
         required: false
 jobs:
-  check-secret:
-    name: Check the CHARMHUB_TOKEN secret
+  snap-channels:
+    name: Select snap channels
     runs-on: ubuntu-latest
     outputs:
-      defined: ${{ steps.check.outputs.defined }}
+      juju-channel: ${{ steps.channels.outputs.juju-channel }}
+    env:
+      BRANCH_NAME: ${{ github.base_ref || github.ref_name }} 
     steps:
-      - id: check
-        env:
-          CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
-        if: "${{ env.CHARMHUB_TOKEN != '' }}"
-        run: echo "defined=true" >> $GITHUB_OUTPUT
+      - name: Determine Juju version
+        id: channels
+        run: |
+          # If a Juju version is passed from the inputs use that, otherwise use the defaults
+          # we picked for each track name
+          if [[ -n "${{ inputs.juju-channel }}" ]]; then
+            echo "juju-channel=${{ inputs.juju-channel }}" >> "$GITHUB_OUTPUT"
+          elif [[ "${BRANCH_NAME#refs/heads/}" == "track/1" ]]; then
+            echo "juju-channel=3.1/stable" >> "$GITHUB_OUTPUT"
+          else
+            echo "juju-channel=3.6/stable" >> "$GITHUB_OUTPUT"
+          fi
+
   call-inclusive-naming-check:
     # Issues with this workflow can be addressed by adding a .wokeignore in the repository root
     name: Inclusive naming
     uses: canonical/Inclusive-naming/.github/workflows/woke.yaml@main
     with:
-      fail-on-error: "true"
-  lib-check:
-    name: Check libraries
+      fail-on-error: "false"
+
+  codeql:
+    name: CodeQL analysis
     runs-on: ubuntu-latest
-    needs:
-      - check-secret
-    if: needs.check-secret.outputs.defined == 'true'
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
         with:
-          fetch-depth: 1
-      - name: Check charm libraries # Make sure our charm libraries are updated
-        uses: canonical/charming-actions/check-libraries@2.5.0-rc
-        with:
-          credentials: "${{ secrets.CHARMHUB_TOKEN }}"
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-          charm-path: "${{ inputs.charm-path }}"
-          charmcraft-channel: "${{ inputs.charmcraft-channel }}"
-  static-analysis:
-    name: Static Analysis
-    uses: canonical/observability/.github/workflows/_charm-static-analysis.yaml@main
-    with:
-      charm-path: "${{ inputs.charm-path }}"
+          languages: python
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
   linting:
     name: Linting
-    uses: canonical/observability/.github/workflows/_charm-linting.yaml@main
-    with:
-      charm-path: "${{ inputs.charm-path }}"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Lint
+        run: |
+          sudo snap install astral-uv --classic
+          cd "${{ inputs.charm-path }}"
+          uvx tox -e lint
+
+  linting-rules:
+    name: Lint alert rules
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download promtool and lint rules
+        env:
+          CHARM_PATH: "${{ inputs.charm-path }}"
+          PROMTOOL_VERSION: 2.55.0
+        run: |
+          # Get promtool
+          releases_url="https://github.com/prometheus/prometheus/releases/download"
+          promtool_url="${releases_url}/v${PROMTOOL_VERSION}/prometheus-${PROMTOOL_VERSION}.linux-amd64.tar.gz"
+          curl -sSL -o promtool.tar.gz "$promtool_url"
+          tar -xzf promtool.tar.gz --strip-components=1
+          # Lint the alert rules
+          if [[ -d "$CHARM_PATH"/src/prometheus_alert_rules ]]; then
+            ./promtool check rules "$CHARM_PATH"/src/prometheus_alert_rules/*
+          else
+            echo "This charm has no alert rules under /src/prometheus_alert_rules"
+          fi
+
+  linting-terraform:
+    name: Lint Terraform files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Terraform and lint modules
+        env:
+          CHARM_PATH: "${{ inputs.charm-path }}"
+        run: |
+          sudo snap install opentofu --classic
+          cd "$CHARM_PATH"
+          tofu fmt -check -recursive -diff
+
+  static-analysis:
+    name: Static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Static analysis
+        run: |
+          sudo snap install astral-uv --classic
+          cd "${{ inputs.charm-path }}"
+          uvx tox -e static
+
   unit-test:
-    name: Unit Tests
-    uses: canonical/observability/.github/workflows/_charm-tests-unit.yaml@main
-    with:
-      charm-path: "${{ inputs.charm-path }}"
-  scenario-test:
-    name: Scenario Tests
-    uses: canonical/observability/.github/workflows/_charm-tests-scenario.yaml@main
-    with:
-      charm-path: "${{ inputs.charm-path }}"
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Unit tests
+        run: |
+          sudo snap install astral-uv --classic
+          cd "${{ inputs.charm-path }}"
+          uvx tox -e unit
+
+  pack-charm:
+    name: Pack the charm
+    runs-on: ubuntu-latest
+    needs:
+      - linting
+      - linting-rules
+      - static-analysis
+      - unit-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup LXD
+        uses: canonical/setup-lxd@main
+      - name: Install charmcraft
+        run: sudo snap install charmcraft --classic
+      - name: Cache wheels
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/snap/charmcraft/common/cache/charmcraft
+          key: ${{ runner.os }}-wheel-cache-${{ hashFiles('./uv.lock') }}
+          # If the above cache key doesn't match, it's because the uv.lock has changed.
+          # Even so, pre-existing caches may still contain useful cached builds for some
+          # portion of the dependencies, and restore-keys can partially match a cache.
+          restore-keys: |
+            ${{ runner.os }}-wheel-cache-
+      - name: Run charmcraft pack
+        run: |
+          cd "${{ inputs.charm-path }}"
+          charmcraft pack -v
+      - name: Upload charm artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: charms-tests
+          path: ${{ inputs.charm-path }}/*.charm
+
+  integration-mono:
+    name: Integration Tests (sequential)
+    if: ${{ ! inputs.parallelize-integration }}
+    runs-on: ubuntu-latest
+    needs: [snap-channels, pack-charm]
+    env:
+      CONCIERGE_JUJU_CHANNEL: ${{ needs.snap-channels.outputs.juju-channel }}
+      CONCIERGE_MICROK8S_CHANNEL: 1.32-strict/stable
+      CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install concierge --classic
+          sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv
+          sudo snap install kubectl --classic
+          juju model-defaults automatically-retry-hooks="${{ inputs.automatically-retry-hooks }}"
+      - name: Download charm artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: charms-tests
+          path: ${{ inputs.charm-path }}
+      - name: Run integration tests
+        run: |
+          cd ${{ inputs.charm-path }}
+          charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | tail -n1)"
+          CHARM_PATH="$(realpath "$charm_relative_path")"
+          export CHARM_PATH
+          uvx tox -e integration
+
+  integration-matrix:
+    name: Define Integration tests matrix
+    if: ${{ inputs.parallelize-integration }}
+    runs-on: ubuntu-latest
+    needs: [pack-charm]
+    outputs:
+      suites: ${{ steps.suites.outputs.suites }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Generate matrix list
+        id: suites
+        run: |
+          list="$(find tests/integration -name 'test_*.py' -printf '%f\n' | jq -r -ncR '[inputs]')"
+          echo "suites=$list"
+          echo "suites=$list" >> "$GITHUB_OUTPUT"
+          
   integration-test:
-    name: Integration Tests
-    needs:
-      - static-analysis
-      - linting
-      - unit-test
-      - scenario-test
-    uses: canonical/observability/.github/workflows/_charm-tests-integration.yaml@main
-    with:
-      charm-path: "${{ inputs.charm-path }}"
-      provider: "${{ inputs.provider }}"
-      ip-range: ${{ inputs.ip-range }}
-      charmcraft-channel: ${{ inputs.charmcraft-channel }}
-  codeql:
-    name: CodeQL analysis
-    needs:
-      - static-analysis
-      - linting
-      - unit-test
-    uses: canonical/observability/.github/workflows/_charm-codeql-analysis.yml@main
-    with:
-      charm-path: "${{ inputs.charm-path }}"
+    name: Integration Tests (parallel)
+    if: ${{ inputs.parallelize-integration }}
+    runs-on: ubuntu-latest
+    needs: [snap-channels, pack-charm, integration-matrix]
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: ${{ fromJSON(needs.integration-matrix.outputs.suites) }}
+    env:
+      CONCIERGE_JUJU_CHANNEL: ${{ needs.snap-channels.outputs.juju-channel }}
+      CONCIERGE_MICROK8S_CHANNEL: 1.32-strict/stable
+      CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install concierge --classic
+          sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv
+          sudo snap install kubectl --classic
+          juju model-defaults automatically-retry-hooks="${{ inputs.automatically-retry-hooks }}"
+      - name: Download charm artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: charms-tests
+          path: ${{ inputs.charm-path }}
+      - name: Run integration tests
+        run: |
+          cd ${{ inputs.charm-path }}
+          charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | tail -n1)"
+          CHARM_PATH="$(realpath "$charm_relative_path")"
+          export CHARM_PATH
+          uvx tox -e integration -- -k "${{ matrix.suite }}"

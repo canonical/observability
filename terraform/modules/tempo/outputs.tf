@@ -32,11 +32,6 @@ output "endpoints" {
   }
 }
 
-output "bucket_name" {
-  value       = var.bucket_name
-  description = "The bucket name for Tempo"
-}
-
 output "s3_integrator_name" {
   value       = var.s3_integrator_name
   description = "Name of the s3-integrator for Tempo"

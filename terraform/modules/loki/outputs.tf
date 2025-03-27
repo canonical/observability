@@ -29,10 +29,6 @@ output "endpoints" {
   }
 }
 
-output "bucket_name" {
-  value       = var.bucket_name
-  description = "The bucket name for Loki"
-}
 
 output "s3_integrator_name" {
   value       = var.s3_integrator_name

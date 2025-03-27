@@ -15,13 +15,36 @@ variable "use_tls" {
   default     = true
 }
 
-variable "minio_user" {
-  description = "User for MinIO"
+variable "s3_endpoint" {
+  description = "S3 endpoint"
   type        = string
 }
 
-variable "minio_password" {
-  description = "Password for MinIO"
+variable "s3_user" {
+  description = "User for S3"
+  type        = string
+}
+
+variable "s3_password" {
+  description = "Password for S3"
+  type        = string
+  sensitive   = true
+}
+
+variable "loki_bucket" {
+  description = "Loki bucket name"
+  type        = string
+  sensitive   = true
+}
+
+variable "mimir_bucket" {
+  description = "Mimir bucket name"
+  type        = string
+  sensitive   = true
+}
+
+variable "tempo_bucket" {
+  description = "Tempo bucket name"
   type        = string
   sensitive   = true
 }

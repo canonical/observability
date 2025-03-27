@@ -3,200 +3,152 @@ name: Release charm to Edge
 on:
   workflow_call:
     inputs:
+      release-channel:
+        description: |
+          Name of the Charmhub channel (with the format 'latest/edge') to release the charm to.
+        type: string
+        required: true
       charm-path:
         type: string
         required: false
         default: .
-      release-tag-prefix:
-        description: "Tag prefix to use for the tag of the GitHub release."
-        default: ''
-        required: false
+      runners:
+        description: |
+          Json matrix of the runners to use to build and release the charm.
+          Example: ["ubuntu-latest","Ubuntu_ARM64_4C_16G_03"]
         type: string
-      artifact:
-        description: "Name of artifact to download before building. Must contain the file artifact.tar.gz."
-        default: ''
         required: false
-        type: string
-      build-for-arm:
-        type: boolean
-        default: false
-        required: false
-        description: >
-          Whether or not to build the charm for arm64. Defaults to false.
+        default: "ubuntu-latest"
       charmcraft-channel:
         type: string
-        default: "3.x/candidate"
-        required: false
+        required: true
         description: |
           The snap channel from which to install Charmcraft.
+      git-tag-prefix:
+        description: "Tag prefix to use for the tag of the GitHub release."
+        required: false
+        type: string
     secrets:
       CHARMHUB_TOKEN:
         required: true
 
+permissions:
+  contents: write
+
 jobs:
   build:
-    name: Build the charms
-    runs-on: ubuntu-22.04
+    name: Release the charm
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner: ${{ fromJSON(inputs.runners) }}
     outputs:
-      charms: ${{ steps.builder.outputs.charms }}
+      charms: ${{ steps.pack.outputs.charms }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - name: Setup LXD
-        uses: canonical/setup-lxd@v0.1.1
-        with:
-          channel: latest/stable
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        id: download_artifact
-        with:
-          name: "${{ inputs.artifact }}"
-        if: ${{ inputs.artifact != '' }}
-      - name: Unpack Artifact
-        run: sudo apt-get update && sudo apt-get install tar && tar xf artifact.tar.gz
-        if: ${{ inputs.artifact != '' }}
-      - name: Build charm(s)
-        id: builder
+      - name: Install dependencies
+        env:
+          CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
         run: |
-          sudo snap install jq
-          sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
-          (cd ${{ inputs.charm-path }}; charmcraft pack)
-          export CHARMS=$(basename -a ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
-          echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
-      - name: Store charms
-        uses: actions/upload-artifact@v4
-        with:
-          name: charms
-          path: ${{ inputs.charm-path }}/*.charm
-      - name: Step output
-        run: |
-          echo "${{ fromjson(steps.builder.outputs.charms) }} "
-  build-arm:
-    name: Build the charms for ARM
-    if: ${{ inputs.build-for-arm }}
-    runs-on: Ubuntu_ARM64_4C_16G_01
-    outputs:
-      charms: ${{ steps.builder.outputs.charms }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        id: download_artifact
-        with:
-          name: "${{ inputs.artifact }}"
-        if: ${{ inputs.artifact != '' }}
-      - name: Unpack Artifact
-        run: sudo apt-get update && sudo apt-get install tar && tar xf artifact.tar.gz
-        if: ${{ inputs.artifact != '' }}
-      - name: Setup dependencies
-        id: setup-deps
-        run: |
-          sudo snap install jq
+          # Install LXD
+          # concierge breaks charmcraft: https://github.com/jnsgruk/concierge/issues/28
           sudo snap install lxd
-          sudo lxd init --auto
-          sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
-      - name: Build charm(s)
-        id: builder
+          sudo lxd waitready
+          sudo lxd init --minimal
+          sudo lxc network set lxdbr0 ipv6.address none
+          # Enable non-root user control
+          sudo chmod a+wr /var/snap/lxd/common/lxd/unix.socket
+          lxd_user="$USER"
+          sudo usermod -a -G lxd "$lxd_user"
+          # Ensure that LXD containers can talk to the internet
+          sudo iptables -F FORWARD
+          sudo iptables -P FORWARD ACCEPT
+          # Install other snaps
+          sudo snap install charmcraft --classic --channel="$CHARMCRAFT_CHANNEL"
+          sudo snap install astral-uv --classic
+      - name: Get charm name
+        id: get-charm-name
         run: |
-          (cd ${{ inputs.charm-path }}; charmcraft pack)
-          export CHARMS=$(basename -a ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
-          echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
-      - name: Store charms
+          # Read charm name from metadata.yaml or charmcraft.yaml
+          cd "${{ inputs.charm-path }}"
+          charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
+          echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
+      - name: Cache wheels
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/snap/charmcraft/common/cache/charmcraft
+          key: ${{ runner.os }}-wheel-cache-${{ hashFiles('./uv.lock') }}
+          # If the above cache key doesn't match, it's because the uv.lock has changed.
+          # Even so, pre-existing caches may still contain useful cached builds for some
+          # portion of the dependencies, and restore-keys can partially match a cache.
+          restore-keys: |
+            ${{ runner.os }}-wheel-cache-
+      - name: Pack charm(s)
+        id: pack
+        run: |
+          cd "${{ inputs.charm-path }}"
+          charmcraft pack -v
+          charms="$(basename -a ./*.charm | jq -R -s -c 'split("\n")[:-1]')"
+          echo "charms=$charms"
+          echo "charms=$charms" >> "$GITHUB_OUTPUT"
+      - name: Store charm(s)
         uses: actions/upload-artifact@v4
         with:
-          name: charms-arm
+          name: charms-${{ runner.arch }}
           path: ${{ inputs.charm-path }}/*.charm
-  charm-output:
-    name: Charm List
-    runs-on: ubuntu-22.04
-    needs:
-      - build
-      - build-arm
-    steps:
-      - name: Job output
+      - name: Release charm to Charmhub and GitHub
+        id: upload
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+          CHARM_NAME: ${{ steps.get-charm-name.outputs.charm_name }}
+          GH_TOKEN: ${{ github.token }}
+          TAG_PREFIX: ${{ inputs.git-tag-prefix }}
+          RELEASE_CHANNEL: ${{ inputs.release-channel }}
         run: |
-          echo x86 Charms:\n---\n${{ fromjson(needs.build.outputs.charms) }}\n\n
-          echo ARM64 Charms:\n---\n${{ fromjson(needs.build-arm.outputs.charms) }}
-
-  release-to-charmhub:
-    name: Release to CharmHub
-    runs-on: ubuntu-22.04
-    needs:
-      - build
-    strategy:
-      matrix:
-        path: ${{ fromjson(needs.build.outputs.charms) }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - name: Select charmhub channel
-        uses: canonical/charming-actions/channel@2.1.1
-        id: channel
-      - name: Fetch charm artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: charms
-          path: "${{ github.workspace }}/${{ inputs.charm-path }}"
-      - name: Upload charm to charmhub
-        uses: canonical/charming-actions/upload-charm@2.5.0-rc
-        with:
-          credentials: "${{ secrets.CHARMHUB_TOKEN }}"
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-          channel: "${{ steps.channel.outputs.name }}"
-          built-charm-path: "${{ matrix.path }}"
-          charm-path: "${{ inputs.charm-path }}"
-          tag-prefix: "${{ inputs.release-tag-prefix }}"
-          charmcraft-channel: "${{ inputs.charmcraft-channel }}"
-          # We set destructive mode to false, otherwise runner's OS would have to match
-          # charm's 'build-on' OS.
-          destructive-mode: false
-  release-arm-to-charmhub:
-    name: Release arm64 to CharmHub
-    # needs to be run on arm or the oci image will resolve to the amd64 one.
-    runs-on: Ubuntu_ARM64_4C_16G_01
-    needs:
-      - build-arm
-    strategy:
-      matrix:
-        path: ${{ fromjson(needs.build-arm.outputs.charms) }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - name: Select charmhub channel
-        uses: canonical/charming-actions/channel@2.1.1
-        id: channel
-      - name: Fetch charm artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: charms-arm
-          path: "${{ github.workspace }}/${{ inputs.charm-path }}"
-      - name: Set up Docker
-        run: |
-          sudo snap install docker
-          sudo addgroup --system docker
-          sudo adduser $USER docker
-          newgrp docker <<< "sudo snap disable docker"
-          newgrp docker <<< "sudo snap enable docker"
-      - name: Upload charm to charmhub
-        uses: canonical/charming-actions/upload-charm@2.5.0-rc
-        with:
-          credentials: "${{ secrets.CHARMHUB_TOKEN }}"
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-          channel: "${{ steps.channel.outputs.name }}"
-          built-charm-path: "${{ matrix.path }}"
-          charm-path: "${{ inputs.charm-path }}"
-          tag-prefix: "${{ inputs.release-tag-prefix }}"
-          charmcraft-channel: "${{ inputs.charmcraft-channel }}"
-          # We set destructive mode to false, otherwise runner's OS would have to match
-          # charm's 'build-on' OS.
-          destructive-mode: false
+          # Upload charm to CharmHub and release it
+          # uploaded_charm has the following JSON format:
+          # {"name": "o11y-tester", "revision": 12, "resources": [
+          #   {"name": "httpbin-image", "revision": 1, "upstream_source": "kennethreitz/httpbin"}
+          # ]}
+          set -x
+          cd "${{ inputs.charm-path }}"
+          file_paths="$(find . -name '*.charm' -printf '%f ')"
+          # For all the charms built on this architecture: release them
+          for path in ${file_paths}; do
+            uvx --quiet --from git+https://github.com/lucabello/noctua noctua charm release \
+              "$CHARM_NAME" \
+              --path "$path" \
+              --channel "$RELEASE_CHANNEL" \
+              --json > .upload_results
+            uploaded_charm="$(jq -rc . .upload_results)"
+            pretty_uploaded_charm="$(jq -r . .upload_results)"
+            rm -f .upload_results
+            ubuntu_base="$(find . -name '*.charm' | sed -E 's/.*ubuntu@([0-9]{2}\.[0-9]{2})-(.+)\.charm/ubuntu@\1 (\2)/')"
+            echo "${CHARM_NAME} has been released to ${RELEASE_CHANNEL}:"
+            echo "$pretty_uploaded_charm"
+            # Create a git tag and push it
+            ## Configure git
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git config --global user.name "github-actions[bot]"
+            ## Use the latest commit message as the tag message
+            git log -1 --pretty=%B > tag-message
+            revision="$(echo "$uploaded_charm" | jq -rc .revision)"
+            git tag --annotate "${TAG_PREFIX}rev${revision}" --file=tag-message
+            rm -f tag-message
+            git push origin --tags
+            # Create a GitHub release 
+            release_title="Revision $revision"
+            echo "Peparing GitHub release: $release_title"
+            ## Add the charm information to the release body
+            body_charm="$(printf "\`\`\`json\n%s\n\`\`\`" "$pretty_uploaded_charm")"
+            current_date="$(date -u +"%B %e, %Y at %H:%M UTC")"
+            body_meta_base="$(printf "This revision is for *%s*" "$ubuntu_base")"
+            body_meta="$(printf "Released to *%s* on %s" "$RELEASE_CHANNEL" "$current_date")"
+            body="$(printf "%s\n\n%s\n%s" "$body_charm" "$body_meta_base" "$body_meta")"
+            ## Create the GitHub release from the previously-created tag
+            gh release create "${TAG_PREFIX}rev${revision}" \
+              --title="$release_title" \
+              --notes="$body" \
+              --generate-notes
+          done

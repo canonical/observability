@@ -20,14 +20,13 @@ jobs:
           files: "**/rockcraft.yaml"
       - name: Extract the versions
         id: changed-versions
+        env:
+          # CHANGED_FILES is a space-separated list
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          versions=""
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            rock_version="$(dirname $file)"
-            versions="${versions# } $rock_version"
-          done
+          versions="${CHANGED_FILES//\/rockcraft.yaml/}"  # space-separated versions
           echo "versions=$versions"
-          echo "versions=$versions" >> $GITHUB_OUTPUT
+          echo "versions=$versions" >> "$GITHUB_OUTPUT"
 
   tests:
     name: Tests

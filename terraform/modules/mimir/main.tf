@@ -8,8 +8,32 @@ resource "juju_application" "s3_integrator" {
     name    = "s3-integrator"
     channel = var.channel
   }
+  config = {
+    endpoint = var.s3_endpoint
+    bucket   = var.s3_bucket
+  }
   units = 1
 
+}
+
+resource "terraform_data" "s3management" {
+  depends_on = [
+    juju_application.s3_integrator,
+  ]
+
+  input = {
+    S3_USER       = var.s3_user
+    S3_PASSWORD   = var.s3_password
+    MODEL_NAME    = var.model_name
+    S3_INTEGRATOR = var.s3_integrator_name
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      juju wait-for application -m "${self.input.MODEL_NAME}" "${self.input.S3_INTEGRATOR}" --query='forEach(units,  unit => unit.workload-status=="blocked" && unit.agent-status=="idle")' --timeout=30m
+      juju run -m "${self.input.MODEL_NAME}" "${self.input.S3_INTEGRATOR}/leader" sync-s3-credentials access-key="${self.input.S3_USER}" secret-key="${self.input.S3_PASSWORD}"
+    EOT
+  }
 }
 
 module "mimir_coordinator" {

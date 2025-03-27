@@ -13,11 +13,13 @@ output "app_names" {
 output "endpoints" {
   value = {
     # Requires
+    alertmanager     = "alertmanager",
     certificates     = "certificates",
     ingress          = "ingress",
     logging_consumer = "logging-consumer",
     s3               = "s3",
     charm_tracing    = "charm-tracing",
+    catalogue        = "catalogue",
 
     # Provides
     grafana_dashboards_provider = "grafana-dashboards-provider",
@@ -26,11 +28,6 @@ output "endpoints" {
     receive_remote_write        = "receive-remote-write",
     self_metrics_endpoint       = "self-metrics-endpoint",
   }
-}
-
-output "bucket_name" {
-  value       = var.bucket_name
-  description = "The bucket name for Mimir"
 }
 
 output "s3_integrator_name" {
