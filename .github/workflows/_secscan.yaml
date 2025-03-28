@@ -1,0 +1,53 @@
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+name: secscan
+on:
+  workflow_call:
+    inputs:
+      artifacts-type:
+        description: Type of the artifacts, parameter to be used by secscan type modifier
+        required: false
+        default: package
+        type: string
+      artifacts-format:
+        description: Format of the artifacts, parameter to be used by secscan format modifier
+        required: true
+        type: string
+      artifacts-key:
+        description: Key where the artifacts have been uploaded.
+        required: true
+        type: string
+      artifact-path:
+        description: Path where the artifacts have been uploaded.
+        required: true
+        type: string
+jobs:
+  secscan:
+    runs-on: [self-hosted, self-hosted-linux-amd64-jammy-private-endpoint-medium]
+    steps:
+      - name: Install secscan cli
+        run: |
+          sudo snap install canonical-secscan-client
+          sudo snap connect canonical-secscan-client:home system:home
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifacts-key }}
+      - name: List contents
+        run: ls
+      - name: Run secscan
+        id: secscan
+        # We want to continue on error as secscan-client returns error code if it finds any perceived vulnerabilities.
+        # However, the `submit` output prints only names of each vulnerability so we want to still get the report
+        # with the severity and more links to the actual issue and dependency.
+        continue-on-error: true
+        run: secscan-client --batch submit --scanner trivy --type ${{ inputs.artifacts-type }} --format ${{ inputs.artifacts-format }} ${{ inputs.artifact-path }} --token token.yaml --wait-and-print
+      - name: Print report
+        id: secscan-report
+        run: secscan-client report --token token.yaml > report.html
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: secscan-report-upload
+          path: report.html
