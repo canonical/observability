@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       rock-name:
-        description: "Name of the application for which to build the rock"
+        description: "Name of the rock"
         required: true
         type: string
 

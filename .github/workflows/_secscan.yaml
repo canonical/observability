@@ -38,6 +38,9 @@ jobs:
         run: ls
       - name: Run secscan
         id: secscan
+        # We want to continue on error as secscan-client returns error code if it finds any perceived vulnerabilities.
+        # However, the `submit` output prints only names of each vulnerability so we want to still get the report
+        # with the severity and more links to the actual issue and dependency.
         continue-on-error: true
         run: secscan-client --batch submit --scanner trivy --type ${{ inputs.artifacts-type }} --format ${{ inputs.artifacts-format }} ${{ inputs.artifact-path }} --token token.yaml --wait-and-print
       - name: Print report
