@@ -19,10 +19,6 @@ on:
         required: false
         description: |
           The channel from which to download the charm.
-      charm-revision:
-        description: "Revision of the charm to be downloaded"
-        required: false
-        type: string
   workflow_call:
     inputs:
       charm-name:
@@ -36,10 +32,6 @@ on:
         required: false
         description: |
           The channel from which to download the charm.
-      charm-revision:
-        description: "Revision of the charm to be downloaded"
-        required: false
-        type: string
 
 jobs:
   pack:
@@ -54,7 +46,7 @@ jobs:
       - name: Download the charm
         id: download-charm
         run: |
-          juju download
+          juju download ${{ inputs.charm-name }} --channel ${{ inputs.charm-channel }}
       - name: Store charm(s)
         uses: actions/upload-artifact@v4
         with:
