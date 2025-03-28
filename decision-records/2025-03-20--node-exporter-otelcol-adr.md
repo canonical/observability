@@ -280,28 +280,19 @@ subgraph host
     end
     subgraph cos-collector-charm
     direction BT
-        subgraph node-exporter-snap
-            subgraph ports1[" "]
-                direction BT
-                port9100["port: 9100"]
-                node-exporter1["node-exporter"]
-                node-exporter1 --> port9100
-            end
-        end
-        subgraph otelcol-snap
-            subgraph ports2[" "]
-                direction BT
-                port4317["port: 4317"]
-                port4318["port: 4318"]
-                otelcol1["otelcol"]
-                otelcol1 --> port4317
-                otelcol1 --> port4318
-            end
-        end
+        direction BT
+        port9100["port: 9100"]
+        node-exporter1["node-exporter"]
+        node-exporter1 --> port9100
+
+        port4317["port: 4317"]
+        port4318["port: 4318"]
+        otelcol1["otelcol"]
+        otelcol1 --> port4317
+        otelcol1 --> port4318
     end
     cos-collector-charm --->|"subordinate"| principal-charm1
     cos-collector-charm --->|"subordinate"| principal-charm2
-
 end
 ```
 
@@ -335,11 +326,10 @@ subgraph host
     subgraph cos-collector-charm
         direction TB
         charm-code
-        subgraph node-exporter-snap
+        subgraph "Binaries and config"
             node-exporter1["node-exporter binary"]
             node-exporter-config["node-exporter configuration"]
-        end
-        subgraph otelcol-snap
+
             otelcol["otelcol binary"]
             otelcol-config["otelcol configuration"]
         end
