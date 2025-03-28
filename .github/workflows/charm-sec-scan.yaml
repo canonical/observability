@@ -61,4 +61,4 @@ jobs:
       artifacts-type: package
       artifacts-format: charm
       artifacts-key: charms-amd64
-      artifact-path: ${{ inputs.charm-path }}/*.charm
+      artifact-path: ./*.charm
