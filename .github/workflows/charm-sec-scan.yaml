@@ -51,7 +51,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: charms-amd64
-          path: ${{ inputs.charm-path }}/*.charm
+          path: ./*.charm
   scan:
     name: Run the security scan
     needs:
