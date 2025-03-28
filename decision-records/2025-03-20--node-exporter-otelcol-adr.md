@@ -10,11 +10,11 @@
     - [Context and Problem Statement](#context-and-problem-statement)
     - [One `otelcol` + `node-exporter` binaries per Principal charm (make use of snaps `parallel install` feature)](#one-otelcol--node-exporter-binaries-per-principal-charm-make-use-of-snaps-parallel-install-feature)
         - [Alternative 1: Add `node-exporter` as a second `app` in `opentelemetry-collector-snap`](#alternative-1-add-node-exporter-as-a-second-app-in-opentelemetry-collector-snap)
-        - [Advantages](#advantages)
-        - [Disadvantages](#disadvantages)
+            - [Advantages](#advantages)
+            - [Disadvantages](#disadvantages)
         - [Alternative 2: Install `node-exporter` as a separate snap](#alternative-2-install-node-exporter-as-a-separate-snap)
-        - [Advantages](#advantages-1)
-        - [Disadvantages](#disadvantages-1)
+            - [Advantages](#advantages-1)
+            - [Disadvantages](#disadvantages-1)
         - [General comments about Alternative 1 and Alternative 2](#general-comments-about-alternative-1-and-alternative-2)
             - [Enable the feature in the host.](#enable-the-feature-in-the-host)
             - [Ports management](#ports-management)
@@ -114,11 +114,11 @@ subgraph host
 end
 ```
 
-### Advantages
+#### Advantages
 
 * Simple implementatio.
 
-### Disadvantages
+#### Disadvantages
 
 * Two different workloads mixed into a single snap.
 * Snap's name need to be changed since it would not be just `otelcol`.
@@ -192,12 +192,12 @@ end
 ```
 
 
-### Advantages
+#### Advantages
 
 * Better separation of concerns: Each binary will be managed by its own snap.
 
 
-### Disadvantages
+#### Disadvantages
 
 * Two snaps need to be maintained.
 
