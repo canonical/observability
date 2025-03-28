@@ -8,86 +8,53 @@ name: Security vulnerability scan
 on:
   workflow_dispatch:
     inputs:
-      charmcraft-channel:
+      charm-name:
         type: string
-        default: "3.x/candidate"
+        required: true
+        description: |
+          The charm we want to be scanned.
+      charm-channel:
+        type: string
+        default: "latest/edge"
         required: false
         description: |
-          The snap channel from which to install Charmcraft.
-      charm-path:
-        description: "Path to the charm we want to publish. Defaults to the current working directory."
-        default: '.'
+          The channel from which to download the charm.
+      charm-revision:
+        description: "Revision of the charm to be downloaded"
         required: false
         type: string
   workflow_call:
     inputs:
-      charmcraft-channel:
+      charm-name:
         type: string
-        default: "3.x/candidate"
+        required: true
+        description: |
+          The charm we want to be scanned.
+      charm-channel:
+        type: string
+        default: "latest/edge"
         required: false
         description: |
-          The snap channel from which to install Charmcraft.
-      charm-path:
-        description: "Path to the charm we want to publish. Defaults to the current working directory."
-        default: '.'
+          The channel from which to download the charm.
+      charm-revision:
+        description: "Revision of the charm to be downloaded"
         required: false
         type: string
 
 jobs:
   pack:
-    name: Pack the charm
+    name: Fetch the charm
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - name: Checkout the project
-        uses: actions/checkout@v4
-        with:
-          repository: canonical/${{ github.event.repository.name }}
-      - name: Install dependencies
-        env:
-          CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
+      - name: Install juju
+        id: install
         run: |
-          # Install LXD
-          # concierge breaks charmcraft: https://github.com/jnsgruk/concierge/issues/28
-          sudo snap install lxd
-          sudo lxd waitready
-          sudo lxd init --minimal
-          sudo lxc network set lxdbr0 ipv6.address none
-          # Enable non-root user control
-          sudo chmod a+wr /var/snap/lxd/common/lxd/unix.socket
-          lxd_user="$USER"
-          sudo usermod -a -G lxd "$lxd_user"
-          # Ensure that LXD containers can talk to the internet
-          sudo iptables -F FORWARD
-          sudo iptables -P FORWARD ACCEPT
-          # Install other snaps
-          sudo snap install charmcraft --classic --channel="$CHARMCRAFT_CHANNEL"
-          sudo snap install astral-uv --classic
-      - name: Get charm name
-        id: get-charm-name
+          sudo snap install juju
+      - name: Download the charm
+        id: download-charm
         run: |
-          # Read charm name from metadata.yaml or charmcraft.yaml
-          cd "${{ inputs.charm-path }}"
-          charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
-          echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
-      - name: Cache wheels
-        uses: actions/cache@v4
-        with:
-          path: /home/runner/snap/charmcraft/common/cache/charmcraft
-          key: ubuntu-wheel-cache-${{ hashFiles('./uv.lock') }}
-          # If the above cache key doesn't match, it's because the uv.lock has changed.
-          # Even so, pre-existing caches may still contain useful cached builds for some
-          # portion of the dependencies, and restore-keys can partially match a cache.
-          restore-keys: |
-            ubuntu-wheel-cache-
-      - name: Pack charm(s)
-        id: pack
-        run: |
-          cd "${{ inputs.charm-path }}"
-          charmcraft pack -v
-          charms="$(basename -a ./*.charm | jq -R -s -c 'split("\n")[:-1]')"
-          echo "charms=$charms"
-          echo "charms=$charms" >> "$GITHUB_OUTPUT"
+          juju download
       - name: Store charm(s)
         uses: actions/upload-artifact@v4
         with:
