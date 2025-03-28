@@ -52,14 +52,67 @@ The downside of the approach implemented in `grafana-agent` charm is that we may
 
 ### Alternative 1: Add `node-exporter` as a second `app` in `opentelemetry-collector-snap`
 
-[![](https://mermaid.ink/img/pako:eNp9UbFOwzAQ_RXr5kRqBRLBAwNqRyY6gRmMfWksOT7LsQWo6r9jJyEhA9x07917z9bdBRRpBA6tpQ_VyRDZ6SAcyzWk93OQvmODk36iSmkTUEVDjj2eVpYiWkV2JVyOrfHTU4gYVrrg-_1u9yqgtJwVIODtDyOr64fFs025vdnfLSkFbFJmRfNb0WwU84-XF8aI_6bNNEWnoYIeQy-Nzou7FFpA7LBHATy3GluZbBQg3DVLk9cy4lGbSAF4K-2AFcgU6fnLKeAxJPwRHYzMK-8XFY6mp-lC46Eq8NK9EK2aQOnczej6DYsgjOE?type=png)](https://mermaid.live/edit#pako:eNp9UbFOwzAQ_RXr5kRqBRLBAwNqRyY6gRmMfWksOT7LsQWo6r9jJyEhA9x07917z9bdBRRpBA6tpQ_VyRDZ6SAcyzWk93OQvmODk36iSmkTUEVDjj2eVpYiWkV2JVyOrfHTU4gYVrrg-_1u9yqgtJwVIODtDyOr64fFs025vdnfLSkFbFJmRfNb0WwU84-XF8aI_6bNNEWnoYIeQy-Nzou7FFpA7LBHATy3GluZbBQg3DVLk9cy4lGbSAF4K-2AFcgU6fnLKeAxJPwRHYzMK-8XFY6mp-lC46Eq8NK9EK2aQOnczej6DYsgjOE)
+```mermaid
+flowchart TD
+    subgraph snap
+        direction BT
+        otelcol
+        node-exporter
+        port9100["port: 9100"]
+        node-exporter --> port9100
+        port4317["port: 4317"]
+        port4318["port: 4318"]
+        otelcol --> port4317
+        otelcol --> port4318
+    end
+```
 
 This alternative follows the concept: *"Everytime we relate the subordinate charm to a principal, new instances of the `otelcol` + `node-exporter` binaries are installed and operated."*
 
 Although this alternative is quite simple in terms of the modification of the [`opentelemetry-collector-snap`](https://github.com/canonical/opentelemetry-collector-snap), we should also modify the snap name (and the charm name?) since it won't be only `otelcol`. It will be `otelcol` + `node-exporter`. Say for instance: `cos-collector`.
 
 
-[![](https://mermaid.ink/img/pako:eNqtlMFugzAMhl8F5Vyk4lYq47DDtN22y7bTlh1SYgoSJCgEbVXVd18CNFAhBJ2WQxQ7v-3Y-pQTiSVHEpEkl99xypT2nl-pqOr9QbEy9VJZaSo8s5yrEqwMPqkJrPxY5jnGWqrGS8lXq70snilzm0nhPbz3Ny7TPhNMHW0uYR7h408plUbV-Rdms8vG3QXrtclkj5FnjVH8VZFR1Rm55_v3rk4vRMEnGwNTQmrMzZCWtTRuarsJdq4pa4wydKpwqApHqu4ZQf-iSYlrtCk3KwmvZtFrW7cbzxU98Bd6Jse8-Sd-YMgPzPEDt_EDPT-wlJ_trfyMuYAhPTBFDwzpgUl6YJ4eGKABu3nJAnrMRlakQFWwjJuP6mTvKNEpFkhJZI4cE1bnmhIqzkZal5xpfOKZAYtECcsrXBFWa_l2FDGJtKrxInrMmBl44VTYBL20P2LzMa5IycSHlL1GyfqQdtb5F-o7huQ?type=png)](https://mermaid.live/edit#pako:eNqtlMFugzAMhl8F5Vyk4lYq47DDtN22y7bTlh1SYgoSJCgEbVXVd18CNFAhBJ2WQxQ7v-3Y-pQTiSVHEpEkl99xypT2nl-pqOr9QbEy9VJZaSo8s5yrEqwMPqkJrPxY5jnGWqrGS8lXq70snilzm0nhPbz3Ny7TPhNMHW0uYR7h408plUbV-Rdms8vG3QXrtclkj5FnjVH8VZFR1Rm55_v3rk4vRMEnGwNTQmrMzZCWtTRuarsJdq4pa4wydKpwqApHqu4ZQf-iSYlrtCk3KwmvZtFrW7cbzxU98Bd6Jse8-Sd-YMgPzPEDt_EDPT-wlJ_trfyMuYAhPTBFDwzpgUl6YJ4eGKABu3nJAnrMRlakQFWwjJuP6mTvKNEpFkhJZI4cE1bnmhIqzkZal5xpfOKZAYtECcsrXBFWa_l2FDGJtKrxInrMmBl44VTYBL20P2LzMa5IycSHlL1GyfqQdtb5F-o7huQ)
+```mermaid
+flowchart LR
+subgraph host
+    subgraph snap1["cos-collector snap"]
+            direction BT
+        subgraph binary1["node-exporter binary"]
+            direction BT
+            port9100["port: 9100"]
+            node-exporter1["node-exporter"]
+            node-exporter1 --> port9100
+        end
+        subgraph binary2["otelcol binary"]
+            direction BT
+
+            port4317["port: 4317"]
+            port4318["port: 4318"]
+            otelcol1["otelcol"]
+            otelcol1 --> port4317
+            otelcol1 --> port4318
+        end
+    end
+    subgraph snap2["cos-collector snap"]
+            direction BT
+
+        subgraph binary3["node-exporter binary"]
+            direction BT
+            port9200["port: 9200"]
+            node-exporter2["node-exporter"]
+            node-exporter2 --> port9200
+        end
+        subgraph binary4["otelcol binary"]
+            direction BT
+            port4327["port: 4327"]
+            port4328["port: 4328"]
+            otelcol2["otelcol"]
+            otelcol2 --> port4327
+            otelcol2 --> port4328
+        end
+    end
+end
+```
 
 ### Advantages
 
@@ -74,14 +127,69 @@ Although this alternative is quite simple in terms of the modification of the [`
 ### Alternative 2: Install `node-exporter` as a separate snap
 
 
-[![](https://mermaid.ink/img/pako:eNqNkk1PwzAMhv9K5HMrbQKJ0gMHtB05sROEQ9a4a6Q0rtJEME377yT92sKX8Mmv_djS6-QEFUmEEmpN71UjrGO7DTcsRO_3Byu6hpFDXZHujeheOUyKRcnhbWRjSGWxcooMe9xdqhN-NbhXRthjMtqRdbc367tAxbRkUfxEFNdEkRDz-jx_WPb92S3GLhr5xa8JF8nxI2JoJ9dJ7b_ek6FvS365w_16tVpcRpEQ6YrZzYDNbiCDFm0rlAzPeoplDq7BFjmUIZVYC68dB27OAfWdFA63UjmyUNZC95iB8I6ej6aC0lmPM7RRIhyoXSgchp7G_zN8oww6YV6ILowlf2gmdf4E3yrEkw?type=png)](https://mermaid.live/edit#pako:eNqNkk1PwzAMhv9K5HMrbQKJ0gMHtB05sROEQ9a4a6Q0rtJEME377yT92sKX8Mmv_djS6-QEFUmEEmpN71UjrGO7DTcsRO_3Byu6hpFDXZHujeheOUyKRcnhbWRjSGWxcooMe9xdqhN-NbhXRthjMtqRdbc367tAxbRkUfxEFNdEkRDz-jx_WPb92S3GLhr5xa8JF8nxI2JoJ9dJ7b_ek6FvS365w_16tVpcRpEQ6YrZzYDNbiCDFm0rlAzPeoplDq7BFjmUIZVYC68dB27OAfWdFA63UjmyUNZC95iB8I6ej6aC0lmPM7RRIhyoXSgchp7G_zN8oww6YV6ILowlf2gmdf4E3yrEkw)
+```mermaid
+flowchart TD
+    subgraph otelcolsnap["otelcol snap"]
+        direction BT
+        otelcol["otelcol binary"]
+        port4317["port: 4317"]
+        port4318["port: 4318"]
+        otelcol --> port4317
+        otelcol --> port4318
+    end
+    subgraph node-exportersnap["node-exporter snap"]
+        direction BT
+        node-exporter["node-exporter binary"]
+        port9100["port: 9100"]
+        node-exporter --> port9100
+    end
+```
 
 This alternative also follows the concept: *"Everytime we relate the subordinate charm to a principal, new instances of the `otelcol` + `node-exporter` binaries are installed and operated."*
 
 This way provides a better separation of concerns: Each binary is installed and managed by its own snap: [opentelemetry-collector](https://github.com/canonical/opentelemetry-collector-snap) and [node-exporter](https://snapcraft.io/node-exporter)
 
-
-[![](https://mermaid.ink/img/pako:eNqtlD1PwzAQhv9KdHMjNddIDRkYEGywABOYwY2vTaTEjhxHUFX979hpyYeikrbgIfLHcznr1SPvIFGCIIZ1rj6TlGvjPT4zWdWrjeZl6qWqMkx6drRbleRl8M5A2kKfvkqlDelml8HHgR3wDqjGBatMcr0dlLghMk2JyZT07l6HJ67uJpjP7Z_cNPbcYlQ_aDLqOoF7vn_b9ulAkuKwaCeDMNB2UYbyROVTMfTRqwIIF8GyDcAtRvVHKupT0Yg6XiLo7nMSaUNp2k0i0SC3jv0twcWlOi3-SSfs64RTOuFlOmGnE16gU3i-TuHfdcK-TnhKJ-zrhCd1wmmdsOcKLqeRM3SyH5hBQbrgmbBP2c6dMTApFcQgtlNBa17nhgGTe4vWpeCGHkRmlIZ4zfOKZsBro162MoHY6Jp-oPuM27yLlqKm6OnwZjZP5wxKLt-U6hit6k16XO2_Aa0Mlgk?type=png)](https://mermaid.live/edit#pako:eNqtlD1PwzAQhv9KdHMjNddIDRkYEGywABOYwY2vTaTEjhxHUFX979hpyYeikrbgIfLHcznr1SPvIFGCIIZ1rj6TlGvjPT4zWdWrjeZl6qWqMkx6drRbleRl8M5A2kKfvkqlDelml8HHgR3wDqjGBatMcr0dlLghMk2JyZT07l6HJ67uJpjP7Z_cNPbcYlQ_aDLqOoF7vn_b9ulAkuKwaCeDMNB2UYbyROVTMfTRqwIIF8GyDcAtRvVHKupT0Yg6XiLo7nMSaUNp2k0i0SC3jv0twcWlOi3-SSfs64RTOuFlOmGnE16gU3i-TuHfdcK-TnhKJ-zrhCd1wmmdsOcKLqeRM3SyH5hBQbrgmbBP2c6dMTApFcQgtlNBa17nhgGTe4vWpeCGHkRmlIZ4zfOKZsBro162MoHY6Jp-oPuM27yLlqKm6OnwZjZP5wxKLt-U6hit6k16XO2_Aa0Mlgk)
+```mermaid
+flowchart LR
+subgraph host
+    subgraph snap1["node-exporter snap"]
+        subgraph ports1["node-exporter binary"]
+            direction BT
+            port9100["port: 9100"]
+            node-exporter1["node-exporter"]
+            node-exporter1 --> port9100
+        end
+    end
+    subgraph snap2["otelcol snap"]
+        subgraph ports2["otelcol binary"]
+            direction BT
+            port4317["port: 4317"]
+            port4318["port: 4318"]
+            otelcol1["otelcol"]
+            otelcol1 --> port4317
+            otelcol1 --> port4318
+        end
+    end
+    subgraph snap3["node-exporter snap"]
+        subgraph ports3["node-exporter binary"]
+            direction BT
+            port9200["port: 9200"]
+            node-exporter2["node-exporter"]
+            node-exporter2 --> port9200
+        end
+    end
+    subgraph snap4["otelcol snap"]
+        subgraph ports4["otelcol binary"]
+            direction BT
+            port4327["port: 4327"]
+            port4328["port: 4328"]
+            otelcol2["otelcol"]
+            otelcol2 --> port4327
+            otelcol2 --> port4328
+        end
+    end
+end
+```
 
 
 ### Advantages
@@ -161,8 +269,41 @@ With these ideas in mind, the question is why should `otelcol` and `node-exporte
 
 So let's explore this idea further, starting with a simple diagram of what the deployment would look like.
 
+```mermaid
+flowchart LR
+subgraph host
+    subgraph principal-charm1
+        principal-charm-app1
+    end
+    subgraph principal-charm2
+        principal-charm-app2
+    end
+    subgraph cos-collector-charm
+    direction BT
+        subgraph node-exporter-snap
+            subgraph ports1[" "]
+                direction BT
+                port9100["port: 9100"]
+                node-exporter1["node-exporter"]
+                node-exporter1 --> port9100
+            end
+        end
+        subgraph otelcol-snap
+            subgraph ports2[" "]
+                direction BT
+                port4317["port: 4317"]
+                port4318["port: 4318"]
+                otelcol1["otelcol"]
+                otelcol1 --> port4317
+                otelcol1 --> port4318
+            end
+        end
+    end
+    cos-collector-charm --->|"subordinate"| principal-charm1
+    cos-collector-charm --->|"subordinate"| principal-charm2
 
-[![](https://mermaid.ink/img/pako:eNqlVMFOAyEQ_ZXNnEvSrSbWPfRg9KYX9aR4QKAuCQuEZaOm7b87dFfWbbe1US7MwHtvhhdgBdwKCQUstX3nJfMhu72npm5e3zxzZVbaOlCT4UhLzivDlWOaRHyVt9tx7OwQ5ly3K404rjI7qjJLKnHaUeK2JtxqLXmwvuW0CKE8rilrsqvHXj7xDB6cyA9nfZCe1Ia5HjRsFRF1_kwho_AyxBwuk06D5Mt8OkV6DIssJqM6g35iucHCCZSMkEWqNwQn__eSdEobpEYbfzVi9g8jzs_yi2RETEZ1OuT8J3I-iux6jmZ14VFYMmhb-iTYfM_HPhlxNAUjlxJlyWJNAe20XijDgqSwPvCc_szHp0INtgETqKSvmBL4uFdRlEIoZYWcAkMhl6zRgQI1G4Q2TqDcjVBYDYol07WcAGuCffg0HIrgG_kNulYMb0OVUHJLumt_ke1nMgHHzJO1Pcbb5q3sss0X8kRSHw?type=png)](https://mermaid.live/edit#pako:eNqlVMFOAyEQ_ZXNnEvSrSbWPfRg9KYX9aR4QKAuCQuEZaOm7b87dFfWbbe1US7MwHtvhhdgBdwKCQUstX3nJfMhu72npm5e3zxzZVbaOlCT4UhLzivDlWOaRHyVt9tx7OwQ5ly3K404rjI7qjJLKnHaUeK2JtxqLXmwvuW0CKE8rilrsqvHXj7xDB6cyA9nfZCe1Ia5HjRsFRF1_kwho_AyxBwuk06D5Mt8OkV6DIssJqM6g35iucHCCZSMkEWqNwQn__eSdEobpEYbfzVi9g8jzs_yi2RETEZ1OuT8J3I-iux6jmZ14VFYMmhb-iTYfM_HPhlxNAUjlxJlyWJNAe20XijDgqSwPvCc_szHp0INtgETqKSvmBL4uFdRlEIoZYWcAkMhl6zRgQI1G4Q2TqDcjVBYDYol07WcAGuCffg0HIrgG_kNulYMb0OVUHJLumt_ke1nMgHHzJO1Pcbb5q3sss0X8kRSHw)
+end
+```
 
 If the idea is so simple, why wouldn't we implement it? Well, the answer is that from a charm perspective is not that simple. In fact in `grafana-agent` charm it is not implemented, and because of this we have [some weird situations.](https://discourse.charmhub.io/t/one-grafana-agent-charm-to-rule-them-all/16014).
 
@@ -186,8 +327,30 @@ When a relation between `cos-collector` and a principal charm is removed, the `c
 
 * When we think of a charm, we expect it to manage the lifecycle of an application, from installation, configuration, scaling to relationships. However, with this approach, multiple instances of `cos-collector` charm will handle a single binary and a single configuration file.
 
+```mermaid
+flowchart LR
+subgraph host
+    direction TB
 
-[![](https://mermaid.ink/img/pako:eNqlU01zgjAQ_SvMnsERRIEcPPTj1l7antr0ECFCppAwIUy16n_vAoJjxU5nmtOy-97btxuyg1glHAisc_UZZ0wb6-GJyqpepZqVmZWpylBp4UmE5rERSlovN1R2uQEWq8qJVZ4jQmmn0Sk6xCWzz7Ygp-l-yg16EtMO35RKG66dSrLyBGrOWd19o3CWsFZCMr2l8P4LC1vLtUgvuF261qxxfCbBZTJiVRme4-gjJo8V7HCMrvnqJQZHPf6PXk6rtBxn-UPuKmxsGx24Fe_CkYtFsrPcU8ANKJ3gRIZT2FulFjIWJcs7lPtPvkcl2gAbCq4LJhL8RXeNJAWT8QIZBMOE6Q8KVB4QV5cJKt0nAhsBWbO84jaw2qjnrYyBGF3zHnQnGN5dMaBKJoHsYANkPptEzVm44Xw29YKZb8MWCH5NFv504c0PNnwphdTpJAz8BhpEbhSFYRDZwNvmj92Dat9Vq_3aEjoDWtVpNjROdTPYsYLjcn2rammAeH54-AalNSo9?type=png)](https://mermaid.live/edit#pako:eNqlU01zgjAQ_SvMnsERRIEcPPTj1l7antr0ECFCppAwIUy16n_vAoJjxU5nmtOy-97btxuyg1glHAisc_UZZ0wb6-GJyqpepZqVmZWpylBp4UmE5rERSlovN1R2uQEWq8qJVZ4jQmmn0Sk6xCWzz7Ygp-l-yg16EtMO35RKG66dSrLyBGrOWd19o3CWsFZCMr2l8P4LC1vLtUgvuF261qxxfCbBZTJiVRme4-gjJo8V7HCMrvnqJQZHPf6PXk6rtBxn-UPuKmxsGx24Fe_CkYtFsrPcU8ANKJ3gRIZT2FulFjIWJcs7lPtPvkcl2gAbCq4LJhL8RXeNJAWT8QIZBMOE6Q8KVB4QV5cJKt0nAhsBWbO84jaw2qjnrYyBGF3zHnQnGN5dMaBKJoHsYANkPptEzVm44Xw29YKZb8MWCH5NFv504c0PNnwphdTpJAz8BhpEbhSFYRDZwNvmj92Dat9Vq_3aEjoDWtVpNjROdTPYsYLjcn2rammAeH54-AalNSo9)
+    subgraph cos-collector-charm
+        direction TB
+        charm-code
+        subgraph node-exporter-snap
+            node-exporter1["node-exporter binary"]
+            node-exporter-config["node-exporter configuration"]
+        end
+        subgraph otelcol-snap
+            otelcol["otelcol binary"]
+            otelcol-config["otelcol configuration"]
+        end
+        charm-code --> otelcol-config
+        charm-code --> node-exporter-config
+    end
+
+    cos-collector-charm --->|"subordinate"| principal-charm1
+    cos-collector-charm --->|"subordinate"| principal-charm2
+end
+```
 
 ## Decision
 
