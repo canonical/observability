@@ -385,6 +385,8 @@ As we have said before, everytime `cos-collector` subordinate charm is related t
 * Merge the `otelcol` configuration resulting from the established relationship with any previously existing configuration.
   * One of the outcomes of `relation-joined` event is a `yaml` file saved in `/etc/otelcol/configs` directory containing the specific bits of configuration for that relation.
   * Once the file is written on disk, `cos-collector` charm will merge all the files in `/etc/otelcol/configs` into one global config file: `/etc/otelcol/config.yaml` and will restart `otelcol` binary.
+    * The resulting configuration must be validated with `otelcol validate`.
+    * The configuration merge process can be implemented in pure python or with tools like [this one](https://github.com/alexlafroscia/yaml-merge), or [this one](https://github.com/sjramblings/yaml-merge).
 
 
 When a relation between `cos-collector` and a principal charm is removed, the `cos-collector` charm must:
