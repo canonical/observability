@@ -17,18 +17,6 @@ In addition to pebble checks, charm actions, etc., a gap exists for a different 
 ## The solution terminology
 A configurable set of assertions/checks called `probes` run against an environment description which in turn is the output of other tools that we are not responsible for, such as `sosreport` or the output of commands such as `juju show-unit/kubectl describe`.
 
-
-
-
-
-```
-Charms should have validation probes for their deployment in any context. The same probes should be equally applicable to live deployments and support archives (sosreport). A charm probe is a universal, external probe which makes assertions on established constructs (i.e. having a well-defined schema) such as Juju (status, bundle, show-unit) and Kubernetes (describe-pod).
-```
-
-
-
-
-
 ## Alternatives
 ### (1) Runnable script
 - A probe is a standalone, runnable script that expects data (in a well-defined schema) from stdin and returns 0 on success and non-zero value (and stderr) on failure.
