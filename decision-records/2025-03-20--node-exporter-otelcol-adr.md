@@ -124,7 +124,10 @@ end
 
 * Two different workloads mixed into a single snap.
 * Snap's name need to be changed since it would not be just `otelcol`.
-
+* With more than one instance on the same VM, we'd get duplicated node-exporter alerts for the same metrics, just with a different "juju_unit" label.
+* Would need a mechanism to coordinate port number across snaps and charms, or let the OS assign a random free port, and use that.
+* Slightly higher total resource consumption compared to a singleton approach.
+* Leaky confinement: node-exporter interfaces unnecessarily available to otelcol.
 
 ### Alternative 2: Install `node-exporter` as a separate snap
 
