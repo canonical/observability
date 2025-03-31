@@ -22,7 +22,7 @@ jobs:
     - name: Pull and save the image
       run: |
         sudo docker pull ${{ inputs.rock-name }}:${{ inputs.rock-version }}
-        sudo docker save ${{ inputs.rock-name }}:${{ inputs.rock-version }} | gzip -c -9 > secscan.rock
+        sudo docker save ${{ inputs.rock-name }}:${{ inputs.rock-version }}
     - name: Upload locally fetched rock artifact
       uses: actions/upload-artifact@v4
       with:
