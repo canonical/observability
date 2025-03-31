@@ -202,7 +202,8 @@ end
 #### Advantages
 
 * Better separation of concerns: Each binary will be managed by its own snap.
-
+* Lower total juju relation count.
+* No need to deal with race conditions: If more than one otelcol _app_ is deployed to the same VM, it is seamlessly handled just the same as another unit of the same app.
 
 #### Disadvantages
 
