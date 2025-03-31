@@ -75,7 +75,6 @@ flowchart TD
 
 This alternative follows the concept: *"Everytime we relate the subordinate charm to a principal, new instances of the `otelcol` + `node-exporter` binaries are installed and operated."*
 
-Although this alternative is quite simple in terms of the modification of the [`opentelemetry-collector-snap`](https://github.com/canonical/opentelemetry-collector-snap), we should also modify the snap name (and the charm name?) since it won't be only `otelcol`. It will be `otelcol` + `node-exporter`. Say for instance: `cos-collector`.
 
 
 ```mermaid
@@ -88,7 +87,7 @@ subgraph host
     port9200(["port: 9200"])
     port4327(["port: 4327"])
     port4328(["port: 4328"])
-    subgraph snap1["cos-collector snap"]
+    subgraph snap1["otel-collector snap"]
             direction BT
         subgraph binary1["node-exporter binary"]
             direction BT
@@ -99,7 +98,7 @@ subgraph host
             otelcol1["otelcol"]
         end
     end
-    subgraph snap2["cos-collector snap"]
+    subgraph snap2["otel-collector snap"]
             direction BT
 
         subgraph binary3["node-exporter binary"]
@@ -130,10 +129,10 @@ end
 
 * Two different workloads mixed into a single snap.
 * Snap's name need to be changed since it would not be just `otelcol`.
-* With more than one instance on the same VM, we would get duplicated node-exporter alerts for the same metrics, just with a different "juju_unit" label.
+* With more than one instance on the same VM, we would get duplicated `node-exporter` alerts for the same metrics, just with a different "juju_unit" label.
 * Would need a mechanism to coordinate port number across snaps and charms, or let the OS assign a random free port, and use that.
 * Slightly higher total resource consumption compared to a singleton approach.
-* Leaky confinement: node-exporter interfaces unnecessarily available to otelcol.
+* Leaky confinement: `node-exporter` interfaces unnecessarily available to `otelcol`.
 
 ### Alternative 1-B: Install `node-exporter` as a separate snap
 
@@ -214,13 +213,15 @@ end
 #### Disadvantages
 
 * Two snaps need to be maintained.
-
-
+* With more than one instance on the same VM, we would get duplicated `node-exporter` alerts for the same metrics, just with a different "juju_unit" label.
+* Would need a mechanism to coordinate port number across snaps and charms, or let the OS assign a random free port, and use that.
+* Slightly higher total resource consumption compared to a singleton approach.
+* Leaky confinement: `node-exporter` interfaces unnecessarily available to `otelcol`.
 
 
 ## Alternative 2: "Singleton approach"
 
-> *Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per principal charm and host)*
+> *Only one `otelcol` + `node-exporter` binaries per `otel-collector` charm (and per principal charm and host)*
 
 When we think about software like text-editors, browsers, terminals, etc you may expect that more than one instance of that software could be running on the host.
 
@@ -245,14 +246,14 @@ subgraph host
     subgraph principal-charm2
         principal-charm-app2
     end
-    subgraph cos-collector-charm
+    subgraph otel-collector-charm
     direction BT
         direction BT
         node-exporter1["node-exporter"]
         otelcol1["otelcol"]
     end
-    cos-collector-charm --->|"subordinate"| principal-charm1
-    cos-collector-charm --->|"subordinate"| principal-charm2
+    otel-collector-charm --->|"subordinate"| principal-charm1
+    otel-collector-charm --->|"subordinate"| principal-charm2
     node-exporter1 --> port9100
     otelcol1 --> port4317
     otelcol1 --> port4318
@@ -262,10 +263,10 @@ end
 If the idea is so simple, why wouldn't we implement it? Well, the answer is that from a charm perspective is not that simple. In fact in `grafana-agent` charm it is not implemented, and because of this we have [some weird situations.](https://discourse.charmhub.io/t/one-grafana-agent-charm-to-rule-them-all/16014).
 
 ### Advantages
-- No duplicated node-exporter alerts.
+- No duplicated `node-exporter` alerts.
 - No need to coordinate port number binds.
 - Slightly lower resource consumption compared to the multi-instance approach.
-- If more than one otelcol _app_ is deployed to the same VM, all but one would loudly fail because they'd try to bind to a used port. Which is a good thing.
+- If more than one `otelcol` _app_ is deployed to the same VM, all but one would loudly fail because they'd try to bind to a used port. Which is a good thing.
 
 ### Disadvantages
 - Need to carefully address multiple potential race condition.
@@ -274,29 +275,29 @@ If the idea is so simple, why wouldn't we implement it? Well, the answer is that
 ### Some considerations to be taken into account when implementing this solution
 
 
-Everytime `cos-collector` subordinate charm is related to a principal charm, `cos-collector` charm must:
+Everytime `otel-collector` subordinate charm is related to a principal charm, `otel-collector` charm must:
 
 * Take into account potential race conditions: Verify whether `otelcol` and `node-exporter` snaps are already installed or not to avoid trying to install them again.
 * Merge the `otelcol` configuration resulting from the established relationship with any previously existing configuration.
 
 
-When a relation between `cos-collector` and a principal charm is removed, the `cos-collector` charm must:
+When a relation between `otel-collector` and a principal charm is removed, the `otel-collector` charm must:
 
 * Remove from the `otelcol` config file the configuration resulting from the departing relation.
-* Uninstall `otelcol` and `node-exporter` snaps only if there is no other `cos-collector` charm deployed in the same host.
+* Uninstall `otelcol` and `node-exporter` snaps only if there is no other `otel-collector` charm deployed in the same host.
 
 
 #### Questions and doubts about this approach
 
 
-* When we think of a charm, we expect it to manage the lifecycle of an application, from installation, configuration, scaling to relationships. However, with this approach, multiple instances of `cos-collector` charm will handle a single binary and a single configuration file.
+* When we think of a charm, we expect it to manage the lifecycle of an application, from installation, configuration, scaling to relationships. However, with this approach, multiple instances of `otel-collector` charm will handle a single binary and a single configuration file.
 
 ```mermaid
 flowchart LR
 subgraph host
     direction TB
 
-    subgraph cos-collector-charm
+    subgraph otel-collector-charm
         direction TB
         charm-code
         subgraph "Binaries and config"
@@ -310,8 +311,8 @@ subgraph host
         charm-code --> node-exporter-config
     end
 
-    cos-collector-charm --->|"subordinate"| principal-charm1
-    cos-collector-charm --->|"subordinate"| principal-charm2
+    otel-collector-charm --->|"subordinate"| principal-charm1
+    otel-collector-charm --->|"subordinate"| principal-charm2
 end
 ```
 
@@ -330,11 +331,13 @@ end
 
 ## Decision
 
-Based on the previous analysis, the decision is to follow the second approach: *"Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per principal charm and host)"*.
+Based on the previous analysis, the decision is to follow the second approach: *"Only one `otelcol` + `node-exporter` binaries per `otel-collector` charm (and per principal charm and host)"*.
 
 These binaries will be managed by theirs own snaps as shown in **Alternative 2** of the first approach.
 
-With that said, a normal deployment with more than one principal charms related to a subordinate `cos-collector` charm lookd like this:
+### Regular deployment: Only one `otel-collector` charm
+
+With that said, a regular deployment with more than one principal charms related to a subordinate `otel-collector` charm looks like this:
 
 
 
@@ -343,7 +346,7 @@ flowchart LR
 subgraph host
     direction TB
 
-    subgraph cos-collector-charm
+    subgraph otel-collector-charm
         direction TB
         charm-code
         subgraph node-exporter-snap
@@ -358,28 +361,34 @@ subgraph host
         charm-code --> node-exporter-config
     end
 
-    cos-collector-charm --->|"subordinate"| principal-charm1
-    cos-collector-charm --->|"subordinate"| principal-charm2
+    otel-collector-charm --->|"subordinate"| principal-charm1
+    otel-collector-charm --->|"subordinate"| principal-charm2
 end
 ```
 
 
 
-As we have said before, everytime `cos-collector` subordinate charm is related to a principal charm, `cos-collector` charm must:
+### Regular deployment: More than one `otel-collector` charm
+
+
+
+As we have said before, everytime `otel-collector` subordinate charm is related to a principal charm, `otel-collector` charm must:
 
 * Verify whether `otelcol` and `node-exporter` snaps are already installed or not to avoid trying to install them again.
 * Merge the `otelcol` configuration resulting from the established relationship with any previously existing configuration.
   * One of the outcomes of `relation-joined` event is a `yaml` file saved in `/etc/otelcol/configs` directory containing the specific bits of configuration for that relation.
-  * Once the file is written on disk, `cos-collector` charm will merge all the files in `/etc/otelcol/configs` into one global config file: `/etc/otelcol/config.yaml` and will restart `otelcol` binary.
+  * Once the file is written on disk, `otel-collector` charm will merge all the files in `/etc/otelcol/configs` into one global config file: `/etc/otelcol/config.yaml` and will restart `otelcol` binary.
     * The resulting configuration must be validated with `otelcol validate`.
     * The configuration merge process can be implemented in pure python or with tools like [this one](https://github.com/alexlafroscia/yaml-merge), or [this one](https://github.com/sjramblings/yaml-merge).
 
 
-When a relation between `cos-collector` and a principal charm is removed, the `cos-collector` charm must:
+When a relation between `otel-collector` and a principal charm is removed, the `otel-collector` charm must:
 
 * Remove the specific `yaml` file stored in `/etc/otelcol/configs` generated by that relation.
 * Regenerate the `/etc/otelcol/config.yaml` global config file using the specific files that remains in `/etc/otelcol/configs`.
-  * If there are no files left in the `/etc/otelcol/configs`, this means that there are no active relationships between `cos-collector` and other principal charms, we can safely uninstall `otelcol` and `node-exporter` snaps.
+  * If there are no files left in the `/etc/otelcol/configs`, this means that there are no active relationships between `otel-collector` and other principal charms, we can safely uninstall `otelcol` and `node-exporter` snaps.
+
+
 
 
 ## Appendix: Parallel installs
