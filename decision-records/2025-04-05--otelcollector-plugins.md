@@ -41,10 +41,38 @@ What would this look like? We can [manage a resource in charm code](https://ops.
 The binary path in the charm code is abstracted from the user. Since the OCI image and the snap are basically simple wrappers around the binaries anyways, why not just supply a binary and handle it in charm code?
 
 
-´´´python
-TODO code sample
-or temp repo link
-´´´
+```python
+TODO test this works on vm charms
+
+def _on_config_changed(self, event: ops.ConfigChangedEvent):
+    try:
+        self._otelcol_path = self.model.resources.fetch("otelcol-bin")
+    except NameError as e:
+        self.unit.status = ops.BlockedStatus("Resource not found")
+        return
+    except ops.ModelError as e:
+        self.unit.status = ops.BlockedStatus("Something went wrong when claiming resources")
+        return
+    config_path = Path("/etc/otelcol/config.yaml")
+    otelcol_path = Path("/etc/otelcol/otelcol-bin")
+    try:
+        k8s_charm = True  # This is only used to demo the difference between code in vm charm vs. k8s charm
+        with open(self._otelcol_path, "rb") as f:
+            if k8s_charm:
+                container = self.unit.get_container("otelcol")
+                container.push(
+                    str(otelcol_path),
+                    f.read(),
+                    make_dirs=True,
+                    permissions=0o755
+                )
+                container.push(str(config_path), yaml.dump(otel_config), make_dirs=True)
+            else:
+                config_path.parent.mkdir(parents=True, exist_ok=True)
+                config_path.write_text(f.read())
+                run(["chmod", "644", str(config_path)], check=True)
+    # Do something with "/etc/otelcol/otelcol-bin"
+```
 
 ### (2) OCI image and snap resources
 The focus of this solution is to use charming best practices with suggestions for improvements to the current process. This entails using an OCI image for the k8s charm and snaps for the vm charm. Since the binary is created at compile time, we would suggest the user to build a local snap and image to replace our defaulted ones.
