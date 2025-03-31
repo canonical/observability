@@ -64,10 +64,10 @@ flowchart TD
         direction BT
         otelcol
         node-exporter
-        port9100["port: 9100"]
+        port9100(["port: 9100"])
         node-exporter --> port9100
-        port4317["port: 4317"]
-        port4318["port: 4318"]
+        port4317(["port: 4317"])
+        port4318(["port: 4318"])
         otelcol --> port4317
         otelcol --> port4318
     end
