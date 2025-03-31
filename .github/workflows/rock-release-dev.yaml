@@ -56,4 +56,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.rock-name }}-rock
-        path: "${{ inputs.rock-name }}_*.rock"
+        path: "./**/${{ inputs.rock-name }}_*.rock"
