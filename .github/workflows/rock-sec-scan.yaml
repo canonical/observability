@@ -22,12 +22,12 @@ jobs:
     - name: Pull and save the image
       run: |
         sudo docker pull ${{ inputs.rock-name }}:${{ inputs.rock-version }}
-        sudo docker save ${{ inputs.rock-name }}:${{ inputs.rock-version }} | gzip -c -9 > ${{ inputs.rock-name }}_${{ inputs.rock-version }}.rock
+        sudo docker save ${{ inputs.rock-name }}:${{ inputs.rock-version }} | gzip -c -9 > secscan.rock
     - name: Upload locally fetched rock artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.rock-name }}-fetched-rock
-        path: "./${{ inputs.rock-name }}_*.rock"
+        name: secscan-fetched-rock
+        path: "./secscan.rock"
   scan:
     name: Run the security scan
     needs:
@@ -36,5 +36,5 @@ jobs:
     with:
       artifacts-type: container-image
       artifacts-format: oci
-      artifacts-key: ${{ inputs.rock-name }}-fetched-rock
-      artifact-path: "./${{ inputs.rock-name }}_*.rock"
+      artifacts-key: secscan-fetched-rock
+      artifact-path: "./secscan.rock"
