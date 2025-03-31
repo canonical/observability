@@ -21,6 +21,8 @@
             - [Parallel installation of snaps](#parallel-installation-of-snaps)
             - [Questions and doubts about this approach](#questions-and-doubts-about-this-approach)
     - [Alternative 2: "Singleton approach"](#alternative-2-singleton-approach)
+        - [Advantages](#advantages-2)
+        - [Disadvantages](#disadvantages-2)
         - [Some considerations to be taken into account when implementing this solution](#some-considerations-to-be-taken-into-account-when-implementing-this-solution)
             - [Questions and doubts about this approach](#questions-and-doubts-about-this-approach-1)
     - [Decision](#decision)
@@ -49,7 +51,7 @@ The downside of the approach implemented in `grafana-agent` charm is that we may
 
 ## Alternative 1: Multiple collectors approach.
 
-| *One `otelcol` + `node-exporter` binaries per Principal charm (make use of snaps `parallel install` feature)*
+> *One `otelcol` + `node-exporter` binaries per Principal charm (make use of snaps `parallel install` feature)*
 
 
 ### Alternative 1-A: Add `node-exporter` as a second `app` in `opentelemetry-collector-snap`
@@ -269,7 +271,7 @@ With this approach some questions arise:
 
 ## Alternative 2: "Singleton approach"
 
-| *Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per principal charm and host)*
+> *Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per principal charm and host)*
 
 When we think about software like text-editors, browsers, terminals, etc you may expect that more than one instance of that software could be running on the host.
 
@@ -318,6 +320,8 @@ If the idea is so simple, why wouldn't we implement it? Well, the answer is that
 
 ### Disadvantages
 - Need to carefully address multiple potential race condition.
+
+
 ### Some considerations to be taken into account when implementing this solution
 
 
