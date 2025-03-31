@@ -8,19 +8,19 @@
 
 - [Node-exporter + otelcol](#node-exporter--otelcol)
     - [Context and Problem Statement](#context-and-problem-statement)
-    - [One `otelcol` + `node-exporter` binaries per Principal charm (make use of snaps `parallel install` feature)](#one-otelcol--node-exporter-binaries-per-principal-charm-make-use-of-snaps-parallel-install-feature)
-        - [Alternative 1: Add `node-exporter` as a second `app` in `opentelemetry-collector-snap`](#alternative-1-add-node-exporter-as-a-second-app-in-opentelemetry-collector-snap)
+    - [Alternative 1: Multiple collectors approach.](#alternative-1-multiple-collectors-approach)
+        - [Alternative 1-A: Add `node-exporter` as a second `app` in `opentelemetry-collector-snap`](#alternative-1-a-add-node-exporter-as-a-second-app-in-opentelemetry-collector-snap)
             - [Advantages](#advantages)
             - [Disadvantages](#disadvantages)
-        - [Alternative 2: Install `node-exporter` as a separate snap](#alternative-2-install-node-exporter-as-a-separate-snap)
+        - [Alternative 1-B: Install `node-exporter` as a separate snap](#alternative-1-b-install-node-exporter-as-a-separate-snap)
             - [Advantages](#advantages-1)
             - [Disadvantages](#disadvantages-1)
-        - [General comments about Alternative 1 and Alternative 2](#general-comments-about-alternative-1-and-alternative-2)
+        - [General comments about Alternative 1-A and Alternative 1-B](#general-comments-about-alternative-1-a-and-alternative-1-b)
             - [Enable the feature in the host.](#enable-the-feature-in-the-host)
             - [Ports management](#ports-management)
             - [Parallel installation of snaps](#parallel-installation-of-snaps)
             - [Questions and doubts about this approach](#questions-and-doubts-about-this-approach)
-    - [Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per principal charm and host)](#only-one-otelcol--node-exporter-binaries-per-cos-collector-charm-and-per-principal-charm-and-host)
+    - [Alternative 2: "Singleton approach"](#alternative-2-singleton-approach)
         - [Some considerations to be taken into account when implementing this solution](#some-considerations-to-be-taken-into-account-when-implementing-this-solution)
             - [Questions and doubts about this approach](#questions-and-doubts-about-this-approach-1)
     - [Decision](#decision)
@@ -47,10 +47,12 @@ Besides, Managed Solutions team mentioned that the `subordinate` approach we use
 The downside of the approach implemented in `grafana-agent` charm is that we may end up with only [one agent running and more than one charm deployed which led us to problematic situations](https://discourse.charmhub.io/t/one-grafana-agent-charm-to-rule-them-all/16014/1).
 
 
-## One `otelcol` + `node-exporter` binaries per Principal charm (make use of snaps `parallel install` feature)
+## Alternative 1: Multiple collectors approach.
+
+| *One `otelcol` + `node-exporter` binaries per Principal charm (make use of snaps `parallel install` feature)*
 
 
-### Alternative 1: Add `node-exporter` as a second `app` in `opentelemetry-collector-snap`
+### Alternative 1-A: Add `node-exporter` as a second `app` in `opentelemetry-collector-snap`
 
 ```mermaid
 flowchart TD
@@ -129,7 +131,7 @@ end
 * Slightly higher total resource consumption compared to a singleton approach.
 * Leaky confinement: node-exporter interfaces unnecessarily available to otelcol.
 
-### Alternative 2: Install `node-exporter` as a separate snap
+### Alternative 1-B: Install `node-exporter` as a separate snap
 
 
 ```mermaid
@@ -210,7 +212,7 @@ end
 * Two snaps need to be maintained.
 
 
-### General comments about Alternative 1 and Alternative 2
+### General comments about Alternative 1-A and Alternative 1-B
 
 As we have said, both alternatives relies on the [parallel installs](https://snapcraft.io/docs/parallel-installs) feature of snaps which has aspects that must be considered:
 
@@ -265,7 +267,9 @@ With this approach some questions arise:
 * Having more than one `otelcol` and `node-exporter` running on the same host will consume extra resources. Are those over-consumed resources significant?
 
 
-## Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per principal charm and host)
+## Alternative 2: "Singleton approach"
+
+| *Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per principal charm and host)*
 
 When we think about software like text-editors, browsers, terminals, etc you may expect that more than one instance of that software could be running on the host.
 
