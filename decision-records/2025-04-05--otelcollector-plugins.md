@@ -71,6 +71,7 @@ Similar to the k8s charm, it would be great if the snap inside the VM charm is r
 Only now can the user `juju refresh ... --resource otelcol-snap=<custom.snap>`, but at least its an option.
 
 ⛑️ This requires a refactor of the current `opentelemetry-collector` part which [uses the upstream otelcol binary](https://github.com/canonical/opentelemetry-collector-snap/blob/5dfafd0994e249c5a543126240b4f5fbac834251/snap/snapcraft.yaml#L74)
+
 ⛑️ We would need to implement functionality within the charm to handle updating the snap with the `.snap` file from `--resource`
 
 ### (3) We control allowable plugins
