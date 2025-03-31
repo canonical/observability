@@ -75,22 +75,22 @@ Although this alternative is quite simple in terms of the modification of the [`
 ```mermaid
 flowchart LR
 subgraph host
+    direction BT
+    port9100(["port: 9100"])
+    port4317(["port: 4317"])
+    port4318(["port: 4318"])
+    port9200(["port: 9200"])
+    port4327(["port: 4327"])
+    port4328(["port: 4328"])
     subgraph snap1["cos-collector snap"]
             direction BT
         subgraph binary1["node-exporter binary"]
             direction BT
-            port9100["port: 9100"]
             node-exporter1["node-exporter"]
-            node-exporter1 --> port9100
         end
         subgraph binary2["otelcol binary"]
             direction BT
-
-            port4317["port: 4317"]
-            port4318["port: 4318"]
             otelcol1["otelcol"]
-            otelcol1 --> port4317
-            otelcol1 --> port4318
         end
     end
     subgraph snap2["cos-collector snap"]
@@ -98,19 +98,19 @@ subgraph host
 
         subgraph binary3["node-exporter binary"]
             direction BT
-            port9200["port: 9200"]
             node-exporter2["node-exporter"]
-            node-exporter2 --> port9200
         end
         subgraph binary4["otelcol binary"]
             direction BT
-            port4327["port: 4327"]
-            port4328["port: 4328"]
             otelcol2["otelcol"]
-            otelcol2 --> port4327
-            otelcol2 --> port4328
         end
     end
+    node-exporter1 --> port9100
+    otelcol1 --> port4317
+    otelcol1 --> port4318
+    node-exporter2 --> port9200
+    otelcol2 --> port4327
+    otelcol2 --> port4328
 end
 ```
 
@@ -137,15 +137,15 @@ flowchart TD
     subgraph otelcolsnap["otelcol snap"]
         direction BT
         otelcol["otelcol binary"]
-        port4317["port: 4317"]
-        port4318["port: 4318"]
+        port4317(["port: 4317"])
+        port4318(["port: 4318"])
         otelcol --> port4317
         otelcol --> port4318
     end
     subgraph node-exportersnap["node-exporter snap"]
         direction BT
         node-exporter["node-exporter binary"]
-        port9100["port: 9100"]
+        port9100(["port: 9100"])
         node-exporter --> port9100
     end
 ```
@@ -157,42 +157,44 @@ This way provides a better separation of concerns: Each binary is installed and 
 ```mermaid
 flowchart LR
 subgraph host
+direction BT
     subgraph snap1["node-exporter snap"]
         subgraph ports1["node-exporter binary"]
             direction BT
-            port9100["port: 9100"]
             node-exporter1["node-exporter"]
-            node-exporter1 --> port9100
         end
     end
     subgraph snap2["otelcol snap"]
         subgraph ports2["otelcol binary"]
             direction BT
-            port4317["port: 4317"]
-            port4318["port: 4318"]
             otelcol1["otelcol"]
-            otelcol1 --> port4317
-            otelcol1 --> port4318
+
         end
     end
     subgraph snap3["node-exporter snap"]
         subgraph ports3["node-exporter binary"]
             direction BT
-            port9200["port: 9200"]
             node-exporter2["node-exporter"]
-            node-exporter2 --> port9200
         end
     end
     subgraph snap4["otelcol snap"]
         subgraph ports4["otelcol binary"]
             direction BT
-            port4327["port: 4327"]
-            port4328["port: 4328"]
             otelcol2["otelcol"]
-            otelcol2 --> port4327
-            otelcol2 --> port4328
         end
     end
+    port9100(["port: 9100"])
+    port4317(["port: 4317"])
+    port4318(["port: 4318"])
+    port9200(["port: 9200"])
+    port4327(["port: 4327"])
+    port4328(["port: 4328"])
+    node-exporter1 --> port9100
+    otelcol1 --> port4317
+    otelcol1 --> port4318
+    node-exporter2 --> port9200
+    otelcol2 --> port4327
+    otelcol2 --> port4328
 end
 ```
 
@@ -277,6 +279,10 @@ So let's explore this idea further, starting with a simple diagram of what the d
 ```mermaid
 flowchart LR
 subgraph host
+    direction TB
+    port9100(["port: 9100"])
+    port4317(["port: 4317"])
+    port4318(["port: 4318"])
     subgraph principal-charm1
         principal-charm-app1
     end
@@ -286,18 +292,14 @@ subgraph host
     subgraph cos-collector-charm
     direction BT
         direction BT
-        port9100["port: 9100"]
         node-exporter1["node-exporter"]
-        node-exporter1 --> port9100
-
-        port4317["port: 4317"]
-        port4318["port: 4318"]
         otelcol1["otelcol"]
-        otelcol1 --> port4317
-        otelcol1 --> port4318
     end
     cos-collector-charm --->|"subordinate"| principal-charm1
     cos-collector-charm --->|"subordinate"| principal-charm2
+    node-exporter1 --> port9100
+    otelcol1 --> port4317
+    otelcol1 --> port4318
 end
 ```
 
