@@ -15,17 +15,19 @@
         - [Alternative 1-B: Install `node-exporter` as a separate snap](#alternative-1-b-install-node-exporter-as-a-separate-snap)
             - [Advantages](#advantages-1)
             - [Disadvantages](#disadvantages-1)
-        - [General comments about Alternative 1-A and Alternative 1-B](#general-comments-about-alternative-1-a-and-alternative-1-b)
-            - [Enable the feature in the host.](#enable-the-feature-in-the-host)
-            - [Ports management](#ports-management)
-            - [Parallel installation of snaps](#parallel-installation-of-snaps)
-            - [Questions and doubts about this approach](#questions-and-doubts-about-this-approach)
     - [Alternative 2: "Singleton approach"](#alternative-2-singleton-approach)
         - [Advantages](#advantages-2)
         - [Disadvantages](#disadvantages-2)
         - [Some considerations to be taken into account when implementing this solution](#some-considerations-to-be-taken-into-account-when-implementing-this-solution)
-            - [Questions and doubts about this approach](#questions-and-doubts-about-this-approach-1)
+            - [Questions and doubts about this approach](#questions-and-doubts-about-this-approach)
+    - [Two separate subordinate charms for otelcol and node-exporter](#two-separate-subordinate-charms-for-otelcol-and-node-exporter)
     - [Decision](#decision)
+    - [Appendix: Parallel installs](#appendix-parallel-installs)
+        - [General comments about Alternative 1-A and Alternative 1-B](#general-comments-about-alternative-1-a-and-alternative-1-b)
+            - [Enable the feature in the host.](#enable-the-feature-in-the-host)
+            - [Ports management](#ports-management)
+            - [Parallel installation of snaps](#parallel-installation-of-snaps)
+            - [Questions and doubts about this approach](#questions-and-doubts-about-this-approach-1)
 
 <!-- markdown-toc end -->
 
@@ -214,59 +216,6 @@ end
 * Two snaps need to be maintained.
 
 
-### General comments about Alternative 1-A and Alternative 1-B
-
-As we have said, both alternatives relies on the [parallel installs](https://snapcraft.io/docs/parallel-installs) feature of snaps which has aspects that must be considered:
-
-#### Enable the feature in the host.
-
-This feature is currently considered experimental. As a result, to experiment with parallel installs, an experimental feature-flag must first be enabled in the host:
-
-```shell
-$ sudo snap set system experimental.parallel-instances=true
-```
-
-> *We recommend rebooting the system after toggling the experimental.parallel-instances flag state to avoid potential namespace problems with snap applications that have already been run*
-
-#### Ports management
-
-By default `node-exporter` exports host metrics in the port `9100` and `otelcol` exports several ports as well.
-In order to support [parallel installs](https://snapcraft.io/docs/parallel-installs) we should add a config option to the snaps so we can [arbitrary change the ports number](https://stackoverflow.com/a/57215681) `node-exporter` and `otelcol` uses.
-
-This way we could potentially install the same snap several times in the same `host`.
-
-
-#### Parallel installation of snaps
-
-In order to install several instances of the same snap, for instance the `hello-world` snap, we need append an `_INSTANCENAME` to the snap name:
-
-```shell
-$ sudo snap install hello-world_foo                                                                                               1 ↵
-hello-world_foo 6.4 from Canonical✓ installed
-
-$ sudo snap install hello-world_bar
-hello-world_bar 6.4 from Canonical✓ installed
-
-$ sudo snap install hello-world_baz
-hello-world_baz 6.4 from Canonical✓ installed
-```
-
-Now we verify that all instances were installed:
-
-```shell
-$ sudo snap list | grep hello
-hello-world_bar  6.4                 29     latest/stable       canonical**  -
-hello-world_baz  6.4                 29     latest/stable       canonical**  -
-hello-world_foo  6.4                 29     latest/stable       canonical**  -
-```
-
-#### Questions and doubts about this approach
-
-With this approach some questions arise:
-
-* Is it OK for a charm to enable a snapd feature on the running host?
-* Is it OK for a charm to reboot the host in which it is running?
-* Having more than one `otelcol` and `node-exporter` running on the same host will consume extra resources. Are those over-consumed resources significant?
 
 
 ## Alternative 2: "Singleton approach"
@@ -365,9 +314,11 @@ subgraph host
     cos-collector-charm --->|"subordinate"| principal-charm2
 end
 ```
+
 ## Two separate subordinate charms for otelcol and node-exporter
 This alternative is readily rejected because it would require to relate the node-exporter charm to both otelcol (to scrape it) and a principal charm (so the subordinate node-exporter is provisioned), leaving the principal---node-exporter relation a no-op. This is because juju doesn't deploy a subordinate charm to a vm if it is only related to another subordinate charm (regardless whether the relation between the two subordinates is a regular relation or a subordinate relation).
 
+```mermaid
 flowchart LR
 subgraph host
 otelcol -.- |juju-info| principal
@@ -375,6 +326,8 @@ otelcol ---|cos-agent| principal
 otelcol ---|scrape| node-exporter
 node-exporter ---|juju-info| principal
 end
+```
+
 ## Decision
 
 Based on the previous analysis, the decision is to follow the second approach: *"Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per principal charm and host)"*.
@@ -427,3 +380,60 @@ When a relation between `cos-collector` and a principal charm is removed, the `c
 * Remove the specific `yaml` file stored in `/etc/otelcol/configs` generated by that relation.
 * Regenerate the `/etc/otelcol/config.yaml` global config file using the specific files that remains in `/etc/otelcol/configs`.
   * If there are no files left in the `/etc/otelcol/configs`, this means that there are no active relationships between `cos-collector` and other principal charms, we can safely uninstall `otelcol` and `node-exporter` snaps.
+
+
+## Appendix: Parallel installs
+
+### General comments about Alternative 1-A and Alternative 1-B
+
+As we have said, both alternatives relies on the [parallel installs](https://snapcraft.io/docs/parallel-installs) feature of snaps which has aspects that must be considered:
+
+#### Enable the feature in the host.
+
+This feature is currently considered experimental. As a result, to experiment with parallel installs, an experimental feature-flag must first be enabled in the host:
+
+```shell
+$ sudo snap set system experimental.parallel-instances=true
+```
+
+> *We recommend rebooting the system after toggling the experimental.parallel-instances flag state to avoid potential namespace problems with snap applications that have already been run*
+
+#### Ports management
+
+By default `node-exporter` exports host metrics in the port `9100` and `otelcol` exports several ports as well.
+In order to support [parallel installs](https://snapcraft.io/docs/parallel-installs) we should add a config option to the snaps so we can [arbitrary change the ports number](https://stackoverflow.com/a/57215681) `node-exporter` and `otelcol` uses.
+
+This way we could potentially install the same snap several times in the same `host`.
+
+
+#### Parallel installation of snaps
+
+In order to install several instances of the same snap, for instance the `hello-world` snap, we need append an `_INSTANCENAME` to the snap name:
+
+```shell
+$ sudo snap install hello-world_foo                                                                                               1 ↵
+hello-world_foo 6.4 from Canonical✓ installed
+
+$ sudo snap install hello-world_bar
+hello-world_bar 6.4 from Canonical✓ installed
+
+$ sudo snap install hello-world_baz
+hello-world_baz 6.4 from Canonical✓ installed
+```
+
+Now we verify that all instances were installed:
+
+```shell
+$ sudo snap list | grep hello
+hello-world_bar  6.4                 29     latest/stable       canonical**  -
+hello-world_baz  6.4                 29     latest/stable       canonical**  -
+hello-world_foo  6.4                 29     latest/stable       canonical**  -
+```
+
+#### Questions and doubts about this approach
+
+With this approach some questions arise:
+
+* Is it OK for a charm to enable a snapd feature on the running host?
+* Is it OK for a charm to reboot the host in which it is running?
+* Having more than one `otelcol` and `node-exporter` running on the same host will consume extra resources. Are those over-consumed resources significant?
