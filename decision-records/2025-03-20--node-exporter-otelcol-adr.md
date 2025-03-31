@@ -361,7 +361,16 @@ subgraph host
     cos-collector-charm --->|"subordinate"| principal-charm2
 end
 ```
+## Two separate subordinate charms for otelcol and node-exporter
+This alternative is readily rejected because it would require to relate the node-exporter charm to both otelcol (to scrape it) and a principal charm (so the subordinate node-exporter is provisioned), leaving the principal---node-exporter relation a no-op. This is because juju doesn't deploy a subordinate charm to a vm if it is only related to another subordinate charm (regardless whether the relation between the two subordinates is a regular relation or a subordinate relation).
 
+flowchart LR
+subgraph host
+otelcol -.- |juju-info| principal
+otelcol ---|cos-agent| principal
+otelcol ---|scrape| node-exporter
+node-exporter ---|juju-info| principal
+end
 ## Decision
 
 Based on the previous analysis, the decision is to follow the second approach: *"Only one `otelcol` + `node-exporter` binaries per `cos-collector` charm (and per principal charm and host)"*.
