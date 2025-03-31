@@ -20,7 +20,7 @@
         - [Disadvantages](#disadvantages-2)
         - [Some considerations to be taken into account when implementing this solution](#some-considerations-to-be-taken-into-account-when-implementing-this-solution)
             - [Questions and doubts about this approach](#questions-and-doubts-about-this-approach)
-    - [Two separate subordinate charms for otelcol and node-exporter](#two-separate-subordinate-charms-for-otelcol-and-node-exporter)
+    - [Alternative 3: Two separate subordinate charms for otelcol and node-exporter](#alternative-3-two-separate-subordinate-charms-for-otelcol-and-node-exporter)
     - [Decision](#decision)
     - [Appendix: Parallel installs](#appendix-parallel-installs)
         - [General comments about Alternative 1-A and Alternative 1-B](#general-comments-about-alternative-1-a-and-alternative-1-b)
@@ -315,8 +315,8 @@ subgraph host
 end
 ```
 
-## Two separate subordinate charms for otelcol and node-exporter
-This alternative is readily rejected because it would require to relate the node-exporter charm to both otelcol (to scrape it) and a principal charm (so the subordinate node-exporter is provisioned), leaving the principal---node-exporter relation a no-op. This is because juju doesn't deploy a subordinate charm to a vm if it is only related to another subordinate charm (regardless whether the relation between the two subordinates is a regular relation or a subordinate relation).
+## Alternative 3: Two separate subordinate charms for otelcol and node-exporter
+This alternative is readily rejected because it would require to relate the `node-exporter` charm to both `otelcol` (to scrape it) and a principal charm (so the subordinate `node-exporter` is provisioned), leaving the principal---node-exporter relation a no-op. This is because juju doesn't deploy a subordinate charm to a vm if it is only related to another subordinate charm (regardless whether the relation between the two subordinates is a regular relation or a subordinate relation).
 
 ```mermaid
 flowchart LR
