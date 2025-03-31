@@ -311,7 +311,7 @@ If the idea is so simple, why wouldn't we implement it? Well, the answer is that
 
 Everytime `cos-collector` subordinate charm is related to a principal charm, `cos-collector` charm must:
 
-* Verify whether `otelcol` and `node-exporter` snaps are already installed or not to avoid trying to install them again.
+* Take into account potential race conditions: Verify whether `otelcol` and `node-exporter` snaps are already installed or not to avoid trying to install them again.
 * Merge the `otelcol` configuration resulting from the established relationship with any previously existing configuration.
 
 
