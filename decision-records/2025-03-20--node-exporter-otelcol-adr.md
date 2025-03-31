@@ -310,6 +310,14 @@ end
 
 If the idea is so simple, why wouldn't we implement it? Well, the answer is that from a charm perspective is not that simple. In fact in `grafana-agent` charm it is not implemented, and because of this we have [some weird situations.](https://discourse.charmhub.io/t/one-grafana-agent-charm-to-rule-them-all/16014).
 
+### Advantages
+- No duplicated node-exporter alerts.
+- No need to coordinate port number binds.
+- Slightly lower resource consumption compared to the multi-instance approach.
+- If more than one otelcol _app_ is deployed to the same VM, all but one would loudly fail because they'd try to bind to a used port. Which is a good thing.
+
+### Disadvantages
+- Need to carefully address multiple potential race condition.
 ### Some considerations to be taken into account when implementing this solution
 
 
