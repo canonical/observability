@@ -82,7 +82,7 @@ jobs:
         run: |
           sudo snap install jq
           sudo snap install yq
-          sudo snap install just
+          sudo snap install just --classic
 
       - id: latest-release
         name: Fetch version used in *latest* release
