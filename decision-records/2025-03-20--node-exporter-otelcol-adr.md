@@ -22,6 +22,9 @@
             - [Questions and doubts about this approach](#questions-and-doubts-about-this-approach)
     - [Alternative 3: Two separate subordinate charms for otelcol and node-exporter](#alternative-3-two-separate-subordinate-charms-for-otelcol-and-node-exporter)
     - [Decision](#decision)
+        - [Regular deployment: Only one `otel-collector` charm](#regular-deployment-only-one-otel-collector-charm)
+        - [Regular deployment: More than one `otel-collector` charm](#regular-deployment-more-than-one-otel-collector-charm)
+        - [Workflow](#workflow)
     - [Appendix: Parallel installs](#appendix-parallel-installs)
         - [General comments about Alternative 1-A and Alternative 1-B](#general-comments-about-alternative-1-a-and-alternative-1-b)
             - [Enable the feature in the host.](#enable-the-feature-in-the-host)
@@ -270,6 +273,8 @@ If the idea is so simple, why wouldn't we implement it? Well, the answer is that
 
 ### Disadvantages
 - Need to carefully address multiple potential race condition.
+- On removal, if we remove the snaps, then we won't have any snaps installed until the other app gets an update-status.
+But if we keep the snap, then we'd have an orphaned revision lingering.
 
 
 ### Some considerations to be taken into account when implementing this solution
@@ -333,12 +338,11 @@ end
 
 Based on the previous analysis, the decision is to follow the second approach: *"Only one `otelcol` + `node-exporter` binaries per `otel-collector` charm (and per principal charm and host)"*.
 
-These binaries will be managed by theirs own snaps as shown in **Alternative 2** of the first approach.
+These binaries will be managed by theirs own snaps as shown in **Alternative 1B** of the first approach.
 
 ### Regular deployment: Only one `otel-collector` charm
 
-With that said, a regular deployment with more than one principal charms related to a subordinate `otel-collector` charm looks like this:
-
+With that said, a regular deployment with more than one principal charms related to only onse subordinate `otel-collector` charm looks like this:
 
 
 ```mermaid
@@ -370,25 +374,77 @@ end
 
 ### Regular deployment: More than one `otel-collector` charm
 
+A deployment with more than one `otel-collector` app looks like this:
 
 
-As we have said before, everytime `otel-collector` subordinate charm is related to a principal charm, `otel-collector` charm must:
+```mermaid
+flowchart LR
+subgraph host
+    direction TB
 
-* Verify whether `otelcol` and `node-exporter` snaps are already installed or not to avoid trying to install them again.
-* Merge the `otelcol` configuration resulting from the established relationship with any previously existing configuration.
-  * One of the outcomes of `relation-joined` event is a `yaml` file saved in `/etc/otelcol/configs` directory containing the specific bits of configuration for that relation.
-  * Once the file is written on disk, `otel-collector` charm will merge all the files in `/etc/otelcol/configs` into one global config file: `/etc/otelcol/config.yaml` and will restart `otelcol` binary.
+    subgraph node-exporter-snap
+        node-exporter["node-exporter binary"]
+        node-exporter-config["node-exporter configuration"]
+    end
+    subgraph otelcol-snap
+        otelcol["otelcol binary"]
+        otelcol-config["otelcol configuration"]
+    end
+
+    otel-collector-charm1 --->|"subordinate"| principal-charm1
+    otel-collector-charm1 --> otelcol-config
+    otel-collector-charm1 --> node-exporter-config
+    otel-collector-charm2 --> otelcol-config
+    otel-collector-charm2 --> node-exporter-config
+    otel-collector-charm2 --->|"subordinate"| principal-charm2
+end
+```
+
+As we can see, both charms writes `otel-collector` and `node-exporter` write into the configuration file.
+
+### Workflow
+
+As we have said before, everytime `otel-collector` subordinate charm is related / un-related to a principal charm, `otel-collector` charm must:
+
+* In a loop try to create a `lockfile` in order to avoid concurrent modificatios of the config or attemps to install/uninstall the snaps.
+  * If the `lockfile` was already created by another charm unit wait 5 seconds and try again.
+    * Set the unit to `BlockedStatus`.
+  * Else if the `lockfile` was already created by the charm unit itseflf, break the loop and contine.
+  * Set the unit to `MaintenanceStatus`.
+
+* Regenerate the `otelcol` configuration resulting from the established/removed relationship.
+  * One of the outcomes of `relation-joined` / `relation-departed` events is the creation / removal of a `otelcol-relXX.yaml` file saved in `/etc/otelcol/configs` directory containing a valid configuration for that relation.
+  * Once the file is written / removed, `otel-collector` charm will merge all the files prensent in `/etc/otelcol/configs` into one global config file: `/etc/otelcol/config.yaml`.
     * The resulting configuration must be validated with `otelcol validate`.
     * The configuration merge process can be implemented in pure python or with tools like [this one](https://github.com/alexlafroscia/yaml-merge), or [this one](https://github.com/sjramblings/yaml-merge).
 
+* Regenerate the `node-exporter` configuration resulting from the established/removed relationship.
+  * One of the outcomes of `relation-joined` / `relation-departed` events is the creation / removal of a `yaml` file saved in `/etc/node-exporter/configs` directory containing a valid configuration for that relation.
+  * Once the file is written / removed, `otel-collector` charm will merge all the files prensent in `/etc/node-exporter/configs` into one global config file: `/etc/node-exporter/config.yaml`.
+    * The configuration merge process can be implemented in pure python or with tools like [this one](https://github.com/alexlafroscia/yaml-merge), or [this one](https://github.com/sjramblings/yaml-merge).
 
-When a relation between `otel-collector` and a principal charm is removed, the `otel-collector` charm must:
+* Install / Uninstall snaps:
+  * If a `relation-departed` event is fired:
+    * The specific config file `/etc/otelcol/configs/otelcol-relXX.yaml` was already removed.
+    * If there is no other specific config files prensent in `/etc/otelcol/configs`:
+      * Uninstall `otel-collector` snap
+      * Uninstall `node-exporter` snap
+    * Else If:
+      * Since the global config file `/etc/otelcol/config.yaml` was already regenerated, restart the services.
 
-* Remove the specific `yaml` file stored in `/etc/otelcol/configs` generated by that relation.
-* Regenerate the `/etc/otelcol/config.yaml` global config file using the specific files that remains in `/etc/otelcol/configs`.
-  * If there are no files left in the `/etc/otelcol/configs`, this means that there are no active relationships between `otel-collector` and other principal charms, we can safely uninstall `otelcol` and `node-exporter` snaps.
-
-
+  * If a `relation-joined` event is fired:
+    * The specific config file `/etc/otelcol/configs/otelcol-relXX.yaml` was already created.
+    * If `otel-collector` snap is not installed:
+        `snap.ensure(otel-collector)`
+    * Else:
+      * If the installed `otel-collector` snap version < the last one:
+        * Refresh the snap
+    * If `node-exporter` snap is not installed:
+        `snap.ensure(node-exporter)`
+        `snap config for node-exporter collectors enabled`
+    * Else:
+      * If the installed `otel-collector` snap version < the last one:
+        * Refresh the snap
 
 
 ## Appendix: Parallel installs
