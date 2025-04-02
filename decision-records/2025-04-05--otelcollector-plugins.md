@@ -106,7 +106,9 @@ Only now can the user `juju refresh ... --resource otelcol-snap=<custom.snap>`, 
 We have implemented a workflow with [ocb for custom binaries](https://github.com/canonical/opentelemetry-collector-rock/blob/5433a69195afa7a484437f8f21b16645b1240d52/justfile#L78) which we update the plugin delta from otelcol-core in a [manifest-additions.yaml](https://github.com/canonical/opentelemetry-collector-rock/blob/main/0.120.0/manifest-additions.yaml).
 
 We could the solve this with tracks using the new quality gates CI like:
-`1-minimal`, `1-standard`, `1-contrib`
+- `1-minimal` -> mirrors the upstream `core` binary
+- `1-standard` -> o11y team's plugins we determine are necessary for our stack
+- `1-contrib` -> mirrors the upstream `contrib` binary
 
 So that if someone wants a specific plugin, they can deploy from the `1-contrib` track.
 
