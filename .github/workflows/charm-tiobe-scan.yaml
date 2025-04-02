@@ -23,10 +23,9 @@ jobs:
         run: |
           sudo snap install charmcraft --classic
           sudo apt update && sudo apt install -y pipx
+          sudo apt install -y python3-flake8 pylint
           pipx install coverage
           pipx install "coverage[toml]"
-          pipx install flake8
-          pipx install pylint
           pipx install tox
 
       - name: Run tox tests to create coverage.xml
