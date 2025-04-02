@@ -1,0 +1,34 @@
+# run secscan using the sbomber tool on all our charms
+# this manifest is used in `.github/workflows/charm-security-scan.yaml`
+
+clients:
+  secscan: {}
+
+artifacts:
+  - name: parca-k8s
+    channel: latest/edge
+    type: charm
+
+  - name: tempo-coordinator-k8s
+    channel: latest/edge
+    base: ubuntu@22.04
+    type: charm
+
+  - name: tempo-worker-k8s
+    channel: latest/edge
+    base: ubuntu@22.04
+    type: charm
+
+  - name: parca-agent
+    channel: latest/edge
+    type: charm
+
+  - name: parca-scrape-target
+    channel: latest/edge
+    base: ubuntu@22.04
+    type: charm
+
+  - name: polar-signals-cloud-integrator
+    channel: latest/edge
+    base: ubuntu@22.04
+    type: charm
