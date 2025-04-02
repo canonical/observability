@@ -114,3 +114,5 @@ So that if someone wants a specific plugin, they can deploy from the `1-contrib`
 
 ### (4) Standardize the OCB process
 We should not duplicate the code for building a custom binary (in CI or local) between snap and rock. Consider having a centralized CI that creates a binary as an artifact which both the snap and rock inherit from. This would serve as our default binary that we ship the charm with and the implementation details do not depend on the binary substitution methods, mentioned above.
+
+**Note**: We should wait until super-distro GA before implementing this otherwise might lose work.
