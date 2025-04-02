@@ -1,4 +1,4 @@
-# Up Alert Rules
+Otelcollector plugins
 **Date:** 2025-04-01
 **Authors:** @michaelthamm
 
@@ -16,7 +16,7 @@ Ideally we would like to offer a substitution mechanism (from the perspective of
 
 ## Accepted Solution
 
-## Rationale
+Solutions `(1)` and `(2)` are not valid because they are not compatible with generating a reliable SBOM for the charms. Therefore, `(3)` is the accepted solution with future work including `(4)` to improve the OCB binary building process.
 
 ## Proposals
 ### (1) Binary resource
