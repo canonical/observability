@@ -1,0 +1,60 @@
+name: Security vulnerability scan
+
+on:
+    workflow_dispatch:
+    pull_request:
+
+jobs:
+    scan:
+        name: Security vulnerability scan
+        runs-on: [self-hosted, self-hosted-linux-amd64-jammy-private-endpoint-medium]
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@v4
+          - name: Checkout security scanner
+            uses: actions/checkout@v4
+            with:
+              repository: canonical/sbomber
+              path: scanner
+              token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
+          - name: Install juju
+            run: | 
+              sudo snap install juju --classic
+          - name: Install secscan cli
+            run: |
+              sudo snap install canonical-secscan-client
+              sudo snap connect canonical-secscan-client:home system:home
+          - name: Install uv
+            run: |
+              sudo snap install astral-uv --classic
+          - name: Prepare the artifacts
+            run: |
+              cd scanner
+              ./sbomber prepare ../manifests/charm-security-scan.yaml
+          - name: Submit the artifacts
+            run: |
+              cd scanner
+              ./sbomber submit
+          - name: Wait for the scans to finish
+            run: |
+              cd scanner
+              while true; do
+                ./sbomber poll
+                EXIT_CODE=$?
+                if [ $EXIT_CODE -eq 0 ]; then
+                    break
+                elif [ $EXIT_CODE -eq 1 ]; then
+                    echo "There were errors in the scan; see the logs for more details. Exiting"
+                    exit 1
+                fi
+                echo "Poll didn't finish yet, retrying in 30 seconds"
+                sleep 30
+              done
+          - name: Download the reports
+            run: |
+              cd scanner && ./sbomber download
+          - name: Upload reports
+            uses: actions/upload-artifact@v4
+            with:
+              name: secscan-report-upload
+              path: ./scanner/reports/*.html
