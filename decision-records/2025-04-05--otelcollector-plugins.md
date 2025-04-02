@@ -16,7 +16,7 @@ Ideally we would like to offer a substitution mechanism (from the perspective of
 
 ## Accepted Solution
 
-Solutions `(1)` and `(2)` are not valid because they are not compatible with generating a reliable SBOM for the charms. Therefore, `(3)` is the accepted solution with future work including `(4)` to improve the OCB binary building process.
+From the given proposals we have decided to continue with proposal `(3)` with future work including `(4)` to improve the OCB binary building process. If someone wants a specific plugin, they can deploy from the `1-contrib` track for snaps and rocks or suggest a feature in our `1-standard` track. For the charm (opinionated) we can add plugins when requested as a feature.
 
 ## Proposals
 ### (1) Binary resource
@@ -74,6 +74,10 @@ def _on_config_changed(self, event: ops.ConfigChangedEvent):
     # Do something with "/etc/otelcol/otelcol-bin"
 ```
 
+#### Disadvantages
+
+- Not compatible with generating a reliable SBOM for the charms. 
+
 ### (2) OCI image and snap resources
 The focus of this solution is to use charming best practices with suggestions for improvements to the current process. This entails using an OCI image for the k8s charm and snaps for the vm charm. Since the binary is created at compile time, we would suggest the user to build a local snap and image to replace our defaulted ones.
 
@@ -102,15 +106,19 @@ Only now can the user `juju refresh ... --resource otelcol-snap=<custom.snap>`, 
 
 ⛑️ We would need to implement functionality within the charm to handle updating the snap with the `.snap` file from `--resource`
 
+#### Disadvantages
+
+- Not compatible with generating a reliable SBOM for the charms. 
+
 ### (3) We control allowable plugins
 We have implemented a workflow with [ocb for custom binaries](https://github.com/canonical/opentelemetry-collector-rock/blob/5433a69195afa7a484437f8f21b16645b1240d52/justfile#L78) which we update the plugin delta from otelcol-core in a [manifest-additions.yaml](https://github.com/canonical/opentelemetry-collector-rock/blob/main/0.120.0/manifest-additions.yaml).
 
-We could the solve this with tracks using the new quality gates CI like:
+We could the solve this with tracks in the rock and snaps with quality gates like:
 - `1-minimal` -> mirrors the upstream `core` binary
 - `1-standard` -> o11y team's plugins we determine are necessary for our stack
 - `1-contrib` -> mirrors the upstream `contrib` binary
 
-So that if someone wants a specific plugin, they can deploy from the `1-contrib` track.
+So that if someone wants a specific plugin, they can deploy from the `1-contrib` track. For the charm (opinionated) we can add plugins when requested as a feature.
 
 ### (4) Standardize the OCB process
 We should not duplicate the code for building a custom binary (in CI or local) between snap and rock. Consider having a centralized CI that creates a binary as an artifact which both the snap and rock inherit from. This would serve as our default binary that we ship the charm with and the implementation details do not depend on the binary substitution methods, mentioned above.
