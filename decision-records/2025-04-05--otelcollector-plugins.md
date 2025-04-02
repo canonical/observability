@@ -105,7 +105,10 @@ Only now can the user `juju refresh ... --resource otelcol-snap=<custom.snap>`, 
 ### (3) We control allowable plugins
 We have implemented a workflow with [ocb for custom binaries](https://github.com/canonical/opentelemetry-collector-rock/blob/5433a69195afa7a484437f8f21b16645b1240d52/justfile#L78) which we update the plugin delta from otelcol-core in a [manifest-additions.yaml](https://github.com/canonical/opentelemetry-collector-rock/blob/main/0.120.0/manifest-additions.yaml).
 
-This is the easiest to implement of all solutions but is least flexible and will cause a backlog for plugin requests and potentially a lack of interest for the charm.
+We could the solve this with tracks using the new quality gates CI like:
+`1-minimal`, `1-standard`, `1-contrib`
+
+So that if someone wants a specific plugin, they can deploy from the `1-contrib` track.
 
 ### (4) Standardize the OCB process
 We should not duplicate the code for building a custom binary (in CI or local) between snap and rock. Consider having a centralized CI that creates a binary as an artifact which both the snap and rock inherit from. This would serve as our default binary that we ship the charm with and the implementation details do not depend on the binary substitution methods, mentioned above.
