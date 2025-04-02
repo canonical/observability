@@ -21,17 +21,17 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo snap install astral-uv --classic
           sudo snap install charmcraft --classic
+          sudo apt update && sudo apt install -y pipx
+          pipx install coverage
+          pipx install "coverage[toml]"
+          pipx install flake8
+          pipx install pylint
+          pipx install tox
 
       - name: Run tox tests to create coverage.xml
         run: |
-          sudo apt update && sudo apt install python3-venv -y
-          python -m venv venv
-          source venv/bin/activate
-          pip install coverage coverage[toml]
-          sudo apt install -y python3-flake8 python3-pylint
-          uvx tox -e unit && coverage xml
+          tox -e unit && coverage xml
 
       - name: Move results to necessary folder for TICS
         run: |
