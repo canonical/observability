@@ -40,6 +40,8 @@ jobs:
 
       - name: Run TICS analysis with github-action
         uses: tiobe/tics-github-action@v3
+        env:
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/.tox/unit
         with:
           mode: qserver
           project: ${{ github.event.repository.name }}
