@@ -30,7 +30,7 @@ jobs:
           python -m venv venv
           source venv/bin/activate
           pip install coverage coverage[toml]
-          apt install -y python3-flake8 python3-pylint
+          sudo apt install -y python3-flake8 python3-pylint
           uvx tox -e unit && coverage xml
 
       - name: Move results to necessary folder for TICS
