@@ -36,6 +36,7 @@ jobs:
         run: |
           mkdir -p ./cover
           mv ./coverage.xml ./cover/
+          source .tox/unit/bin/activate
 
       - name: Run TICS analysis with github-action
         uses: tiobe/tics-github-action@v3
