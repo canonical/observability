@@ -23,7 +23,6 @@ jobs:
         run: |
           sudo snap install charmcraft --classic
           sudo apt update && sudo apt install -y pipx
-          sudo apt install -y python3-flake8 pylint
           pipx install coverage
           pipx install "coverage[toml]"
           pipx install tox
@@ -36,7 +35,11 @@ jobs:
         run: |
           mkdir -p ./cover
           mv ./coverage.xml ./cover/
+
+      - name: Activate and prepare Python virtual environment
+        run: |
           source .tox/unit/bin/activate
+          pip install pylint flake8
           echo "PATH=$PATH" >> "$GITHUB_ENV"
 
       - name: Run TICS analysis with github-action
