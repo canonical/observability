@@ -187,7 +187,7 @@ jobs:
       - name: Upload charm artifact
         uses: actions/upload-artifact@v4
         with:
-          name: charms-tests
+          name: charms-testsmaxdepth 1
           path: ${{ inputs.charm-path }}/*.charm
 
   integration-mono:
@@ -272,4 +272,6 @@ jobs:
           charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | tail -n1)"
           CHARM_PATH="$(realpath "$charm_relative_path")"
           export CHARM_PATH
+          ls -la
+          echo "+++ CHARM_PATH: $CHARM_PATH"
           uvx tox -e integration -- -k "${{ matrix.suite }}"
