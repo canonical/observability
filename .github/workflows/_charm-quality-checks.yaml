@@ -252,7 +252,6 @@ jobs:
       CONCIERGE_JUJU_CHANNEL: ${{ needs.snap-channels.outputs.juju-channel }}
       CONCIERGE_MICROK8S_CHANNEL: 1.32-strict/stable
       CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
-      DEBUG: ${{ runner.debug }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -273,7 +272,7 @@ jobs:
           charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | tail -n1)"
           CHARM_PATH="$(realpath "$charm_relative_path")"
           export CHARM_PATH
-          if [[ "$DEBUG" == "1" ]]; then
+          if [[ "${{ runner.debug }}" == "1" ]]; then
             uvx tox -e integration -- -k "${{ matrix.suite }}" --keep-models
           else
             uvx tox -e integration -- -k "${{ matrix.suite }}"
