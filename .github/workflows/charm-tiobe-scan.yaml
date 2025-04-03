@@ -37,11 +37,10 @@ jobs:
           mkdir -p ./cover
           mv ./coverage.xml ./cover/
           source .tox/unit/bin/activate
+          echo "PATH=$PATH" >> "$GITHUB_ENV"
 
       - name: Run TICS analysis with github-action
         uses: tiobe/tics-github-action@v3
-        env:
-          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/.tox/unit
         with:
           mode: qserver
           project: ${{ github.event.repository.name }}
