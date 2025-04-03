@@ -281,4 +281,5 @@ jobs:
         if: ${{ failure() && (runner.debug == '1') }}
         uses: mxschmitt/action-tmate@v3
         with:
+          timeout-minutes: 30
           limit-access-to-actor: true
