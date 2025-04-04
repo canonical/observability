@@ -112,7 +112,7 @@ jobs:
           tar -xzf promtool.tar.gz --strip-components=1
           # Lint the alert rules
           if [[ -d "$CHARM_PATH"/src/prometheus_alert_rules ]]; then
-            ./promtool check rules "$CHARM_PATH"/src/prometheus_alert_rules/*
+            find "$CHARM_PATH"/src/prometheus_alert_rules -type f -exec ./promtool check rules {} \;
           else
             echo "This charm has no alert rules under /src/prometheus_alert_rules"
           fi
