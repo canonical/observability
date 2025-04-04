@@ -1,0 +1,266 @@
+Resources:
+  NotifyMSPortalLambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'lambda.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: 'root'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'logs:*'
+                Resource: '*'
+  NotifyMSPortal:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: 'index.lambda_handler'
+      Role: !GetAtt NotifyMSPortalLambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          import urllib3
+          http = urllib3.PoolManager()
+          def send_response(event, context, response_status, response_data):
+              response_url = event['ResponseURL']
+              response_body = {
+                  "Status": response_status,
+                  "Reason": "See the details in CloudWatch Log Stream: " + context.log_stream_name,
+                  "PhysicalResourceId": context.log_stream_name,
+                  "StackId": event['StackId'],
+                  "RequestId": event['RequestId'],
+                  "LogicalResourceId": event['LogicalResourceId'],
+                  "Data": response_data
+              }
+              json_response_body = json.dumps(response_body)
+              headers = {
+                  'content-type': '',
+                  'content-length': str(len(json_response_body))
+              }
+              try:
+                  response = http.request('PUT', response_url, body=json_response_body, headers=headers)
+                  print("Status code: " + response.status)
+              except Exception as e:
+                  print("send(..) failed executing requests.put(..): " + str(e))
+          def lambda_handler(event, context):
+              print("Received event: " + json.dumps(event))
+              try:
+                  if event['RequestType'] in ['Create', 'Update', 'Delete']:
+                      if event['RequestType'] == 'Create':
+                        state = 'Deploying'
+                      if event['RequestType'] == 'Delete':
+                        state = 'Deleted'
+                      webhook_url = "https://portal.managed.canonical.com/gitops/api/aws-notify"
+                      data = {
+                          "applicationId": event['StackId'],
+                          "provisioningState": state,
+                          "plan": "kubeflow-aws"
+                      }
+                      http.request('POST', webhook_url, body=json.dumps(data), headers={'Content-Type': 'application/json'})
+                      send_response(event, context, "SUCCESS", {})
+                  else:
+                      send_response(event, context, "FAILED", {"Message": "Unexpected event received from CloudFormation"})
+              except Exception as e:
+                  print(e)
+                  send_response(event, context, "FAILED", {"Message": str(e)})
+      Runtime: 'python3.8'
+      Timeout: 300
+  NotifyMSPortalTrigger:
+    Type: Custom::WebhookTrigger
+    Properties:
+      ServiceToken: !GetAtt NotifyMSPortal.Arn
+  ManagedAppVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+  ManagedInternetGateway:
+    Type: AWS::EC2::InternetGateway
+  ManagedPublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref ManagedAppVPC
+  ManagedInternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref ManagedInternetGateway
+      VpcId: !Ref ManagedAppVPC
+  ManagedDefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: ManagedInternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref ManagedPublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref ManagedInternetGateway
+  NatGatewayEIP:
+    Type: AWS::EC2::EIP
+    DependsOn: ManagedInternetGatewayAttachment
+    Properties:
+      Domain: vpc
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIP.AllocationId
+      SubnetId: !Ref ManagedAppSubnet
+  ManagedAppSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref ManagedAppVPC
+      CidrBlock: 10.0.10.0/24
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      MapPublicIpOnLaunch: true
+  ManagedSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref ManagedPublicRouteTable
+      SubnetId: !Ref ManagedAppSubnet
+  ManagedAppSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref ManagedAppVPC
+      CidrBlock: 10.0.20.0/24
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      MapPublicIpOnLaunch: true
+  ManagedSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref ManagedPublicRouteTable
+      SubnetId: !Ref ManagedAppSubnet2
+  ManagedAppRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join ['-', ['managed-role-', !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+  ManagedRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: EC2FullAccessPolicy
+      Roles:
+        - !Ref ManagedAppRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: '*'
+            Resource: '*'
+  EC2IAMInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Join ['-', ['managed-instance-profile-', !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      Roles:
+        - !Ref ManagedAppRole
+  JujuIAMUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Join ['-', ['juju-bootstrap', !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      Policies:
+        - PolicyName: AmazonEC2FullAccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "*"
+                Resource: "*"
+  bootstrapInstance:
+    Type: 'AWS::EC2::Instance'
+    DependsOn:
+    - JujuIAMUser
+    - EKSCluster
+    Properties:
+      ImageId: ami-0c7217cdde317cfec
+      InstanceType: m7i.large
+      IamInstanceProfile: !Ref EC2IAMInstanceProfile
+      SubnetId: !Ref ManagedAppSubnet
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -x
+          echo "ubuntu:ubuntu" | chpasswd
+          curl -d "cloud=aws" -d "app=kubeflow" -d "application_id=${AWS::StackId}" https://portal.managed.canonical.com/gitops/api/bootstrap.sh -o bootstrap.sh
+          chmod +x bootstrap.sh
+          ./bootstrap.sh
+  EKSClusterRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: eks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+  # EKS Cluster
+  EKSCluster:
+    Type: 'AWS::EKS::Cluster'
+    Properties:
+      Name: !Sub '${AWS::StackName}-cluster'
+      RoleArn: !GetAtt EKSClusterRole.Arn
+      AccessConfig:
+        AuthenticationMode: "API_AND_CONFIG_MAP"
+      ResourcesVpcConfig:
+        SubnetIds:
+          - !Ref ManagedAppSubnet
+          - !Ref ManagedAppSubnet2
+  # Node Group IAM Role
+  NodeGroupRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+  # Node Group
+  EKSNodeGroup:
+    Type: 'AWS::EKS::Nodegroup'
+    Properties:
+      ClusterName: !Ref EKSCluster
+      NodeRole: !GetAtt NodeGroupRole.Arn
+      Subnets:
+        - !Ref ManagedAppSubnet
+        - !Ref ManagedAppSubnet2
+      ScalingConfig:
+        MinSize: 3
+        MaxSize: 3
+        DesiredSize: 3
+      DiskSize: 100
+      InstanceTypes:
+        - t3.xlarge
+      AmiType: AL2_x86_64
+  # EKS allow access to bootstrap IAM user
+  EKSAccessEntry:
+    Type: AWS::EKS::AccessEntry
+    Properties:
+      ClusterName: !Ref EKSCluster
+      PrincipalArn: !GetAtt JujuIAMUser.Arn
+      AccessPolicies:
+        - PolicyArn: 'arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy'
+          AccessScope:
+            Type: 'cluster'
+        - PolicyArn: 'arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy'
+          AccessScope:
+            Type: 'cluster'
+      Type: 'STANDARD'
