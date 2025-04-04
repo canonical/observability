@@ -272,4 +272,14 @@ jobs:
           charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | tail -n1)"
           CHARM_PATH="$(realpath "$charm_relative_path")"
           export CHARM_PATH
-          uvx tox -e integration -- -k "${{ matrix.suite }}"
+          if [[ "${{ runner.debug }}" == "1" ]]; then
+            uvx tox -e integration -- -k "${{ matrix.suite }}" --keep-models
+          else
+            uvx tox -e integration -- -k "${{ matrix.suite }}"
+          fi
+      - name: Open SSH session on failure
+        if: ${{ failure() && (runner.debug == '1') }}
+        uses: mxschmitt/action-tmate@v3
+        with:
+          timeout-minutes: 30
+          limit-access-to-actor: true
