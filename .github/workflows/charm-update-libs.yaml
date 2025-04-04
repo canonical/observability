@@ -58,7 +58,7 @@ jobs:
           is_pr_open="$(gh pr list --head "${{ inputs.git-branch }}" --state open --json id --jq 'length')"
           if [[ "$is_pr_open" == "1" ]]; then
             if gh pr checks "${{ inputs.git-branch }}"; then
-              echo "CI checks are passing, merging the "${{ inputs.git-branch }}" PR"
+              echo "CI checks are passing, merging the ${{ inputs.git-branch }} PR"
               gh pr merge "${{ inputs.git-branch }}" --admin --squash --delete-branch
             fi
           elif [[ "$is_pr_open" != "0" ]]; then
