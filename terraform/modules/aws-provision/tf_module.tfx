@@ -47,52 +47,53 @@ resource "aws_lambda_function" "notify_ms_portal" {
   handler = "index.lambda_handler"
   role = aws_iam_role.notify_ms_portal_lambda_execution_role.arn
   code_signing_config_arn = {
-    ZipFile = "import json
-import urllib3
-http = urllib3.PoolManager()
-def send_response(event, context, response_status, response_data):
-    response_url = event['ResponseURL']
-    response_body = {
-        "Status": response_status,
-        "Reason": "See the details in CloudWatch Log Stream: " + context.log_stream_name,
-        "PhysicalResourceId": context.log_stream_name,
-        "StackId": event['StackId'],
-        "RequestId": event['RequestId'],
-        "LogicalResourceId": event['LogicalResourceId'],
-        "Data": response_data
-    }
-    json_response_body = json.dumps(response_body)
-    headers = {
-        'content-type': '',
-        'content-length': str(len(json_response_body))
-    }
-    try:
-        response = http.request('PUT', response_url, body=json_response_body, headers=headers)
-        print("Status code: " + response.status)
-    except Exception as e:
-        print("send(..) failed executing requests.put(..): " + str(e))
-def lambda_handler(event, context):
-    print("Received event: " + json.dumps(event))
-    try:
-        if event['RequestType'] in ['Create', 'Update', 'Delete']:
-            if event['RequestType'] == 'Create':
-              state = 'Deploying'
-            if event['RequestType'] == 'Delete':
-              state = 'Deleted'
-            webhook_url = "https://portal.managed.canonical.com/gitops/api/aws-notify"
-            data = {
-                "applicationId": event['StackId'],
-                "provisioningState": state,
-                "plan": "kubeflow-aws"
-            }
-            http.request('POST', webhook_url, body=json.dumps(data), headers={'Content-Type': 'application/json'})
-            send_response(event, context, "SUCCESS", {})
-        else:
-            send_response(event, context, "FAILED", {"Message": "Unexpected event received from CloudFormation"})
-    except Exception as e:
-        print(e)
-        send_response(event, context, "FAILED", {"Message": str(e)})
-"
+    ZipFile =<<-EOT
+      import json
+      import urllib3
+      http = urllib3.PoolManager()
+      def send_response(event, context, response_status, response_data):
+          response_url = event['ResponseURL']
+          response_body = {
+              "Status": response_status,
+              "Reason": "See the details in CloudWatch Log Stream: " + context.log_stream_name,
+              "PhysicalResourceId": context.log_stream_name,
+              "StackId": event['StackId'],
+              "RequestId": event['RequestId'],
+              "LogicalResourceId": event['LogicalResourceId'],
+              "Data": response_data
+          }
+          json_response_body = json.dumps(response_body)
+          headers = {
+              'content-type': '',
+              'content-length': str(len(json_response_body))
+          }
+          try:
+              response = http.request('PUT', response_url, body=json_response_body, headers=headers)
+              print("Status code: " + response.status)
+          except Exception as e:
+              print("send(..) failed executing requests.put(..): " + str(e))
+      def lambda_handler(event, context):
+          print("Received event: " + json.dumps(event))
+          try:
+              if event['RequestType'] in ['Create', 'Update', 'Delete']:
+                  if event['RequestType'] == 'Create':
+                    state = 'Deploying'
+                  if event['RequestType'] == 'Delete':
+                    state = 'Deleted'
+                  webhook_url = "https://portal.managed.canonical.com/gitops/api/aws-notify"
+                  data = {
+                      "applicationId": event['StackId'],
+                      "provisioningState": state,
+                      "plan": "kubeflow-aws"
+                  }
+                  http.request('POST', webhook_url, body=json.dumps(data), headers={'Content-Type': 'application/json'})
+                  send_response(event, context, "SUCCESS", {})
+              else:
+                  send_response(event, context, "FAILED", {"Message": "Unexpected event received from CloudFormation"})
+          except Exception as e:
+              print(e)
+              send_response(event, context, "FAILED", {"Message": str(e)})
+      EOT
   }
   runtime = "python3.8"
   timeout = 300
@@ -148,7 +149,8 @@ resource "aws_route_table_association" "managed_subnet_route_table_association" 
 resource "aws_subnet" "managed_app_subnet2" {
   vpc_id = aws_vpc.managed_app_vpc.arn
   cidr_block = "10.0.20.0/24"
-  availability_zone = element(// Unable to resolve Fn::GetAZs with value: "" because local variable 'az_data' referenced before assignment, 1)
+  availability_zone = element()
+    // Unable to resolve Fn::GetAZs with value: "" because local variable 'az_data' referenced before assignment, 1)
   map_public_ip_on_launch = true
 }
 
