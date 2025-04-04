@@ -4,17 +4,22 @@ on:
     inputs:
       charm-path:
         description: "Path to the charm we want to publish. Defaults to the current working directory."
-        default: '.'
+        default: "."
+        required: false
+        type: string
+      git-branch:
+        description: "Branch name for the chore. Defaults to 'chore/auto-libs'."
+        default: "chore/auto-libs"
         required: false
         type: string
       commit-username:
         description: "The username to use for committing the updates on the charm libraries"
-        default: 'Noctua'
+        default: "Noctua"
         required: false
         type: string
       commit-email:
         description: "The email address to use for committing the updates on the charm libraries"
-        default: 'webops+observability-noctua-bot@canonical.com'
+        default: "webops+observability-noctua-bot@canonical.com"
         required: false
         type: string
       charmcraft-channel:
@@ -47,14 +52,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Merge any pre-existing PRs from the automatically generated "chore/auto-libs" branch if the CI is green
+      - name: Merge any pre-existing PRs from the automatically generated branch if the CI is green
         run: |
-          # If a PR from "chore/auto-libs" is open and CI checks are passing, merge it
-          is_pr_open="$(gh pr list --head chore/auto-libs --state open --json id --jq 'length')"
+          # If a PR from the chore branch is open and CI checks are passing, merge it
+          is_pr_open="$(gh pr list --head "${{ inputs.git-branch }}" --state open --json id --jq 'length')"
           if [[ "$is_pr_open" == "1" ]]; then
-            if gh pr checks chore/auto-libs; then
-              echo "CI checks are passing, merging the chore/auto-libs PR"
-              gh pr merge chore/auto-libs --admin --squash --delete-branch
+            if gh pr checks "${{ inputs.git-branch }}"; then
+              echo "CI checks are passing, merging the "${{ inputs.git-branch }}" PR"
+              gh pr merge "${{ inputs.git-branch }}" --admin --squash --delete-branch
             fi
           elif [[ "$is_pr_open" != "0" ]]; then
             # The number of open PRs should always be either 0 or 1
@@ -146,5 +151,5 @@ jobs:
             most likely don't want to push any commits to this branch.
 
             The PR will be auto-merged if the CI is green, on the next iteration of the workflow.
-          branch: chore/auto-libs
+          branch: "${{ inputs.git-branch }}"
           delete-branch: true
