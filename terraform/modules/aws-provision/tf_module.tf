@@ -1,0 +1,320 @@
+locals {
+  stack_id = uuidv5("dns", "cf_template")
+  stack_name = "cf_template"
+}
+
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+resource "aws_iam_role" "notify_ms_portal_lambda_execution_role" {
+  assume_role_policy = {
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = [
+            "lambda.amazonaws.com"
+          ]
+        }
+        Action = [
+          "sts:AssumeRole"
+        ]
+      }
+    ]
+  }
+  force_detach_policies = [
+    {
+      PolicyName = "root"
+      PolicyDocument = {
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Effect = "Allow"
+            Action = [
+              "logs:*"
+            ]
+            Resource = "*"
+          }
+        ]
+      }
+    }
+  ]
+}
+
+resource "aws_lambda_function" "notify_ms_portal" {
+  handler = "index.lambda_handler"
+  role = aws_iam_role.notify_ms_portal_lambda_execution_role.arn
+  code_signing_config_arn = {
+    ZipFile = "import json
+import urllib3
+http = urllib3.PoolManager()
+def send_response(event, context, response_status, response_data):
+    response_url = event['ResponseURL']
+    response_body = {
+        "Status": response_status,
+        "Reason": "See the details in CloudWatch Log Stream: " + context.log_stream_name,
+        "PhysicalResourceId": context.log_stream_name,
+        "StackId": event['StackId'],
+        "RequestId": event['RequestId'],
+        "LogicalResourceId": event['LogicalResourceId'],
+        "Data": response_data
+    }
+    json_response_body = json.dumps(response_body)
+    headers = {
+        'content-type': '',
+        'content-length': str(len(json_response_body))
+    }
+    try:
+        response = http.request('PUT', response_url, body=json_response_body, headers=headers)
+        print("Status code: " + response.status)
+    except Exception as e:
+        print("send(..) failed executing requests.put(..): " + str(e))
+def lambda_handler(event, context):
+    print("Received event: " + json.dumps(event))
+    try:
+        if event['RequestType'] in ['Create', 'Update', 'Delete']:
+            if event['RequestType'] == 'Create':
+              state = 'Deploying'
+            if event['RequestType'] == 'Delete':
+              state = 'Deleted'
+            webhook_url = "https://portal.managed.canonical.com/gitops/api/aws-notify"
+            data = {
+                "applicationId": event['StackId'],
+                "provisioningState": state,
+                "plan": "kubeflow-aws"
+            }
+            http.request('POST', webhook_url, body=json.dumps(data), headers={'Content-Type': 'application/json'})
+            send_response(event, context, "SUCCESS", {})
+        else:
+            send_response(event, context, "FAILED", {"Message": "Unexpected event received from CloudFormation"})
+    except Exception as e:
+        print(e)
+        send_response(event, context, "FAILED", {"Message": str(e)})
+"
+  }
+  runtime = "python3.8"
+  timeout = 300
+}
+
+resource "aws_codecommit_trigger" "notify_ms_portal_trigger" {
+  // CF Property(ServiceToken) = aws_lambda_function.notify_ms_portal.arn
+}
+
+resource "aws_vpc" "managed_app_vpc" {
+  cidr_block = "10.0.0.0/16"
+  enable_dns_support = true
+  enable_dns_hostnames = true
+}
+
+resource "aws_internet_gateway" "managed_internet_gateway" {}
+
+resource "aws_route_table" "managed_public_route_table" {
+  vpc_id = aws_vpc.managed_app_vpc.arn
+}
+
+resource "aws_vpn_gateway_attachment" "managed_internet_gateway_attachment" {
+  vpc_id = aws_vpc.managed_app_vpc.arn
+}
+
+resource "aws_route" "managed_default_public_route" {
+  route_table_id = aws_route_table.managed_public_route_table.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id = aws_internet_gateway.managed_internet_gateway.id
+}
+
+resource "aws_ec2_fleet" "nat_gateway_eip" {
+  // CF Property(Domain) = "vpc"
+}
+
+resource "aws_nat_gateway" "nat_gateway" {
+  allocation_id = aws_ec2_fleet.nat_gateway_eip.id
+  subnet_id = aws_subnet.managed_app_subnet.id
+}
+
+resource "aws_subnet" "managed_app_subnet" {
+  vpc_id = aws_vpc.managed_app_vpc.arn
+  cidr_block = "10.0.10.0/24"
+  availability_zone = element(data.aws_availability_zones.available.names, 0)
+  map_public_ip_on_launch = true
+}
+
+resource "aws_route_table_association" "managed_subnet_route_table_association" {
+  route_table_id = aws_route_table.managed_public_route_table.id
+  subnet_id = aws_subnet.managed_app_subnet.id
+}
+
+resource "aws_subnet" "managed_app_subnet2" {
+  vpc_id = aws_vpc.managed_app_vpc.arn
+  cidr_block = "10.0.20.0/24"
+  availability_zone = element(// Unable to resolve Fn::GetAZs with value: "" because local variable 'az_data' referenced before assignment, 1)
+  map_public_ip_on_launch = true
+}
+
+resource "aws_route_table_association" "managed_subnet2_route_table_association" {
+  route_table_id = aws_route_table.managed_public_route_table.id
+  subnet_id = aws_subnet.managed_app_subnet2.id
+}
+
+resource "aws_iam_role" "managed_app_role" {
+  name = join("-", ["managed-role-", element(split(""-"", element(split(""/"", local.stack_id), 2)), 4)])
+  assume_role_policy = {
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  }
+}
+
+resource "aws_iam_policy" "managed_role_policy" {
+  name = "EC2FullAccessPolicy"
+  // CF Property(Roles) = [
+  //   aws_iam_role.managed_app_role.arn
+  // ]
+  policy = {
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "*"
+        Resource = "*"
+      }
+    ]
+  }
+}
+
+resource "aws_iam_instance_profile" "ec2_iam_instance_profile" {
+  name = join("-", ["managed-instance-profile-", element(split(""-"", element(split(""/"", local.stack_id), 2)), 4)])
+  role = [
+    aws_iam_role.managed_app_role.arn
+  ]
+}
+
+resource "aws_iam_user" "juju_iam_user" {
+  name = join("-", ["juju-bootstrap", element(split(""-"", element(split(""/"", local.stack_id), 2)), 4)])
+  // CF Property(Policies) = [
+  //   {
+  //     PolicyName = "AmazonEC2FullAccessPolicy"
+  //     PolicyDocument = {
+  //       Version = "2012-10-17"
+  //       Statement = [
+  //         {
+  //           Effect = "Allow"
+  //           Action = "*"
+  //           Resource = "*"
+  //         }
+  //       ]
+  //     }
+  //   }
+  // ]
+}
+
+resource "aws_ec2_instance_state" "bootstrap_instance" {
+  // CF Property(ImageId) = "ami-0c7217cdde317cfec"
+  instance_id = aws_iam_instance_profile.ec2_iam_instance_profile.arn
+  // CF Property(SubnetId) = aws_subnet.managed_app_subnet.id
+  // CF Property(UserData) = base64encode("#!/bin/bash -x
+  // echo "ubuntu:ubuntu" | chpasswd
+  // curl -d "cloud=aws" -d "app=kubeflow" -d "application_id=${local.stack_id}" https://portal.managed.canonical.com/gitops/api/bootstrap.sh -o bootstrap.sh
+  // chmod +x bootstrap.sh
+  // ./bootstrap.sh
+  // ")
+}
+
+resource "aws_iam_role" "eks_cluster_role" {
+  assume_role_policy = {
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "eks.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  }
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  ]
+}
+
+resource "aws_eks_cluster" "eks_cluster" {
+  name = "${local.stack_name}-cluster"
+  role_arn = aws_iam_role.eks_cluster_role.arn
+  access_config {
+    authentication_mode = "API_AND_CONFIG_MAP"
+  }
+  vpc_config = {
+    SubnetIds = [
+      aws_subnet.managed_app_subnet.id,
+      aws_subnet.managed_app_subnet2.id
+    ]
+  }
+}
+
+resource "aws_iam_role" "node_group_role" {
+  assume_role_policy = {
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  }
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+    "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  ]
+}
+
+resource "aws_eks_node_group" "eks_node_group" {
+  cluster_name = aws_eks_cluster.eks_cluster.arn
+  node_role_arn = aws_iam_role.node_group_role.arn
+  subnet_ids = [
+    aws_subnet.managed_app_subnet.id,
+    aws_subnet.managed_app_subnet2.id
+  ]
+  scaling_config = {
+    MinSize = 3
+    MaxSize = 3
+    DesiredSize = 3
+  }
+  disk_size = 100
+  instance_types = [
+    "t3.xlarge"
+  ]
+  ami_type = "AL2_x86_64"
+}
+
+resource "aws_eks_access_entry" "eks_access_entry" {
+  cluster_name = aws_eks_cluster.eks_cluster.arn
+  principal_arn = aws_iam_user.juju_iam_user.arn
+  // CF Property(AccessPolicies) = [
+  //   {
+  //     PolicyArn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"
+  //     AccessScope = {
+  //       Type = "cluster"
+  //     }
+  //   },
+  //   {
+  //     PolicyArn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  //     AccessScope = {
+  //       Type = "cluster"
+  //     }
+  //   }
+  // ]
+  type = "STANDARD"
+}
