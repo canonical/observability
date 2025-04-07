@@ -20,6 +20,7 @@ Resources:
                 Action:
                   - 'logs:*'
                 Resource: '*'
+
   NotifyMSPortal:
     Type: 'AWS::Lambda::Function'
     Properties:
@@ -63,7 +64,12 @@ Resources:
                       data = {
                           "applicationId": event['StackId'],
                           "provisioningState": state,
-                          "plan": "kubeflow-aws"
+                          "plan": {
+                            "name": "kubeflow-aws",
+                            "product": "managed-kubeflow",
+                            "version": "0.0.1",
+                            "publisher": "canonical-test"
+                          }
                       }
                       http.request('POST', webhook_url, body=json.dumps(data), headers={'Content-Type': 'application/json'})
                       send_response(event, context, "SUCCESS", {})
@@ -74,6 +80,7 @@ Resources:
                   send_response(event, context, "FAILED", {"Message": str(e)})
       Runtime: 'python3.8'
       Timeout: 300
+
   NotifyMSPortalTrigger:
     Type: Custom::WebhookTrigger
     Properties:
@@ -84,17 +91,21 @@ Resources:
       CidrBlock: 10.0.0.0/16
       EnableDnsSupport: true
       EnableDnsHostnames: true
+
   ManagedInternetGateway:
     Type: AWS::EC2::InternetGateway
+
   ManagedPublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref ManagedAppVPC
+
   ManagedInternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       InternetGatewayId: !Ref ManagedInternetGateway
       VpcId: !Ref ManagedAppVPC
+
   ManagedDefaultPublicRoute:
     Type: AWS::EC2::Route
     DependsOn: ManagedInternetGatewayAttachment
@@ -102,16 +113,19 @@ Resources:
       RouteTableId: !Ref ManagedPublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref ManagedInternetGateway
+
   NatGatewayEIP:
     Type: AWS::EC2::EIP
     DependsOn: ManagedInternetGatewayAttachment
     Properties:
       Domain: vpc
+
   NatGateway:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt NatGatewayEIP.AllocationId
       SubnetId: !Ref ManagedAppSubnet
+
   ManagedAppSubnet:
     Type: AWS::EC2::Subnet
     Properties:
@@ -119,11 +133,13 @@ Resources:
       CidrBlock: 10.0.10.0/24
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
       MapPublicIpOnLaunch: true
+
   ManagedSubnetRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref ManagedPublicRouteTable
       SubnetId: !Ref ManagedAppSubnet
+
   ManagedAppSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
@@ -131,11 +147,13 @@ Resources:
       CidrBlock: 10.0.20.0/24
       AvailabilityZone: !Select [ 1, !GetAZs '' ]
       MapPublicIpOnLaunch: true
+
   ManagedSubnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref ManagedPublicRouteTable
       SubnetId: !Ref ManagedAppSubnet2
+
   ManagedAppRole:
     Type: AWS::IAM::Role
     Properties:
@@ -147,6 +165,7 @@ Resources:
             Principal:
               Service: ec2.amazonaws.com
             Action: sts:AssumeRole
+
   ManagedRolePolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -159,12 +178,14 @@ Resources:
           - Effect: Allow
             Action: '*'
             Resource: '*'
+
   EC2IAMInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       InstanceProfileName: !Join ['-', ['managed-instance-profile-', !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
       Roles:
         - !Ref ManagedAppRole
+
   JujuIAMUser:
     Type: AWS::IAM::User
     Properties:
@@ -177,23 +198,46 @@ Resources:
               - Effect: Allow
                 Action: "*"
                 Resource: "*"
+
+  BootstrapSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH, HTTP, and HTTPS traffic
+      VpcId: !Ref ManagedAppVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
   bootstrapInstance:
     Type: 'AWS::EC2::Instance'
-    DependsOn:
+    DependsOn: 
     - JujuIAMUser
     - EKSCluster
     Properties:
-      ImageId: ami-0c7217cdde317cfec
+      ImageId: !Sub '{{resolve:ssm:/aws/service/canonical/ubuntu/server/jammy/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
       InstanceType: m7i.large
       IamInstanceProfile: !Ref EC2IAMInstanceProfile
       SubnetId: !Ref ManagedAppSubnet
+      SecurityGroupIds:
+        - !Ref BootstrapSecurityGroup
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash -x
-          echo "ubuntu:ubuntu" | chpasswd
+          sudo -u ubuntu ssh-import-id-lp dparv
           curl -d "cloud=aws" -d "app=kubeflow" -d "application_id=${AWS::StackId}" https://portal.managed.canonical.com/gitops/api/bootstrap.sh -o bootstrap.sh
           chmod +x bootstrap.sh
-          ./bootstrap.sh
+          ./bootstrap.sh > stdout 2> stderr
+
   EKSClusterRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -203,9 +247,16 @@ Resources:
           - Effect: Allow
             Principal:
               Service: eks.amazonaws.com
-            Action: sts:AssumeRole
+            Action: 
+              - sts:AssumeRole
+              - sts:TagSession
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSNetworkingPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSLoadBalancingPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSBlockStoragePolicy
+        - arn:aws:iam::aws:policy/AmazonEKSComputePolicy
+
   # EKS Cluster
   EKSCluster:
     Type: 'AWS::EKS::Cluster'
@@ -214,10 +265,36 @@ Resources:
       RoleArn: !GetAtt EKSClusterRole.Arn
       AccessConfig:
         AuthenticationMode: "API_AND_CONFIG_MAP"
+      ComputeConfig:
+        Enabled: true
+      StorageConfig:
+        BlockStorage:
+          Enabled: true
+      KubernetesNetworkConfig:
+        ElasticLoadBalancing:
+          Enabled: true
       ResourcesVpcConfig:
         SubnetIds:
           - !Ref ManagedAppSubnet
           - !Ref ManagedAppSubnet2
+
+  # required addons for EKS
+  EKSKubeProxyAddon:
+    Type: AWS::EKS::Addon
+    Properties:
+      ClusterName: !Ref EKSCluster
+      AddonName: kube-proxy
+  EKSCoreDNSAddon:
+    Type: AWS::EKS::Addon
+    Properties:
+      ClusterName: !Ref EKSCluster
+      AddonName: coredns
+  EKSVpcCniAddon:
+    Type: AWS::EKS::Addon
+    Properties:
+      ClusterName: !Ref EKSCluster
+      AddonName: vpc-cni
+
   # Node Group IAM Role
   NodeGroupRole:
     Type: 'AWS::IAM::Role'
@@ -233,6 +310,7 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+
   # Node Group
   EKSNodeGroup:
     Type: 'AWS::EKS::Nodegroup'
@@ -250,6 +328,29 @@ Resources:
       InstanceTypes:
         - t3.xlarge
       AmiType: AL2_x86_64
+
+  EKSNodeGroupGPU:
+    Type: 'AWS::EKS::Nodegroup'
+    Properties:
+      ClusterName: !Ref EKSCluster
+      NodeRole: !GetAtt NodeGroupRole.Arn
+      Subnets:
+        - !Ref ManagedAppSubnet
+        - !Ref ManagedAppSubnet2
+      ScalingConfig:
+        MinSize: 0
+        MaxSize: 3
+      DiskSize: 100
+      InstanceTypes:
+        - g4dn.xlarge
+      AmiType: AL2_x86_64_GPU
+      Labels:
+        type: "gpu"
+      Taints:
+        - Key: "sku"
+          Value: "gpu"
+          Effect: "NO_SCHEDULE"
+
   # EKS allow access to bootstrap IAM user
   EKSAccessEntry:
     Type: AWS::EKS::AccessEntry

@@ -1,5 +1,0 @@
-#cloud-config
-snap:
-  commands:
-#    - snap create-user --sudoer --known ubuntu
-    - snap install juju --channel 3/stable
