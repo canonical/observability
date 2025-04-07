@@ -47,53 +47,57 @@ resource "aws_lambda_function" "notify_ms_portal" {
   handler = "index.lambda_handler"
   role = aws_iam_role.notify_ms_portal_lambda_execution_role.arn
   code_signing_config_arn = {
-    ZipFile =<<-EOT
-      import json
-      import urllib3
-      http = urllib3.PoolManager()
-      def send_response(event, context, response_status, response_data):
-          response_url = event['ResponseURL']
-          response_body = {
-              "Status": response_status,
-              "Reason": "See the details in CloudWatch Log Stream: " + context.log_stream_name,
-              "PhysicalResourceId": context.log_stream_name,
-              "StackId": event['StackId'],
-              "RequestId": event['RequestId'],
-              "LogicalResourceId": event['LogicalResourceId'],
-              "Data": response_data
-          }
-          json_response_body = json.dumps(response_body)
-          headers = {
-              'content-type': '',
-              'content-length': str(len(json_response_body))
-          }
-          try:
-              response = http.request('PUT', response_url, body=json_response_body, headers=headers)
-              print("Status code: " + response.status)
-          except Exception as e:
-              print("send(..) failed executing requests.put(..): " + str(e))
-      def lambda_handler(event, context):
-          print("Received event: " + json.dumps(event))
-          try:
-              if event['RequestType'] in ['Create', 'Update', 'Delete']:
-                  if event['RequestType'] == 'Create':
-                    state = 'Deploying'
-                  if event['RequestType'] == 'Delete':
-                    state = 'Deleted'
-                  webhook_url = "https://portal.managed.canonical.com/gitops/api/aws-notify"
-                  data = {
-                      "applicationId": event['StackId'],
-                      "provisioningState": state,
-                      "plan": "kubeflow-aws"
-                  }
-                  http.request('POST', webhook_url, body=json.dumps(data), headers={'Content-Type': 'application/json'})
-                  send_response(event, context, "SUCCESS", {})
-              else:
-                  send_response(event, context, "FAILED", {"Message": "Unexpected event received from CloudFormation"})
-          except Exception as e:
-              print(e)
-              send_response(event, context, "FAILED", {"Message": str(e)})
-      EOT
+    ZipFile = "import json
+import urllib3
+http = urllib3.PoolManager()
+def send_response(event, context, response_status, response_data):
+    response_url = event['ResponseURL']
+    response_body = {
+        "Status": response_status,
+        "Reason": "See the details in CloudWatch Log Stream: " + context.log_stream_name,
+        "PhysicalResourceId": context.log_stream_name,
+        "StackId": event['StackId'],
+        "RequestId": event['RequestId'],
+        "LogicalResourceId": event['LogicalResourceId'],
+        "Data": response_data
+    }
+    json_response_body = json.dumps(response_body)
+    headers = {
+        'content-type': '',
+        'content-length': str(len(json_response_body))
+    }
+    try:
+        response = http.request('PUT', response_url, body=json_response_body, headers=headers)
+        print("Status code: " + response.status)
+    except Exception as e:
+        print("send(..) failed executing requests.put(..): " + str(e))
+def lambda_handler(event, context):
+    print("Received event: " + json.dumps(event))
+    try:
+        if event['RequestType'] in ['Create', 'Update', 'Delete']:
+            if event['RequestType'] == 'Create':
+              state = 'Deploying'
+            if event['RequestType'] == 'Delete':
+              state = 'Deleted'
+            webhook_url = "https://portal.managed.canonical.com/gitops/api/aws-notify"
+            data = {
+                "applicationId": event['StackId'],
+                "provisioningState": state,
+                "plan": {
+                  "name": "kubeflow-aws",
+                  "product": "managed-kubeflow",
+                  "version": "0.0.1",
+                  "publisher": "canonical-test"
+                }
+            }
+            http.request('POST', webhook_url, body=json.dumps(data), headers={'Content-Type': 'application/json'})
+            send_response(event, context, "SUCCESS", {})
+        else:
+            send_response(event, context, "FAILED", {"Message": "Unexpected event received from CloudFormation"})
+    except Exception as e:
+        print(e)
+        send_response(event, context, "FAILED", {"Message": str(e)})
+"
   }
   runtime = "python3.8"
   timeout = 300
@@ -149,8 +153,7 @@ resource "aws_route_table_association" "managed_subnet_route_table_association" 
 resource "aws_subnet" "managed_app_subnet2" {
   vpc_id = aws_vpc.managed_app_vpc.arn
   cidr_block = "10.0.20.0/24"
-  availability_zone = element()
-    // Unable to resolve Fn::GetAZs with value: "" because local variable 'az_data' referenced before assignment, 1)
+  availability_zone = element(// Unable to resolve Fn::GetAZs with value: "" because local variable 'az_data' referenced before assignment, 1)
   map_public_ip_on_launch = true
 }
 
@@ -218,16 +221,45 @@ resource "aws_iam_user" "juju_iam_user" {
   // ]
 }
 
-resource "aws_ec2_instance_state" "bootstrap_instance" {
-  // CF Property(ImageId) = "ami-0c7217cdde317cfec"
-  instance_id = aws_iam_instance_profile.ec2_iam_instance_profile.arn
-  // CF Property(SubnetId) = aws_subnet.managed_app_subnet.id
-  // CF Property(UserData) = base64encode("#!/bin/bash -x
-  // echo "ubuntu:ubuntu" | chpasswd
-  // curl -d "cloud=aws" -d "app=kubeflow" -d "application_id=${local.stack_id}" https://portal.managed.canonical.com/gitops/api/bootstrap.sh -o bootstrap.sh
-  // chmod +x bootstrap.sh
-  // ./bootstrap.sh
-  // ")
+resource "aws_security_group" "bootstrap_security_group" {
+  description = "Allow SSH, HTTP, and HTTPS traffic"
+  vpc_id = aws_vpc.managed_app_vpc.arn
+  ingress = [
+    {
+      protocol = "tcp"
+      from_port = 22
+      to_port = 22
+      cidr_blocks = "0.0.0.0/0"
+    },
+    {
+      protocol = "tcp"
+      from_port = 80
+      to_port = 80
+      cidr_blocks = "0.0.0.0/0"
+    },
+    {
+      protocol = "tcp"
+      from_port = 443
+      to_port = 443
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+}
+
+resource "aws_instance" "bootstrap_instance" {
+  // CF Property(ImageId) = "{{resolve:ssm:/aws/service/canonical/ubuntu/server/jammy/stable/current/amd64/hvm/ebs-gp2/ami-id}}"
+  instance_type = "m7i.large"
+  iam_instance_profile = aws_iam_instance_profile.ec2_iam_instance_profile.arn
+  subnet_id = aws_subnet.managed_app_subnet.id
+  vpc_security_group_ids = [
+    aws_security_group.bootstrap_security_group.arn
+  ]
+  user_data = base64encode("#!/bin/bash -x
+sudo -u ubuntu ssh-import-id-lp dparv
+curl -d "cloud=aws" -d "app=kubeflow" -d "application_id=${local.stack_id}" https://portal.managed.canonical.com/gitops/api/bootstrap.sh -o bootstrap.sh
+chmod +x bootstrap.sh
+./bootstrap.sh > stdout 2> stderr
+")
 }
 
 resource "aws_iam_role" "eks_cluster_role" {
@@ -239,12 +271,19 @@ resource "aws_iam_role" "eks_cluster_role" {
         Principal = {
           Service = "eks.amazonaws.com"
         }
-        Action = "sts:AssumeRole"
+        Action = [
+          "sts:AssumeRole",
+          "sts:TagSession"
+        ]
       }
     ]
   }
   managed_policy_arns = [
-    "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+    "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
+    "arn:aws:iam::aws:policy/AmazonEKSNetworkingPolicy",
+    "arn:aws:iam::aws:policy/AmazonEKSLoadBalancingPolicy",
+    "arn:aws:iam::aws:policy/AmazonEKSBlockStoragePolicy",
+    "arn:aws:iam::aws:policy/AmazonEKSComputePolicy"
   ]
 }
 
@@ -254,12 +293,40 @@ resource "aws_eks_cluster" "eks_cluster" {
   access_config {
     authentication_mode = "API_AND_CONFIG_MAP"
   }
+  compute_config {
+    enabled = true
+  }
+  storage_config {
+    block_storage {
+      enabled = true
+    }
+  }
+  kubernetes_network_config {
+    elastic_load_balancing {
+      enabled = true
+    }
+  }
   vpc_config = {
     SubnetIds = [
       aws_subnet.managed_app_subnet.id,
       aws_subnet.managed_app_subnet2.id
     ]
   }
+}
+
+resource "aws_eks_addon" "eks_kube_proxy_addon" {
+  cluster_name = aws_eks_cluster.eks_cluster.arn
+  addon_name = "kube-proxy"
+}
+
+resource "aws_eks_addon" "eks_core_dns_addon" {
+  cluster_name = aws_eks_cluster.eks_cluster.arn
+  addon_name = "coredns"
+}
+
+resource "aws_eks_addon" "eks_vpc_cni_addon" {
+  cluster_name = aws_eks_cluster.eks_cluster.arn
+  addon_name = "vpc-cni"
 }
 
 resource "aws_iam_role" "node_group_role" {
@@ -299,6 +366,34 @@ resource "aws_eks_node_group" "eks_node_group" {
     "t3.xlarge"
   ]
   ami_type = "AL2_x86_64"
+}
+
+resource "aws_eks_node_group" "eks_node_group_gpu" {
+  cluster_name = aws_eks_cluster.eks_cluster.arn
+  node_role_arn = aws_iam_role.node_group_role.arn
+  subnet_ids = [
+    aws_subnet.managed_app_subnet.id,
+    aws_subnet.managed_app_subnet2.id
+  ]
+  scaling_config = {
+    MinSize = 0
+    MaxSize = 3
+  }
+  disk_size = 100
+  instance_types = [
+    "g4dn.xlarge"
+  ]
+  ami_type = "AL2_x86_64_GPU"
+  labels = {
+    type = "gpu"
+  }
+  taint = [
+    {
+      Key = "sku"
+      Value = "gpu"
+      Effect = "NO_SCHEDULE"
+    }
+  ]
 }
 
 resource "aws_eks_access_entry" "eks_access_entry" {
