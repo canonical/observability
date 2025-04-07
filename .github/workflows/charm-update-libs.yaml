@@ -8,7 +8,7 @@ on:
         required: false
         type: string
       git-branch:
-        description: "Branch name for the chore. Defaults to 'chore/auto-libs'."
+        description: "Branch name for the charm library update. Defaults to 'chore/auto-libs'."
         default: "chore/auto-libs"
         required: false
         type: string
