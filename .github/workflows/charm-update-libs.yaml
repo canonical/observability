@@ -46,6 +46,8 @@ jobs:
   update-lib:
     name: Check libraries
     runs-on: ubuntu-22.04
+    env:
+      GIT_BRANCH: ${{ inputs.git-branch }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,11 +57,11 @@ jobs:
       - name: Merge any pre-existing PRs from the automatically generated branch if the CI is green
         run: |
           # If a PR from the chore branch is open and CI checks are passing, merge it
-          is_pr_open="$(gh pr list --head "${{ inputs.git-branch }}" --state open --json id --jq 'length')"
+          is_pr_open="$(gh pr list --head "$GIT_BRANCH" --state open --json id --jq 'length')"
           if [[ "$is_pr_open" == "1" ]]; then
-            if gh pr checks "${{ inputs.git-branch }}"; then
-              echo "CI checks are passing, merging the ${{ inputs.git-branch }} PR"
-              gh pr merge "${{ inputs.git-branch }}" --admin --squash --delete-branch
+            if gh pr checks "$GIT_BRANCH"; then
+              echo "CI checks are passing, merging the $GIT_BRANCH PR"
+              gh pr merge "$GIT_BRANCH" --admin --squash --delete-branch
             fi
           elif [[ "$is_pr_open" != "0" ]]; then
             # The number of open PRs should always be either 0 or 1
@@ -151,5 +153,5 @@ jobs:
             most likely don't want to push any commits to this branch.
 
             The PR will be auto-merged if the CI is green, on the next iteration of the workflow.
-          branch: "${{ inputs.git-branch }}"
+          branch: "$GIT_BRANCH"
           delete-branch: true
