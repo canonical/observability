@@ -7,6 +7,6 @@ clients:
 artifacts:
   - name: tempo-rock
     image: ubuntu/tempo
-    version: 2.7.1-24.04_5
+    version: 2.7.1-24.04_stable
     type: rock
 
