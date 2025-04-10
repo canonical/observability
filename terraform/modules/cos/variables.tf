@@ -1,3 +1,4 @@
+
 variable "channel" {
   description = "Charms channel"
   type        = string

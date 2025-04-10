@@ -100,11 +100,16 @@ resource "terraform_data" "s3management" {
     S3_INTEGRATOR = var.s3_integrator_name
   }
 
-  provisioner "local-exec" {
-    command = <<-EOT
-      juju wait-for application -m "${self.input.MODEL_NAME}" "${self.input.S3_INTEGRATOR}" --query='forEach(units,  unit => unit.workload-status=="blocked" && unit.agent-status=="idle")' --timeout=30m
-      juju run -m "${self.input.MODEL_NAME}" "${self.input.S3_INTEGRATOR}/leader" sync-s3-credentials access-key="${self.input.S3_USER}" secret-key="${self.input.S3_PASSWORD}"
-    EOT
+  connection {
+    host        = var.remote_ip
+    user        = var.remote_user != "" ? var.remote_user : null
+    private_key = var.ssh_private_key != "" ? file(var.ssh_private_key) : null
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "juju wait-for application -m \"${self.input.MODEL_NAME}\" \"${self.input.S3_INTEGRATOR}\" --query='forEach(units,  unit => unit.workload-status==\"blocked\" && unit.agent-status==\"idle\")' --timeout=30m",
+      "juju run -m \"${self.input.MODEL_NAME}\" \"${self.input.S3_INTEGRATOR}/leader\" sync-s3-credentials access-key=\"${self.input.S3_USER}\" secret-key=\"${self.input.S3_PASSWORD}\""
+    ]
   }
 }
 

@@ -22,29 +22,35 @@ module "grafana" {
 }
 
 module "loki" {
-  source        = "git::https://github.com/canonical/observability//terraform/modules/loki"
-  model_name    = var.model_name
-  channel       = var.channel
-  backend_units = var.loki_backend_units
-  read_units    = var.loki_read_units
-  write_units   = var.loki_write_units
-  s3_bucket     = var.loki_bucket
-  s3_endpoint   = var.s3_endpoint
-  s3_password   = var.s3_password
-  s3_user       = var.s3_user
+  source          = "../loki"
+  model_name      = var.model_name
+  channel         = var.channel
+  backend_units   = var.loki_backend_units
+  read_units      = var.loki_read_units
+  write_units     = var.loki_write_units
+  s3_bucket       = var.loki_bucket
+  s3_endpoint     = var.s3_endpoint
+  s3_password     = var.s3_password
+  s3_user         = var.s3_user
+  remote_ip       = var.remote_ip
+  remote_user     = var.remote_user
+  ssh_private_key = var.ssh_private_key
 }
 
 module "mimir" {
-  source        = "git::https://github.com/canonical/observability//terraform/modules/mimir"
-  model_name    = var.model_name
-  channel       = var.channel
-  backend_units = var.mimir_backend_units
-  read_units    = var.mimir_read_units
-  write_units   = var.mimir_write_units
-  s3_bucket     = var.mimir_bucket
-  s3_endpoint   = var.s3_endpoint
-  s3_password   = var.s3_password
-  s3_user       = var.s3_user
+  source          = "../mimir"
+  model_name      = var.model_name
+  channel         = var.channel
+  backend_units   = var.mimir_backend_units
+  read_units      = var.mimir_read_units
+  write_units     = var.mimir_write_units
+  s3_bucket       = var.mimir_bucket
+  s3_endpoint     = var.s3_endpoint
+  s3_password     = var.s3_password
+  s3_user         = var.s3_user
+  remote_ip       = var.remote_ip
+  remote_user     = var.remote_user
+  ssh_private_key = var.ssh_private_key
 }
 
 module "ssc" {
@@ -55,7 +61,7 @@ module "ssc" {
 }
 
 module "tempo" {
-  source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo"
+  source                  = "../tempo"
   model_name              = var.model_name
   channel                 = var.channel
   compactor_units         = var.tempo_compactor_units
@@ -68,6 +74,9 @@ module "tempo" {
   s3_endpoint             = var.s3_endpoint
   s3_password             = var.s3_password
   s3_user                 = var.s3_user
+  remote_ip               = var.remote_ip
+  remote_user             = var.remote_user
+  ssh_private_key         = var.ssh_private_key
 }
 
 module "traefik" {
@@ -75,6 +84,7 @@ module "traefik" {
   app_name   = "traefik"
   model_name = var.model_name
   channel    = var.channel
+  config     = var.configs["traefik"]
 }
 
 module "grafana_agent" {
@@ -83,6 +93,7 @@ module "grafana_agent" {
   model_name = var.model_name
   channel    = var.channel
 }
+
 
 
 # -------------- # Integrations --------------
