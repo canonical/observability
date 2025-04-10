@@ -19,9 +19,6 @@ jobs:
               repository: canonical/sbomber
               path: scanner
               token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
-          - name: Install juju
-            run: | 
-              sudo snap install juju --classic
           - name: Install secscan cli
             run: |
               sudo snap install canonical-secscan-client
@@ -29,6 +26,9 @@ jobs:
           - name: Install uv
             run: |
               sudo snap install astral-uv --classic
+          - name: Install skopeo
+            run: |
+              sudo apt install skopeo -y
           - name: Prepare the artifacts
             run: |
               cd scanner
