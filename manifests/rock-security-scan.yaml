@@ -1,0 +1,12 @@
+# run secscan using the sbomber tool on all our rocks
+# this manifest is used in `.github/workflows/rock-security-scan.yaml`
+
+clients:
+  secscan: {}
+
+artifacts:
+  - name: tempo-rock
+    image: ubuntu/tempo
+    version: 2.7.1-24.04_5
+    type: rock
+

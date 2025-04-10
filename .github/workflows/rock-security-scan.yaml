@@ -1,9 +1,10 @@
-name: Security vulnerability scan - charms
+name: Security vulnerability scan - rocks
 
 on:
     workflow_dispatch:
     schedule:
-      - cron: "0 1 * * 1"  # Runs at 1am UTC every Monday
+      - cron: "0 2 * * 1"  # Runs at 2am UTC every Monday
+    pull_request: # for testing
 
 jobs:
     scan:
@@ -31,7 +32,7 @@ jobs:
           - name: Prepare the artifacts
             run: |
               cd scanner
-              ./sbomber prepare ../manifests/charm-security-scan.yaml
+              ./sbomber prepare ../manifests/rock-security-scan.yaml
           - name: Submit the artifacts
             run: |
               cd scanner
