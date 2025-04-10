@@ -1,3 +1,4 @@
+
 variable "channel" {
   description = "Charms channel"
   type        = string
@@ -118,4 +119,35 @@ variable "tempo_query_frontend_units" {
   description = "Number of Tempo worker units with query-frontend role"
   type        = number
   default     = 1
+}
+
+variable "configs" {
+  description = "Juju config options for each COS-managed application"
+  # e.g:
+  # loki_coordinator        = optional(map(string))
+  # loki_backend            = optional(map(string))
+  # loki_read               = optional(map(string))
+  # loki_write              = optional(map(string))
+  type = object({
+    traefik = optional(map(string))
+  })
+  default = {}
+}
+
+variable "remote_ip" {
+  description = "The IP address of the remote instance where the Juju client can be used. Defaults to 'localhost' for local execution."
+  type        = string
+  default     = "localhost"
+}
+
+variable "remote_user" {
+  description = "The username to use for SSH login to the remote instance where the Juju client can be used. Defaults to the local user running Terraform."
+  type        = string
+  default     = ""
+}
+
+variable "ssh_private_key" {
+  description = "The path to the SSH private key used for authentication."
+  type        = string
+  default     = ""
 }
