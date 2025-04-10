@@ -40,18 +40,7 @@ jobs:
           - name: Wait for the scans to finish
             run: |
               cd scanner
-              while true; do
-                ./sbomber poll
-                EXIT_CODE=$?
-                if [ $EXIT_CODE -eq 0 ]; then
-                    break
-                elif [ $EXIT_CODE -eq 1 ]; then
-                    echo "There were errors in the scan; see the logs for more details. Exiting"
-                    exit 1
-                fi
-                echo "Poll didn't finish yet, retrying in 30 seconds"
-                sleep 30
-              done
+              ./sbomber poll --wait --timeout 30
           - name: Download the reports
             run: |
               cd scanner && ./sbomber download
