@@ -7,6 +7,90 @@ clients:
 artifacts:
   - name: tempo-rock
     image: ubuntu/tempo
-    version: 2.7.1-24.04_stable
+    version: 2-24.04
     type: rock
 
+  - name: opentelemetry-collector-rock
+    image: ubuntu/opentelemetry-collector
+    version: 0-24.04
+    type: rock
+
+  - name: prometheus-pushgateway-rock
+    image: ubuntu/prometheus-pushgateway
+    version: 1-24.04
+    type: rock
+
+  - name: xk6-rock
+    image: ubuntu/xk6
+    version: 0-24.04
+    type: rock
+
+  - name: parca-rock
+    image: ubuntu/parca
+    version: 0-24.04
+    type: rock
+
+  - name: istio-ztunnel-rock
+    image: ubuntu/istio-ztunnel
+    version: 1-24.04
+    type: rock
+
+  - name: istio-install-cni-rock
+    image: ubuntu/istio-install-cni
+    version: 1-24.04
+    type: rock
+
+  - name: istio-pilot-rock
+    image: ubuntu/istio-pilot
+    version: 1-24.04
+    type: rock
+
+  - name: kiali-rock
+    image: ubuntu/kiali
+    version: 2-24.04
+    type: rock
+
+  - name: metrics-proxy-rock
+    image: ubuntu/metrics-proxy
+    version: 0-22.04
+    type: rock
+
+  - name: karma-rock
+    image: ubuntu/karma
+    version: 0-22.04
+    type: rock
+
+  - name: alertmanager-rock
+    image: ubuntu/alertmanager
+    version: 0-24.04
+    type: rock
+
+  - name: prometheus-rock
+    image: ubuntu/prometheus
+    version: 2-24.04
+    type: rock
+
+  - name: grafana-rock
+    image: ubuntu/grafana
+    version: 9-22.04
+    type: rock
+
+  - name: grafana-agent-rock
+    image: ubuntu/grafana-agent
+    version: 0-24.04
+    type: rock
+
+  - name: traefik-rock
+    image: ubuntu/traefik
+    version: 2-22.04
+    type: rock
+
+  - name: loki-rock
+    image: ubuntu/loki
+    version: 3-24.04
+    type: rock
+
+  - name: mimir-rock
+    image: ubuntu/mimir
+    version: 2-24.04
+    type: rock
