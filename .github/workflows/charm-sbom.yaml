@@ -32,7 +32,7 @@ jobs:
           - name: Prepare the artifacts
             run: |
               cd scanner
-              ./sbomber prepare ../ssdlc-manifests/charm-security-scan.yaml
+              ./sbomber prepare ../ssdlc-manifests/charm-sbom.yaml
           - name: Submit the artifacts
             run: |
               cd scanner
@@ -48,4 +48,4 @@ jobs:
             uses: actions/upload-artifact@v4
             with:
               name: secscan-report-upload
-              path: ./scanner/reports/*.html
+              path: ./scanner/reports/*.json

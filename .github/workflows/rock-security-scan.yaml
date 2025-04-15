@@ -32,7 +32,7 @@ jobs:
           - name: Prepare the artifacts
             run: |
               cd scanner
-              ./sbomber prepare ../manifests/rock-security-scan.yaml
+              ./sbomber prepare ../ssdlc-manifests/rock-security-scan.yaml
           - name: Submit the artifacts
             run: |
               cd scanner

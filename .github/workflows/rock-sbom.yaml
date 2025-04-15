@@ -1,10 +1,10 @@
-name: Security vulnerability scan - charms
+name: Security vulnerability scan - rocks
 
 on:
     workflow_dispatch:
-    pull_request:
     schedule:
-      - cron: "0 1 * * 1"  # Runs at 1am UTC every Monday
+      - cron: "0 2 * * 1"  # Runs at 2am UTC every Monday
+    pull_request: # for testing
 
 jobs:
     scan:
@@ -19,9 +19,6 @@ jobs:
               repository: canonical/sbomber
               path: scanner
               token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
-          - name: Install juju
-            run: | 
-              sudo snap install juju --classic
           - name: Install secscan cli
             run: |
               sudo snap install canonical-secscan-client
@@ -29,10 +26,13 @@ jobs:
           - name: Install uv
             run: |
               sudo snap install astral-uv --classic
+          - name: Install skopeo
+            run: |
+              sudo apt install skopeo -y
           - name: Prepare the artifacts
             run: |
               cd scanner
-              ./sbomber prepare ../ssdlc-manifests/charm-security-scan.yaml
+              ./sbomber prepare ../ssdlc-manifests/rock-sbom.yaml
           - name: Submit the artifacts
             run: |
               cd scanner
@@ -48,4 +48,4 @@ jobs:
             uses: actions/upload-artifact@v4
             with:
               name: secscan-report-upload
-              path: ./scanner/reports/*.html
+              path: ./scanner/reports/*.json
