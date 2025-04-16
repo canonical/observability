@@ -100,18 +100,37 @@ resource "terraform_data" "s3management" {
     S3_INTEGRATOR = var.s3_integrator_name
   }
 
-  connection {
-    host        = var.remote_ip
-    user        = var.remote_user != "" ? var.remote_user : null
-    private_key = var.ssh_private_key != "" ? file(var.ssh_private_key) : null
-  }
-  provisioner "remote-exec" {
-    inline = [
-      "juju wait-for application -m \"${self.input.MODEL_NAME}\" \"${self.input.S3_INTEGRATOR}\" --query='forEach(units,  unit => unit.workload-status==\"blocked\" && unit.agent-status==\"idle\")' --timeout=30m",
-      "juju run -m \"${self.input.MODEL_NAME}\" \"${self.input.S3_INTEGRATOR}/leader\" sync-s3-credentials access-key=\"${self.input.S3_USER}\" secret-key=\"${self.input.S3_PASSWORD}\""
-    ]
+}
+
+# resource "null_resource" "remote_execution" {
+
+#   count = var.remote_connection != null ? 1 : 0
+#   provisioner "remote-exec" {
+#     connection {
+#       host        = var.remote_connection.host
+#       user        = var.remote_connection.user
+#       private_key = var.remote_connection.private_key ? file(var.remote_connection.private_key) : null
+#     }
+
+#     inline = [
+#       "juju wait-for application -m \"${terraform_data.s3management.input.MODEL_NAME}\" \"${terraform_data.s3management.input.S3_INTEGRATOR}\" --query='forEach(units,  unit => unit.workload-status==\"blocked\" && unit.agent-status==\"idle\")' --timeout=30m",
+#       "juju run -m \"${terraform_data.s3management.input.MODEL_NAME}\" \"${terraform_data.s3management.input.S3_INTEGRATOR}/leader\" sync-s3-credentials access-key=\"${terraform_data.s3management.input.S3_USER}\" secret-key=\"${terraform_data.s3management.input.S3_PASSWORD}\""
+#     ]
+#   }
+
+# }
+
+resource "null_resource" "local_execution" {
+  # count = var.remote_connection != null ? 0 : 1
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      juju wait-for application -m "${terraform_data.s3management.input.MODEL_NAME}" "${terraform_data.s3management.input.S3_INTEGRATOR}" --query='forEach(units,  unit => unit.workload-status=="blocked" && unit.agent-status=="idle")' --timeout=30m
+      juju run -m "${terraform_data.s3management.input.MODEL_NAME}" "${terraform_data.s3management.input.S3_INTEGRATOR}/leader" sync-s3-credentials access-key="${terraform_data.s3management.input.S3_USER}" secret-key="${terraform_data.s3management.input.S3_PASSWORD}"
+    EOT
   }
 }
+
 
 #Integrations
 

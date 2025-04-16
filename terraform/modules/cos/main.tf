@@ -22,45 +22,51 @@ module "grafana" {
 }
 
 module "loki" {
-  source          = "../loki"
-  model_name      = var.model_name
-  channel         = var.channel
-  backend_units   = var.loki_backend_units
-  read_units      = var.loki_read_units
-  write_units     = var.loki_write_units
-  s3_bucket       = var.loki_bucket
-  s3_endpoint     = var.s3_endpoint
-  s3_password     = var.s3_password
-  s3_user         = var.s3_user
-  remote_ip       = var.remote_ip
-  remote_user     = var.remote_user
-  ssh_private_key = var.ssh_private_key
+  # FIXME: use remote module 
+  source        = "../loki"
+  model_name    = var.model_name
+  channel       = var.channel
+  backend_units = var.loki_backend_units
+  read_units    = var.loki_read_units
+  write_units   = var.loki_write_units
+  s3_bucket     = var.loki_bucket
+  s3_endpoint   = var.s3_endpoint
+  s3_password   = var.s3_password
+  s3_user       = var.s3_user
+  # remote_connection = var.remote_connection
+
 }
 
 module "mimir" {
-  source          = "../mimir"
-  model_name      = var.model_name
-  channel         = var.channel
-  backend_units   = var.mimir_backend_units
-  read_units      = var.mimir_read_units
-  write_units     = var.mimir_write_units
-  s3_bucket       = var.mimir_bucket
-  s3_endpoint     = var.s3_endpoint
-  s3_password     = var.s3_password
-  s3_user         = var.s3_user
-  remote_ip       = var.remote_ip
-  remote_user     = var.remote_user
-  ssh_private_key = var.ssh_private_key
+  # FIXME: use remote module 
+  source        = "../mimir"
+  model_name    = var.model_name
+  channel       = var.channel
+  backend_units = var.mimir_backend_units
+  read_units    = var.mimir_read_units
+  write_units   = var.mimir_write_units
+  s3_bucket     = var.mimir_bucket
+  s3_endpoint   = var.s3_endpoint
+  s3_password   = var.s3_password
+  s3_user       = var.s3_user
+  # remote_connection = var.remote_connection
+
 }
+
+# locals {
+#   is_latest           = can(regex("^latest/", var.channel))
+#   transformed_channel = local.is_latest ?  : var.channel
+# }
 
 module "ssc" {
   count   = var.use_tls ? 1 : 0
   source  = "git::https://github.com/canonical/self-signed-certificates-operator//terraform"
   model   = var.model_name
-  channel = var.channel
+  channel = var.ssc_channel
 }
 
 module "tempo" {
+  # FIXME: use remote module 
   source                  = "../tempo"
   model_name              = var.model_name
   channel                 = var.channel
@@ -74,9 +80,7 @@ module "tempo" {
   s3_endpoint             = var.s3_endpoint
   s3_password             = var.s3_password
   s3_user                 = var.s3_user
-  remote_ip               = var.remote_ip
-  remote_user             = var.remote_user
-  ssh_private_key         = var.ssh_private_key
+  # remote_connection       = var.remote_connection
 }
 
 module "traefik" {
@@ -84,7 +88,7 @@ module "traefik" {
   app_name   = "traefik"
   model_name = var.model_name
   channel    = var.channel
-  config     = var.configs["traefik"]
+  config     = var.cloud == "aws" ? { "loadbalancer_annotations" = "service.beta.kubernetes.io/aws-load-balancer-scheme=internet-facing" } : {}
 }
 
 module "grafana_agent" {

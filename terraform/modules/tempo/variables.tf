@@ -96,20 +96,12 @@ variable "s3_endpoint" {
   type        = string
 }
 
-variable "remote_ip" {
-  description = "The IP address of the remote instance where the Juju client can be used. Defaults to 'localhost' for local execution."
-  type        = string
-  default     = "localhost"
-}
-
-variable "remote_user" {
-  description = "The username to use for SSH login to the remote instance where the Juju client can be used. Defaults to the local user running Terraform."
-  type        = string
-  default     = ""
-}
-
-variable "ssh_private_key" {
-  description = "The path to the SSH private key used for authentication."
-  type        = string
-  default     = ""
-}
+# variable "remote_connection" {
+#   description = "Optional remote instance connection details for using the Juju client. If not provided, the local Juju client will be used."
+#   type = object({
+#     host        = string
+#     user        = string
+#     private_key = string
+#   })
+#   default = null
+# }
