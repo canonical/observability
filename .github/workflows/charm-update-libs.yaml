@@ -153,5 +153,5 @@ jobs:
             most likely don't want to push any commits to this branch.
 
             The PR will be auto-merged if the CI is green, on the next iteration of the workflow.
-          branch: "$GIT_BRANCH"
+          branch: "${{ env.GIT_BRANCH }}"
           delete-branch: true
