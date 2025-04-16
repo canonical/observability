@@ -1,14 +1,14 @@
-name: Security vulnerability scan - charms
+name: SBOM generation - charms
 
 on:
     workflow_dispatch:
-    pull_request:
+#    pull_request:
     schedule:
       - cron: "0 1 * * 1"  # Runs at 1am UTC every Monday
 
 jobs:
     scan:
-        name: Security vulnerability scan
+        name: SBOM generation - charms
         runs-on: [self-hosted, self-hosted-linux-amd64-jammy-private-endpoint-medium]
         steps:
           - name: Checkout repository

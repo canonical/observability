@@ -6,6 +6,7 @@ clients:
     department: charm_engineering
     email: mateusz.kulewicz@canonical.com
     team: observability
+    service_url: https://sbom-request-test.canonical.com
 
 artifacts:
   - name: tempo-rock
