@@ -96,12 +96,3 @@ variable "s3_endpoint" {
   type        = string
 }
 
-# variable "remote_connection" {
-#   description = "Optional remote instance connection details for using the Juju client. If not provided, the local Juju client will be used."
-#   type = object({
-#     host        = string
-#     user        = string
-#     private_key = string
-#   })
-#   default = null
-# }

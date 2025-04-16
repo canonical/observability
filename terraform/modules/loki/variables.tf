@@ -74,13 +74,3 @@ variable "write_units" {
   type        = number
   default     = 1
 }
-
-# variable "remote_connection" {
-#   description = "Optional remote instance connection details for using the Juju client. If not provided, the local Juju client will be used."
-#   type = object({
-#     host        = string
-#     user        = string
-#     private_key = optional(string)
-#   })
-#   default = null
-# }

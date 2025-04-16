@@ -25,7 +25,6 @@ resource "aws_vpc" "main" {
 
 resource "aws_internet_gateway" "internet_gateway" {
   vpc_id = aws_vpc.main.id
-  # depends_on = [aws_eip.nat_eip]
 }
 
 resource "aws_subnet" "subnet1" {
@@ -50,33 +49,6 @@ resource "aws_subnet" "subnet2" {
 
 }
 
-# resource "aws_subnet" "private_subnet1" {
-#   vpc_id            = aws_vpc.main.id
-#   cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, 8, 10)
-#   availability_zone = data.aws_availability_zones.available.names[0]
-#   tags = {
-#     "kubernetes.io/role/internal-elb" = "1"
-#   }
-# }
-# resource "aws_subnet" "private_subnet2" {
-#   vpc_id            = aws_vpc.main.id
-#   cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, 8, 11)
-#   availability_zone = data.aws_availability_zones.available.names[1]
-#   tags = {
-#     "kubernetes.io/role/internal-elb" = "1"
-#   }
-# }
-
-# resource "aws_eip" "nat_eip" {
-#   count = 1
-# }
-
-# resource "aws_nat_gateway" "nat_gw" {
-#   allocation_id = aws_eip.nat_eip[0].id
-#   subnet_id     = aws_subnet.subnet1.id
-#   depends_on    = [aws_internet_gateway.internet_gateway]
-# }
-
 resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.main.id
 
@@ -97,23 +69,6 @@ resource "aws_route_table_association" "public_rta2" {
   route_table_id = aws_route_table.public_rt.id
 }
 
-# resource "aws_route_table" "private_rt" {
-#   vpc_id = aws_vpc.main.id
-#   route {
-#     cidr_block     = "0.0.0.0/0"
-#     nat_gateway_id = aws_nat_gateway.nat_gw.id
-#   }
-# }
-
-# resource "aws_route_table_association" "private_rta1" {
-#   subnet_id      = aws_subnet.private_subnet1.id
-#   route_table_id = aws_route_table.private_rt.id
-# }
-
-# resource "aws_route_table_association" "private_rta2" {
-#   subnet_id      = aws_subnet.private_subnet2.id
-#   route_table_id = aws_route_table.private_rt.id
-# }
 
 resource "aws_security_group" "security" {
   name   = "allow-us"
@@ -227,8 +182,6 @@ resource "aws_eks_cluster" "cos_cluster" {
     subnet_ids = [
       aws_subnet.subnet1.id,
       aws_subnet.subnet2.id,
-      # aws_subnet.private_subnet1.id,
-      # aws_subnet.private_subnet2.id,
     ]
   }
 
@@ -239,8 +192,6 @@ resource "aws_eks_cluster" "cos_cluster" {
     aws_iam_role_policy_attachment.cos_cluster_storage_policy,
     aws_iam_role_policy_attachment.cos_cluster_compute_policy,
     aws_route_table.public_rt,
-    # aws_route_table.private_rt,
-    # aws_nat_gateway.nat_gw,
     aws_internet_gateway.internet_gateway,
   ]
 }
@@ -387,28 +338,6 @@ resource "aws_eks_access_entry" "admin_access_entry" {
   principal_arn = data.aws_iam_session_context.admin_iam.issuer_arn
 }
 
-# Management Instance Infra
-# resource "aws_key_pair" "tf_key" {
-#   key_name   = "user"
-#   public_key = file("~/.ssh/id_rsa.pub")
-# }
-
-# select the image for the machine we'll use to run the juju client
-# data "aws_ami" "ubuntu" {
-#   most_recent = true
-
-#   filter {
-#     name   = "name"
-#     values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
-#   }
-
-#   filter {
-#     name   = "virtualization-type"
-#     values = ["hvm"]
-#   }
-
-#   owners = ["099720109477"] # Canonical
-# }
 
 resource "aws_iam_role" "mgmt_eks_role" {
   name = "mgmt-eks-role"
@@ -492,93 +421,6 @@ resource "aws_eks_access_policy_association" "mgmt_access_eks_cluster_admin" {
 }
 
 
-# create a machine with that image
-# resource "aws_instance" "management" {
-#   ami                  = data.aws_ami.ubuntu.id
-#   instance_type        = "t3.medium"
-#   iam_instance_profile = aws_iam_instance_profile.mgmt_instance_profile.name
-
-#   # this allows us to connect
-#   vpc_security_group_ids = [aws_security_group.security.id]
-#   # allow this key to ssh in there
-#   key_name = aws_key_pair.tf_key.key_name
-
-#   associate_public_ip_address = true
-#   subnet_id                   = aws_subnet.subnet1.id
-
-#   tags = {
-#     Name = "juju_client"
-#   }
-#   depends_on = [
-#     aws_eks_cluster.cos_cluster,
-#     aws_eks_node_group.cos_workers,
-#     aws_eks_access_entry.mgmt_access_entry,
-#     aws_eks_addon.eks_ebs_addon,
-#     aws_iam_role.mgmt_eks_role,
-#     aws_route_table.public_rt,
-#     aws_route_table.private_rt,
-#     aws_nat_gateway.nat_gw,
-#     aws_internet_gateway.internet_gateway,
-#   ]
-# }
-
-# bootstrap juju
-# resource "null_resource" "bootstrap_juju" {
-#   depends_on = [aws_instance.management]
-
-#   connection {
-#     type        = "ssh"
-#     host        = aws_instance.management.public_ip
-#     user        = "ubuntu"
-#     private_key = file("~/.ssh/id_rsa")
-#   }
-
-#   provisioner "remote-exec" {
-#     inline = [
-#       "sudo snap wait system seed.loaded",
-#       "sudo snap install juju --channel 3/stable",
-#       "sudo snap install kubectl --classic",
-#       "sudo snap install jq",
-#       "sudo snap install yq",
-#       "sudo apt install unzip",
-#       "curl \"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\" -o \"awscliv2.zip\"",
-#       "unzip awscliv2.zip",
-#       "sudo ./aws/install",
-#       "aws eks --region ${var.region} update-kubeconfig --name ${local.cos-cluster}",
-#       "/snap/juju/current/bin/juju add-k8s ${local.cos-cloud}",
-#       "juju bootstrap ${local.cos-cloud} ${local.cos-controller}",
-#     ]
-#   }
-# }
-
-
-# data "external" "juju_controller_config" {
-#   depends_on = [null_resource.bootstrap_juju, aws_instance.management]
-#   program = ["bash", "-c", <<-EOT
-#     ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@${aws_instance.management.public_ip} /bin/bash <<'REMOTE_EOF'
-#     #!/bin/bash
-#     set -euo pipefail
-
-#     CONTROLLER=$(juju whoami | yq -r .Controller)
-#     JUJU_DATA=$(juju show-controller "$CONTROLLER" --format json)
-#     JUJU_ACCOUNTS=$(cat ~/.local/share/juju/accounts.yaml)
-
-#     jq -n \
-#       --arg username "$(echo "$JUJU_ACCOUNTS" | yq -r ".controllers.\"$CONTROLLER\".user")" \
-#       --arg password "$(echo "$JUJU_ACCOUNTS" | yq -r ".controllers.\"$CONTROLLER\".password")" \
-#       --arg ca_cert "$(echo "$JUJU_DATA" | jq -r '.[].details["ca-cert"]')" \
-#       --arg controller_ip "$(kubectl get pods controller-0 -n controller-cos-controller -o jsonpath='{.status.podIP}')" \
-#       '{
-#         juju_username: $username,
-#         juju_password: $password,
-#         juju_ca_cert: $ca_cert,
-#         juju_controller_ip: $controller_ip,
-#       }'
-#     REMOTE_EOF
-#   EOT
-#   ]
-# }
-
 # create a user that can bootstrap juju
 resource "aws_iam_user" "juju_bootstrap_user" {
   name = "juju-bootstrap"
@@ -639,9 +481,9 @@ resource "aws_iam_access_key" "juju_bootstrap_access_key" {
 }
 
 
-
 resource "local_sensitive_file" "aws_credentials" {
   depends_on = [aws_iam_access_key.juju_bootstrap_access_key]
+
   content = yamlencode({
     credentials : {
       aws : {
@@ -652,10 +494,15 @@ resource "local_sensitive_file" "aws_credentials" {
       } }
     }
   })
-  filename = "${path.module}/credentials.yaml"
+  filename = "${path.root}/.terraform/tmp/credentials.yaml"
 }
 
 resource "null_resource" "bootstrap_juju" {
+  # uncomment if you need to force destroy then create
+  triggers = {
+    once            = timestamp()
+    controller_name = local.cos-controller
+  }
   depends_on = [local_sensitive_file.aws_credentials,
     aws_eks_node_group.cos_workers,
     aws_eks_addon.eks_ebs_addon,
@@ -673,13 +520,19 @@ resource "null_resource" "bootstrap_juju" {
     aws_eks_access_policy_association.admin_eks_admin_policy,
     aws_iam_role.mgmt_eks_role,
     aws_iam_instance_profile.mgmt_instance_profile,
-
+    aws_iam_role_policy_attachment.mgmt_eks_policy_attachment,
+    aws_iam_role_policy_attachment.eks_ebs_policy,
+    aws_eks_access_policy_association.mgmt_access_eks_admin,
+    aws_iam_user_policy.juju_bootstrap_policy,
+    aws_eks_access_policy_association.admin_eks_cluster_admin_policy,
   ]
+
   provisioner "local-exec" {
     when    = create
     command = <<-EOT
       juju remove-credential aws bootstrap-juju --client
       juju add-credential aws --client -f  ${local_sensitive_file.aws_credentials.filename}
+
       if ! juju controllers | grep -q '^${local.cos-controller}'; then
         juju bootstrap --bootstrap-constraints="instance-role=${aws_iam_instance_profile.mgmt_instance_profile.name}" aws/${var.region} ${local.cos-controller} --config vpc-id=${aws_vpc.main.id} --config vpc-id-force=true --credential bootstrap-juju
       else
@@ -691,15 +544,20 @@ resource "null_resource" "bootstrap_juju" {
     EOT
   }
 
-  # provisioner "local-exec" {
-  #   when    = destroy
-  #   command = <<-EOT
-  #     juju destroy-model cos --destroy-storage --no-prompt --force
-  #     juju destroy-controller cos-controller --destroy-all-models --destroy-storage --no-prompt
-  #   EOT
-  # }
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      if juju controllers | grep -q '^cos-controller'; then
+        juju kill-controller cos-controller --timeout 0 --no-prompt
+      else
+        echo "Skipping controller deletion."
+      fi
+    EOT
+  }
 
 }
+
+
 
 # create S3 Buckets
 resource "aws_s3_bucket" "tempo_s3" {
@@ -745,111 +603,3 @@ resource "aws_iam_access_key" "s3_access_key" {
   user = aws_iam_user.s3_access.name
 }
 
-
-# provider "juju" {
-# }
-
-# resource "juju_model" "cos_model" {
-#   depends_on = [aws_eks_node_group.cos_workers, null_resource.bootstrap_juju]
-#   name       = "cos"
-# }
-
-# module "cos" {
-#   depends_on = [juju_model.cos_model, aws_s3_bucket.loki_s3, aws_s3_bucket.mimir_s3, aws_s3_bucket.tempo_s3]
-#   # FIXME: use the remote module
-#   source       = "../../../cos"
-#   model_name   = juju_model.cos_model.name
-#   use_tls      = true
-#   loki_bucket  = aws_s3_bucket.loki_s3.bucket
-#   mimir_bucket = aws_s3_bucket.mimir_s3.bucket
-#   tempo_bucket = aws_s3_bucket.tempo_s3.bucket
-#   s3_endpoint  = "https://s3.${var.region}.amazonaws.com"
-#   s3_user      = aws_iam_access_key.s3_access_key.id
-#   s3_password  = aws_iam_access_key.s3_access_key.secret
-#   cloud        = "aws"
-
-# }
-
-
-
-# hacky way to expose juju controller
-
-
-# resource "aws_security_group" "controller_sg1" {
-#   vpc_id = aws_vpc.main.id
-#   ingress {
-#     from_port   = 17070
-#     to_port     = 17070
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-
-# }
-
-# resource "aws_security_group" "controller_sg2" {
-#   vpc_id = aws_vpc.main.id
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-
-# }
-
-# resource "aws_lb_target_group" "controller_tg" {
-#   port        = 17070
-#   protocol    = "TCP"
-#   target_type = "ip"
-#   vpc_id      = aws_vpc.main.id
-#   health_check {
-#     healthy_threshold = 2
-#     protocol          = "TCP"
-#     port              = "traffic-port"
-#     interval          = 5
-#     timeout           = 5
-#   }
-#   lifecycle {
-#     create_before_destroy = true
-#   }
-#   depends_on = [aws_lb.controller_public_nlb]
-# }
-
-
-# resource "aws_lb" "controller_public_nlb" {
-#   depends_on         = [aws_route_table.public_rt]
-#   name               = "controller-public-service"
-#   load_balancer_type = "network"
-#   internal           = false
-#   subnets            = [aws_subnet.subnet1.id, aws_subnet.subnet2.id]
-#   security_groups    = [aws_security_group.controller_sg1.id, aws_security_group.controller_sg2.id]
-
-#   enable_deletion_protection       = false
-#   enable_cross_zone_load_balancing = true
-# }
-
-# resource "aws_lb_listener" "controller_listener" {
-#   depends_on        = [aws_lb_target_group.controller_tg]
-#   load_balancer_arn = aws_lb.controller_public_nlb.arn
-#   port              = 17070
-#   protocol          = "TCP"
-
-#   default_action {
-#     type             = "forward"
-#     target_group_arn = aws_lb_target_group.controller_tg.arn
-#   }
-# }
-
-# resource "aws_lb_target_group_attachment" "controller_tg_attach" {
-#   depends_on       = [data.external.juju_controller_config, aws_lb_target_group.controller_tg]
-#   target_group_arn = aws_lb_target_group.controller_tg.arn
-#   target_id        = data.external.juju_controller_config.result.juju_controller_ip
-#   port             = 17070
-# }
