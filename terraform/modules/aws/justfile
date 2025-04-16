@@ -1,0 +1,39 @@
+set quiet # Recipes are silent by default
+
+init:
+    terraform -chdir=modules/infra init
+    terraform -chdir=modules/cos init
+apply: init apply_infra apply_cos
+destroy: destroy_cos destroy_infra
+
+apply_infra:
+    @echo "Applying Infra resources..."
+    terraform -chdir=modules/infra apply -var="region=eu-central-1"
+
+
+apply_cos:
+    @echo "Applying COS resources..."
+    terraform -chdir=modules/cos apply \
+        -var="loki_bucket=$(terraform -chdir=modules/infra output -raw loki-bucket)" \
+        -var="tempo_bucket=$(terraform -chdir=modules/infra output -raw tempo-bucket)" \
+        -var="mimir_bucket=$(terraform -chdir=modules/infra output -raw mimir-bucket)" \
+        -var="s3_endpoint=$(terraform -chdir=modules/infra output -raw s3-endpoint)" \
+        -var="s3_user=$(terraform -chdir=modules/infra output -raw s3-user)" \
+        -var="s3_password=$(terraform -chdir=modules/infra output -raw s3-password)" \
+        -var="model=cos" \
+
+destroy_cos:
+    @echo "Destroying COS resources..." 
+    terraform -chdir=modules/cos destroy \
+        -var="loki_bucket=$(terraform -chdir=modules/infra output -raw loki-bucket)" \
+        -var="tempo_bucket=$(terraform -chdir=modules/infra output -raw tempo-bucket)" \
+        -var="mimir_bucket=$(terraform -chdir=modules/infra output -raw mimir-bucket)" \
+        -var="s3_endpoint=$(terraform -chdir=modules/infra output -raw s3-endpoint)" \
+        -var="s3_user=$(terraform -chdir=modules/infra output -raw s3-user)" \
+        -var="s3_password=$(terraform -chdir=modules/infra output -raw s3-password)" \
+        -var="model=cos" \
+
+destroy_infra:
+   @echo "Destroying AWS resources..." 
+   terraform -chdir=modules/infra destroy 
+

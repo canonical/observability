@@ -1,21 +1,3 @@
-
-# variable "controller_addresses" {
-#   description = "Comma-separated addresses of the Juju controller."
-#   type        = string
-# }
-
-# variable "controller_user" {
-#   type = string
-# }
-
-# variable "controller_password" {
-#   type = string
-# }
-
-# variable "controller_ca" {
-#   type = string
-# }
-
 variable "model" {
   type    = string
   default = "cos"
@@ -48,8 +30,3 @@ variable "s3_password" {
   sensitive   = true
 }
 
-
-
-# variable "client_host_address" {
-#   type = string
-# }

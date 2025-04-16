@@ -33,8 +33,6 @@ module "loki" {
   s3_endpoint   = var.s3_endpoint
   s3_password   = var.s3_password
   s3_user       = var.s3_user
-  # remote_connection = var.remote_connection
-
 }
 
 module "mimir" {
@@ -49,14 +47,8 @@ module "mimir" {
   s3_endpoint   = var.s3_endpoint
   s3_password   = var.s3_password
   s3_user       = var.s3_user
-  # remote_connection = var.remote_connection
 
 }
-
-# locals {
-#   is_latest           = can(regex("^latest/", var.channel))
-#   transformed_channel = local.is_latest ?  : var.channel
-# }
 
 module "ssc" {
   count   = var.use_tls ? 1 : 0
@@ -80,7 +72,6 @@ module "tempo" {
   s3_endpoint             = var.s3_endpoint
   s3_password             = var.s3_password
   s3_user                 = var.s3_user
-  # remote_connection       = var.remote_connection
 }
 
 module "traefik" {

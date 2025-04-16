@@ -9,9 +9,5 @@ terraform {
       source  = "hashicorp/null"
       version = "~> 3.0"
     }
-    juju = {
-      source  = "juju/juju"
-      version = "~> 0.14"
-    }
   }
 }
