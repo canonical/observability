@@ -273,6 +273,7 @@ jobs:
           CHARM_PATH="$(realpath "$charm_relative_path")"
           export CHARM_PATH
           if [[ "${{ runner.debug }}" == "1" ]]; then
+            export KEEP_MODELS=true
             uvx tox -e integration -- -k "${{ matrix.suite }}" --keep-models
           else
             uvx tox -e integration -- -k "${{ matrix.suite }}"
