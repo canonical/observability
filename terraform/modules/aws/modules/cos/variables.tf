@@ -1,17 +1,24 @@
 variable "model" {
-  type    = string
-  default = "cos"
+  description = "Model name"
+  type        = string
+  default     = "cos"
 }
 
 variable "loki_bucket" {
-  type = string
+  description = "Loki bucket name"
+  type        = string
+  sensitive   = true
 }
 
 variable "tempo_bucket" {
-  type = string
+  description = "Tempo bucket name"
+  type        = string
+  sensitive   = true
 }
 variable "mimir_bucket" {
-  type = string
+  description = "Mimir bucket name"
+  type        = string
+  sensitive   = true
 }
 
 variable "s3_endpoint" {
