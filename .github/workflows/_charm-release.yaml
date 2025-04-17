@@ -76,7 +76,7 @@ jobs:
   build-arm:
     name: Build the charms for ARM
     if: ${{ inputs.build-for-arm }}
-    runs-on: Ubuntu_ARM64_4C_16G_01
+    runs-on: Ubuntu_ARM64_4C_16G_03
     outputs:
       charms: ${{ steps.builder.outputs.charms }}
     steps:
@@ -160,7 +160,7 @@ jobs:
   release-arm-to-charmhub:
     name: Release arm64 to CharmHub
     # needs to be run on arm or the oci image will resolve to the amd64 one.
-    runs-on: Ubuntu_ARM64_4C_16G_01
+    runs-on: Ubuntu_ARM64_4C_16G_03
     needs:
       - build-arm
     strategy:
