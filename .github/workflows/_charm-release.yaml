@@ -98,14 +98,19 @@ jobs:
         run: |
           sudo snap install jq
           sudo snap install lxd
+          sudo lxd waitready
           sudo lxd init --auto
+          # Enable non-root user control
+          sudo chmod a+wr /var/snap/lxd/common/lxd/unix.socket
+          sudo lxc network set lxdbr0 ipv6.address none
           sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
           lxd_user="$USER"
           sudo usermod -a -G lxd "$lxd_user"
+          sg lxd -c 'lxc version'
       - name: Build charm(s)
         id: builder
         run: |
-          (cd ${{ inputs.charm-path }}; charmcraft pack)
+          sg lxd -c "(cd ${{ inputs.charm-path }}; charmcraft pack)"
           export CHARMS=$(basename -a ${{ inputs.charm-path }}/*.charm | jq -R -s -c 'split("\n")[:-1]')
           echo "charms=$CHARMS" >> "$GITHUB_OUTPUT"
       - name: Store charms
