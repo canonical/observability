@@ -452,19 +452,32 @@ resource "aws_iam_user_policy" "juju_bootstrap_policy" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      # {
-      #   Action = [
-      #     "eks:*",
-      #   ]
-      #   Effect   = "Allow"
-      #   Resource = "*"
-      # },
       {
         Action = [
           "ec2:*",
         ]
         Effect   = "Allow"
         Resource = "*"
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "iam:AddRoleToInstanceProfile",
+          "iam:CreateInstanceProfile",
+          "iam:CreateRole",
+          "iam:DeleteInstanceProfile",
+          "iam:DeleteRole",
+          "iam:DeleteRolePolicy",
+          "iam:GetInstanceProfile",
+          "iam:GetRole",
+          "iam:ListInstanceProfiles",
+          "iam:ListRolePolicies",
+          "iam:ListRoles",
+          "iam:PassRole",
+          "iam:PutRolePolicy",
+          "iam:RemoveRoleFromInstanceProfile"
+        ],
+        "Resource" : "*"
       },
     ]
   })
@@ -515,7 +528,6 @@ resource "null_resource" "bootstrap_juju" {
     aws_iam_policy.juju_controller_policy,
     aws_route_table_association.public_rta_1,
     aws_route_table_association.public_rta_2,
-    aws_security_group.security,
     aws_eks_access_policy_association.ctrl_access_eks_cluster_admin,
     aws_eks_access_policy_association.admin_eks_admin_policy,
     aws_iam_role.juju_controller_role,
@@ -525,7 +537,6 @@ resource "null_resource" "bootstrap_juju" {
     aws_eks_access_policy_association.ctrl_access_eks_admin,
     aws_iam_user_policy.juju_bootstrap_policy,
     aws_eks_access_policy_association.admin_eks_cluster_admin_policy,
-
   ]
 
   provisioner "local-exec" {
