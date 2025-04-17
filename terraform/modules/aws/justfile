@@ -4,12 +4,17 @@ init:
     terraform -chdir=modules/infra init
     terraform -chdir=modules/cos init
 
-apply: init apply_infra apply_cos
+apply region: 
+    just init
+    just apply_infra {{region}}
+    just apply_cos
 
-destroy: destroy_cos destroy_infra
+destroy region: 
+    just destroy_cos
+    just destroy_infra {{region}}
 
-apply_infra:
-    terraform -chdir=modules/infra apply
+apply_infra region:
+    terraform -chdir=modules/infra apply -var="region={{region}}"
 
 apply_cos:
     terraform -chdir=modules/cos apply \
@@ -20,8 +25,8 @@ apply_cos:
         -var="s3_user=$(terraform -chdir=modules/infra output -raw s3-user)" \
         -var="s3_password=$(terraform -chdir=modules/infra output -raw s3-password)" \
 
-destroy_infra:
-   terraform -chdir=modules/infra destroy 
+destroy_infra region:
+   terraform -chdir=modules/infra destroy -var="region={{region}}"
 
 destroy_cos:
     terraform -chdir=modules/cos destroy \
