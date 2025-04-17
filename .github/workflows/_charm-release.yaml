@@ -103,6 +103,9 @@ jobs:
           # Enable non-root user control
           sudo chmod a+wr /var/snap/lxd/common/lxd/unix.socket
           sudo lxc network set lxdbr0 ipv6.address none
+          # Ensure that LXD containers can talk to the internet
+          sudo iptables -F FORWARD
+          sudo iptables -P FORWARD ACCEPT
           sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
           lxd_user="$USER"
           sudo usermod -a -G lxd "$lxd_user"
