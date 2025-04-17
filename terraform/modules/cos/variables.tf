@@ -123,7 +123,7 @@ variable "tempo_query_frontend_units" {
 
 
 variable "cloud" {
-  description = "Kubernetes cloud or environment where this COS module is deployed (e.g self-managed, aws)"
+  description = "Kubernetes cloud or environment where this COS module will be deployed (e.g self-managed, aws)"
   type        = string
   default     = "self-managed"
   validation {

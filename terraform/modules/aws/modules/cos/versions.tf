@@ -5,6 +5,5 @@ terraform {
       source  = "juju/juju"
       version = "~> 0.14"
     }
-
   }
 }

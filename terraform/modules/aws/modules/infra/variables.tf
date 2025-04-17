@@ -1,5 +1,5 @@
 
 variable "region" {
-  description = "AWS region where resources will be provisioned."
+  description = "The AWS region where the resources will be provisioned."
   type        = string
 }

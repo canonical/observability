@@ -1,7 +1,6 @@
 # bootstrap COS
 provider "juju" {}
 
-
 module "cos" {
   # FIXME: use the remote module
   source       = "../../../cos"
@@ -16,6 +15,5 @@ module "cos" {
   cloud        = "aws"
   channel      = "latest/edge"
   ssc_channel  = "1/edge"
-
 }
 

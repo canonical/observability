@@ -95,4 +95,3 @@ variable "s3_endpoint" {
   description = "S3 endpoint"
   type        = string
 }
-
