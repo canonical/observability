@@ -91,7 +91,7 @@ resource "juju_application" "s3_integrator" {
 
 resource "terraform_data" "s3management" {
   depends_on = [
-    juju_application.s3_integrator,
+    juju_application.s3_integrator
   ]
   input = {
     S3_USER       = var.s3_user
@@ -107,7 +107,6 @@ resource "terraform_data" "s3management" {
     EOT
   }
 }
-
 
 #Integrations
 
