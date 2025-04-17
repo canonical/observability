@@ -20,6 +20,7 @@ resource "terraform_data" "s3management" {
   depends_on = [
     juju_application.s3_integrator,
   ]
+
   input = {
     S3_USER       = var.s3_user
     S3_PASSWORD   = var.s3_password
@@ -34,7 +35,6 @@ resource "terraform_data" "s3management" {
     EOT
   }
 }
-
 
 module "mimir_coordinator" {
   source     = "git::https://github.com/canonical/mimir-coordinator-k8s-operator//terraform"
