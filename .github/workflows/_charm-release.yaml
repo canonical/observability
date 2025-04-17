@@ -100,6 +100,8 @@ jobs:
           sudo snap install lxd
           sudo lxd init --auto
           sudo snap install charmcraft --classic --channel="${{ inputs.charmcraft-channel }}"
+          lxd_user="$USER"
+          sudo usermod -a -G lxd "$lxd_user"
       - name: Build charm(s)
         id: builder
         run: |
