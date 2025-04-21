@@ -41,7 +41,7 @@ You can do this using one of the following methods:
 
 To go from zero to COS:
 
-1. Update the [`modules/infra/terraform.tfvars`](modules/infra/terraform.tfvars) with the AWS region to provision resources in.
+1. Update the [`modules/infra/terraform.tfvars`](modules/infra/terraform.tfvars) with the desired values.
 2. `just apply`
 
 ---
@@ -52,8 +52,11 @@ To go from zero to COS:
 | Variable Name     | Description             |
 |----------|-------------------------|
 | region   | AWS region to provision resources in |
+| cos-cloud-name   | The name to assign to the Kubernetes cloud when running 'juju add-k8s' |
+| cos-controller-name   | The name to assign to the Juju controller that will manage COS |
+| cos-model-name   | The name of the Juju model where COS will be deployed |
 
-All other needed variables are passed automatically from the `infra` module to the `cos` module.
+All `cos` module needed variables are passed automatically from this `aws-infra` module to the `cos` module.
 
 ---
 
