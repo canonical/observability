@@ -1,0 +1,61 @@
+# From Zero to COS: End-to-End AWS Provisioning & Deployment
+
+This directory contains Terraform modules for automating the process of bootstrapping a fresh AWS account to a fully running instance of COS deployed on a 3-node EKS cluster.
+
+Using `just` commands, we can:
+
+- Provision all COS-required AWS infrastructure (networking, IAM, EKS, etc.)
+- Deploy COS on top of the freshly created infrastructure
+
+---
+
+
+## Available Commands (via `just`)
+
+- `just init` – Initialize Terraform for AWS infra and COS
+- `just apply` – Provision AWS infrastructure, then pipe the necessary outputs to provision COS on top
+- `just destroy` – Tear down everything (COS + infra)
+
+## Prerequisites
+
+Make sure you have the following installed:
+
+- [Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
+- [AWS CLI](https://github.com/aws/aws-cli)
+- [Juju](https://snapcraft.io/juju)
+- [Just](https://github.com/casey/just)
+
+### AWS Credentials Setup
+
+Before running any commands, ensure your AWS credentials are configured on the host:
+
+You can do this using one of the following methods:
+
+- [Environment variables](https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-envvars.html)
+- [Credentials file](https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-files.html)
+
+---
+
+
+## Usage
+
+To go from zero to COS:
+
+1. Update the [`modules/infra/terraform.tfvars`](modules/infra/terraform.tfvars) with the AWS region to provision resources in.
+2. `just apply`
+
+---
+
+
+## Inputs
+
+| Variable Name     | Description             |
+|----------|-------------------------|
+| region   | AWS region to provision resources in |
+
+All other needed variables are passed automatically from the `infra` module to the `cos` module.
+
+---
+
+
+

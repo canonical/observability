@@ -48,7 +48,8 @@ The module offers the following configurable inputs:
 | `loki_bucket` | string | Name of the bucket in which Loki should store its logs         | 1 |
 | `mimir_bucket` | string | Name of the bucket in which Mimir should store its metrics     | 1 |
 | `tempo_bucket` | string | Name of the bucket in which Tempo should store its traces      | 1 |
-
+| `cloud` | string | Kubernetes cloud or environment where this COS module will be deployed | self-managed |
+| `ssc_channel` | string | self-signed certificates charm channel | latest/edge |
 
 
 
@@ -389,4 +390,15 @@ traefik:ingress                          mimir:ingress                          
 traefik:peers                            traefik:peers                            traefik_peers            peer
 traefik:traefik-route                    grafana:ingress                          traefik_route            regular
 traefik:traefik-route                    tempo:ingress                            traefik_route            regular
+```
+
+### Deploy COS on AWS EKS
+
+> **Note:** This option assumes that the required AWS infrastructure already exists and that a Juju controller has been bootstrapped.  
+> Additionally, a Juju model must be ready in advance.
+> 
+> See [provision AWS infrastructure](../aws-infra/README.md)
+
+```bash
+terraform apply -var-file=aws.tfvars -var="model=<model_name>" -var=...
 ```

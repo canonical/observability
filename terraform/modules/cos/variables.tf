@@ -1,4 +1,8 @@
 
+# the list of kubernetes clouds where this COS module can be deployed.
+locals {
+  clouds = ["aws", "self-managed"]
+}
 variable "channel" {
   description = "Charms channel"
   type        = string
@@ -127,8 +131,8 @@ variable "cloud" {
   type        = string
   default     = "self-managed"
   validation {
-    condition     = contains(["aws", "self-managed"], var.cloud)
-    error_message = "Allowed values are: 'aws', 'self-managed'."
+    condition     = contains(local.clouds, var.cloud)
+    error_message = "Allowed values are: ${join(", ", local.clouds)}."
   }
 }
 
