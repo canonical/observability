@@ -19,15 +19,19 @@ apply_cos:
         -var="s3_endpoint=$(terraform output -raw s3-endpoint)" \
         -var="s3_user=$(terraform output -raw s3-user)" \
         -var="s3_password=$(terraform output -raw s3-password)" \
+        -var="model_name=$(terraform output -raw cos-model)" \
+        -var="ssc_channel=1/edge" \
 
 destroy_infra:
    terraform destroy
 
 destroy_cos:
-    terraform -chdir=../cos destroy var-file=../cos/aws.tfvars \
+    terraform -chdir=../cos destroy -var-file=../cos/aws.tfvars \
         -var="loki_bucket=$(terraform output -raw loki-bucket)" \
         -var="tempo_bucket=$(terraform output -raw tempo-bucket)" \
         -var="mimir_bucket=$(terraform output -raw mimir-bucket)" \
         -var="s3_endpoint=$(terraform output -raw s3-endpoint)" \
         -var="s3_user=$(terraform output -raw s3-user)" \
         -var="s3_password=$(terraform output -raw s3-password)" \
+        -var="model_name=$(terraform output -raw cos-model)" \
+        -var="ssc_channel=1/edge" \

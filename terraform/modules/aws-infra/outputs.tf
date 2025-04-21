@@ -23,3 +23,7 @@ output "s3-password" {
   value     = aws_iam_access_key.s3_access_key.secret
   sensitive = true
 }
+
+output "cos-model" {
+  value = var.cos-model-name
+}
