@@ -20,10 +20,10 @@ Using `just` commands, we can:
 
 Make sure you have the following installed:
 
-- [Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
-- [AWS CLI](https://github.com/aws/aws-cli)
-- [Juju](https://snapcraft.io/juju)
-- [Just](https://github.com/casey/just)
+- [Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) >= v1.10.4
+- [AWS CLI](https://github.com/aws/aws-cli) >= 2.26.7
+- [Juju](https://snapcraft.io/juju) >= 3.0.3
+- [Just](https://github.com/casey/just) >= 1.40.0
 
 ### AWS Credentials Setup
 
@@ -41,7 +41,14 @@ You can do this using one of the following methods:
 
 To go from zero to COS:
 
-1. Update the [`modules/infra/terraform.tfvars`](modules/infra/terraform.tfvars) with the desired values.
+1. Create a [`modules/infra/terraform.tfvars`](modules/infra/terraform.tfvars) with the following required content.
+```hcl
+region = "<your-aws-region>"
+# Add other optional variables below
+cos-cloud-name = "<cos-cloud-name>"
+cos-controller-name = "<cos-controller-name>"
+cos-model-name = "<cos-model-name>"
+```
 2. `just apply`
 
 ---

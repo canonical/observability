@@ -399,6 +399,12 @@ traefik:traefik-route                    tempo:ingress                          
 > 
 > See [provision AWS infrastructure](../aws-infra/README.md)
 
-```bash
-terraform apply -var-file=aws.tfvars -var="model=<model_name>" -var=...
+1. Create a `aws.tfvars` file with the following content:
+```hcl
+cloud = "aws"
+# Add other required variables below
+model = "<model-name>"
+s3_user = "<s3-user>"
+...
 ```
+2. `terraform apply -var-file=aws.tfvars`
