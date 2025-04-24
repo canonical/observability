@@ -1,3 +1,7 @@
+provider "juju" {
+}
+
+
 # -------------- # Applications --------------
 
 module "ssc" {
@@ -139,7 +143,7 @@ resource "juju_integration" "prometheus_grafana_dashboards_provider" {
 
   application {
     name     = module.prometheus.app_name
-    endpoint = module.prometheus.endpoints.grafana_dashboards_provider
+    endpoint = module.prometheus.endpoints.grafana_dashboard
   }
 
   application {
@@ -199,7 +203,7 @@ resource "juju_integration" "loki_grafana_dashboards_provider" {
 
   application {
     name     = module.loki.app_name
-    endpoint = module.loki.endpoints.grafana_dashboards_provider
+    endpoint = module.loki.endpoints.grafana_dashboard
   }
 
   application {
@@ -227,7 +231,7 @@ resource "juju_integration" "loki_logging_consumer_grafana_agent_logging_provide
 
   application {
     name     = module.loki.app_name
-    endpoint = module.loki.endpoints.logging_consumer
+    endpoint = module.loki.endpoints.logging
   }
 
   application {
@@ -391,7 +395,7 @@ resource "juju_integration" "agent_loki_metrics" {
 
   application {
     name     = module.loki.app_name
-    endpoint = module.loki.endpoints.self_metrics_endpoint
+    endpoint = module.loki.endpoints.metrics_endpoint
   }
 
   application {
