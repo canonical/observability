@@ -132,7 +132,7 @@ resource "juju_integration" "grafana_source_alertmanager" {
 }
 
 
-# Provided by Mimir
+# Provided by Prometheus
 
 resource "juju_integration" "prometheus_grafana_dashboards_provider" {
   model = var.model_name
@@ -304,8 +304,8 @@ resource "juju_integration" "catalogue_prometheus" {
   }
 
   application {
-    name     = module.mimir.app_names.prometheus
-    endpoint = module.mimir.endpoints.catalogue
+    name     = module.prometheus.app_name
+    endpoint = module.prometheus.endpoints.catalogue
   }
 }
 
