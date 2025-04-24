@@ -37,11 +37,10 @@ rephrase it as part of the triage.
 - Pull request titles should be following the conventional commit format, which you can read
   [here](https://www.conventionalcommits.org/en/v1.0.0/). In essence,
 
-  > <type>[(<scope>)]: description
+  `<type>[(<scope>)]: description`
 
   for example:
-
-  > fix(charm-tracing): call the `setup` function whenever something is being set up
+  `fix(charm-tracing): call the setup function whenever something is being set up`
   
   The valid types are:
     - feature
