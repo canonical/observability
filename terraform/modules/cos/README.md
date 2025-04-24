@@ -7,10 +7,11 @@ The HA solution consists of the following Terraform modules:
 - [alertmanager-k8s](https://github.com/canonical/alertmanager-k8s-operator): Handles alerts sent by clients applications.
 - [mimir](https://github.com/canonical/observability/tree/main/terraform/modules/mimir): Backend for metrics
 - [loki](https://github.com/canonical/observability/tree/main/terraform/modules/loki): Backend for logs
+- [tempo](https://github.com/canonical/observability/tree/main/terraform/modules/tempo): Backend for traces
 - [s3-integrator](https://github.com/canonical/s3-integrator): facade for S3 storage configurations.
 - [self-signed-certificates](https://github.com/canonical/self-signed-certificates-operator): certificates operator to secure traffic with TLS.
 
-This Terraform module deploys COS with Mimir and Loki in their microservices modes, and grafana, prometheus, and loki in monolithic mode.
+This Terraform module deploys COS with Mimir, Tempo and Loki in their microservices modes, and grafana, prometheus, and loki in monolithic mode.
 
 > [!NOTE]
 > `s3-integrator` itself doesn't act as an S3 object storage system. For the HA solution to be functional, `s3-integrator` needs to point to an S3-like storage. See [this guide](https://discourse.charmhub.io/t/cos-lite-docs-set-up-minio/15211) to learn how to connect to an S3-like storage for traces.
@@ -23,30 +24,30 @@ This module requires a `juju` model to be available. Refer to the [usage section
 ### Inputs
 The module offers the following configurable inputs:
 
-| Name | Type | Description | Required |
-| - | - | - | - |
-| `channel` | string | Channel that the charms are deployed from | latest/edge |
-| `model_name` | string | Name of the model that the charm is deployed on |  |
-| `use_tls` | bool | Specify whether to use TLS or not for coordinator-worker communication |
-| `loki_backend_units` | number | Number of Loki worker units with backend role |
-| `loki_backend_units` | number | Number of Loki worker units with backend role |
-| `loki_read_units` | number | Number of Loki worker units with read role |
-| `loki_write_units` | number | Number of Loki worker units with write role |
-| `mimir_backend_units` | number | Number of Mimir worker units with backend role |
-| `mimir_read_units` | number | Number of Mimir worker units with read role |
-| `mimir_write_units` | number | Number of Mimir worker units with write role |
-| `tempo_compactor_units` | number | Number of Tempo worker units with compactor role |
-| `tempo_distributor_units` | number | Number of Tempo worker units with distributor role |
-| `tempo_ingester_units` | number | Number of Tempo worker units with ingester role |
-| `tempo_metrics_generator_units` | number | Number of Tempo worker units with metrics_generator role |
-| `tempo_querier_units` | number | Number of Tempo worker units with querier role |
-| `tempo_query_frontend_units` | number | Number of Tempo worker units with query_frontend role |
-| `s3_user` | string | User to connect to the S3 provider | 1 |
-| `s3_password` | string | Password to connect to the S3 provider | 1 |
-| `s3_endpoint` | string | Endpoint of the S3 provider | 1 |
-| `loki_bucket` | string | Name of the bucke in which Loki stores logs | 1 |
-| `mimir_bucket` | string | Name of the bucke in which Mimir stores metrics | 1 |
-| `tempo_bucket` | string | Name of the bucke in which Tempo stores traces | 1 |
+| Name | Type | Description                                                    | Required |
+| - | - |----------------------------------------------------------------| - |
+| `channel` | string | Channel that all the charms are deployed from                  | latest/edge |
+| `model_name` | string | Name of the model to deploy COS in                             |  |
+| `use_tls` | bool | Specify whether to use TLS or not for in-cluster communication |
+| `loki_backend_units` | number | Number of Loki worker units with `backend` role                |
+| `loki_backend_units` | number | Number of Loki worker units with `backend` role                |
+| `loki_read_units` | number | Number of Loki worker units with `read` role                   |
+| `loki_write_units` | number | Number of Loki worker units with `write` role                  |
+| `mimir_backend_units` | number | Number of Mimir worker units with `backend` role               |
+| `mimir_read_units` | number | Number of Mimir worker units with `read` role                  |
+| `mimir_write_units` | number | Number of Mimir worker units with `write` role                 |
+| `tempo_compactor_units` | number | Number of Tempo worker units with `compactor` role             |
+| `tempo_distributor_units` | number | Number of Tempo worker units with `distributor` role           |
+| `tempo_ingester_units` | number | Number of Tempo worker units with `ingester` role              |
+| `tempo_metrics_generator_units` | number | Number of Tempo worker units with `metrics_generator` role     |
+| `tempo_querier_units` | number | Number of Tempo worker units with `querier` role               |
+| `tempo_query_frontend_units` | number | Number of Tempo worker units with `query_frontend` role        |
+| `s3_user` | string | S3 provider username credential                                | 1 |
+| `s3_password` | string | S3 provider password credential                                | 1 |
+| `s3_endpoint` | string | S3 provider endpoint                                           | 1 |
+| `loki_bucket` | string | Name of the bucket in which Loki should store its logs         | 1 |
+| `mimir_bucket` | string | Name of the bucket in which Mimir should store its metrics     | 1 |
+| `tempo_bucket` | string | Name of the bucket in which Tempo should store its traces      | 1 |
 
 
 
@@ -81,7 +82,7 @@ terraform apply -var='minio_password=Password' -var='minio_user=User' -var='mode
 
 ### Minimal sample deployment.
 
-In orrder to deploy COS with just one unit per worker charm create a `main.rf` file with the following content.
+In order to deploy COS with just one unit per worker charm create a `main.tf` file with the following content.
 
 ```hcl
 # COS module that deploy the whole Canonical Observability Stack
