@@ -13,13 +13,13 @@ apply_infra:
 
 apply_cos:
     terraform -chdir=../cos apply \
-        -var="loki_bucket=$(terraform output -raw loki-bucket)" \
-        -var="tempo_bucket=$(terraform output -raw tempo-bucket)" \
-        -var="mimir_bucket=$(terraform output -raw mimir-bucket)" \
-        -var="s3_endpoint=$(terraform output -raw s3-endpoint)" \
-        -var="s3_user=$(terraform output -raw s3-user)" \
-        -var="s3_password=$(terraform output -raw s3-password)" \
-        -var="model_name=$(terraform output -raw cos-model)" \
+        -var="loki_bucket=$(terraform output -raw loki_bucket)" \
+        -var="tempo_bucket=$(terraform output -raw tempo_bucket)" \
+        -var="mimir_bucket=$(terraform output -raw mimir_bucket)" \
+        -var="s3_endpoint=$(terraform output -raw s3_endpoint)" \
+        -var="s3_user=$(terraform output -raw s3_user)" \
+        -var="s3_password=$(terraform output -raw s3_password)" \
+        -var="model_name=$(terraform output -raw cos_model)" \
         -var="ssc_channel=1/edge" \
         -var="cloud=aws" \
 
@@ -28,12 +28,12 @@ destroy_infra:
 
 destroy_cos:
     terraform -chdir=../cos destroy \
-        -var="loki_bucket=$(terraform output -raw loki-bucket)" \
-        -var="tempo_bucket=$(terraform output -raw tempo-bucket)" \
-        -var="mimir_bucket=$(terraform output -raw mimir-bucket)" \
-        -var="s3_endpoint=$(terraform output -raw s3-endpoint)" \
-        -var="s3_user=$(terraform output -raw s3-user)" \
-        -var="s3_password=$(terraform output -raw s3-password)" \
-        -var="model_name=$(terraform output -raw cos-model)" \
+        -var="loki_bucket=$(terraform output -raw loki_bucket)" \
+        -var="tempo_bucket=$(terraform output -raw tempo_bucket)" \
+        -var="mimir_bucket=$(terraform output -raw mimir_bucket)" \
+        -var="s3_endpoint=$(terraform output -raw s3_endpoint)" \
+        -var="s3_user=$(terraform output -raw s3_user)" \
+        -var="s3_password=$(terraform output -raw s3_password)" \
+        -var="model_name=$(terraform output -raw cos_model)" \
         -var="ssc_channel=1/edge" \
         -var="cloud=aws" \

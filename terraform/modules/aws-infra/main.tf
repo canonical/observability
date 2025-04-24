@@ -513,7 +513,7 @@ resource "null_resource" "bootstrap_juju" {
   triggers = {
     # uncomment if you need to force destroy then create
     # once           = timestamp()
-    cos-controller = var.cos-controller-name
+    cos-controller = var.cos_controller_name
   }
 
   depends_on = [local_sensitive_file.aws_credentials,
@@ -545,14 +545,14 @@ resource "null_resource" "bootstrap_juju" {
       juju remove-credential aws bootstrap-juju --client
       juju add-credential aws --client -f  ${local_sensitive_file.aws_credentials.filename}
 
-      if ! juju controllers | grep -q '^${var.cos-controller-name}'; then
-        juju bootstrap --bootstrap-constraints="instance-role=${aws_iam_instance_profile.juju_ctrl_instance_profile.name}" aws/${var.region} ${var.cos-controller-name} --config vpc-id=${aws_vpc.main.id} --config vpc-id-force=true --credential bootstrap-juju
+      if ! juju controllers | grep -q '^${var.cos_controller_name}'; then
+        juju bootstrap --bootstrap-constraints="instance-role=${aws_iam_instance_profile.juju_ctrl_instance_profile.name}" aws/${var.region} ${var.cos_controller_name} --config vpc-id=${aws_vpc.main.id} --config vpc-id-force=true --credential bootstrap-juju
       else
         echo "controller already exists, skipping bootstrap."
       fi
       aws eks --region ${var.region} update-kubeconfig --name ${local.cos-cluster-name}
-      /snap/juju/current/bin/juju add-k8s ${var.cos-cloud-name} --controller ${var.cos-controller-name}
-      juju add-model ${var.cos-model-name} ${var.cos-cloud-name}/${var.region}
+      /snap/juju/current/bin/juju add-k8s ${var.cos_cloud_name} --controller ${var.cos_controller_name}
+      juju add-model ${var.cos_model_name} ${var.cos_cloud_name}/${var.region}
     EOT
   }
 

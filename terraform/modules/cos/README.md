@@ -394,17 +394,195 @@ traefik:traefik-route                    tempo:ingress                          
 
 ### Deploy COS on AWS EKS
 
-> **Note:** This option assumes that the required AWS infrastructure already exists and that a Juju controller has been bootstrapped.  
+> **Note:** This deployment assumes that the required AWS infrastructure is already provisioned and that a Juju controller has been bootstrapped.  
 > Additionally, a Juju model must be ready in advance.
 > 
 > See [provision AWS infrastructure](../aws-infra/README.md)
 
-1. Create a `aws.tfvars` file with the following content:
+In order to deploy COS on AWS, create a `main.tf` file with the following content.
+
+```hcl
+# COS module that deploy the whole Canonical Observability Stack
+module "cos" {
+  source                        = "git::https://github.com/canonical/observability//terraform/modules/cos"
+  model_name                    = var.model_name
+  channel                       = var.channel
+  s3_endpoint                   = var.s3_endpoint
+  s3_password                   = var.s3_password
+  s3_user                       = var.s3_user
+  loki_bucket                   = var.loki_bucket
+  mimir_bucket                  = var.mimir_bucket
+  tempo_bucket                  = var.tempo_bucket
+  loki_backend_units            = var.loki_backend_units
+  loki_read_units               = var.loki_read_units
+  loki_write_units              = var.loki_write_units
+  mimir_backend_units           = var.mimir_backend_units
+  mimir_read_units              = var.mimir_read_units
+  mimir_write_units             = var.mimir_write_units
+  tempo_compactor_units         = var.tempo_compactor_units
+  tempo_distributor_units       = var.tempo_distributor_units
+  tempo_ingester_units          = var.tempo_ingester_units
+  tempo_metrics_generator_units = var.tempo_metrics_generator_units
+  tempo_querier_units           = var.tempo_querier_units
+  tempo_query_frontend_units    = var.tempo_query_frontend_units
+  cloud                         = var.cloud
+  ssc_channel                   = var.ssc_channel
+}
+
+variable "channel" {
+  description = "Charms channel"
+  type        = string
+  default     = "latest/edge"
+}
+
+variable "model_name" {
+  description = "Model name"
+  type        = string
+}
+
+variable "use_tls" {
+  description = "Specify whether to use TLS or not for coordinator-worker communication. By default, TLS is enabled through self-signed-certificates"
+  type        = bool
+  default     = true
+}
+
+variable "s3_endpoint" {
+  description = "S3 endpoint"
+  type        = string
+}
+
+variable "s3_user" {
+  description = "S3 user"
+  type        = string
+  sensitive   = true
+}
+
+variable "s3_password" {
+  description = "S3 password"
+  type        = string
+  sensitive   = true
+}
+
+variable "loki_bucket" {
+  description = "Loki bucket name"
+  type        = string
+  sensitive   = true
+}
+
+variable "mimir_bucket" {
+  description = "Mimir bucket name"
+  type        = string
+  sensitive   = true
+}
+
+variable "tempo_bucket" {
+  description = "Tempo bucket name"
+  type        = string
+  sensitive   = true
+}
+
+variable "loki_backend_units" {
+  description = "Number of Loki worker units with backend role"
+  type        = number
+  default     = 3
+}
+
+variable "loki_read_units" {
+  description = "Number of Loki worker units with read role"
+  type        = number
+  default     = 3
+}
+
+variable "loki_write_units" {
+  description = "Number of Loki worker units with write roles"
+  type        = number
+  default     = 3
+}
+
+variable "mimir_backend_units" {
+  description = "Number of Mimir worker units with backend role"
+  type        = number
+  default     = 3
+}
+
+variable "mimir_read_units" {
+  description = "Number of Mimir worker units with read role"
+  type        = number
+  default     = 3
+}
+
+variable "mimir_write_units" {
+  description = "Number of Mimir worker units with write role"
+  type        = number
+  default     = 3
+}
+
+variable "tempo_compactor_units" {
+  description = "Number of Tempo worker units with compactor role"
+  type        = number
+  default     = 3
+}
+
+variable "tempo_distributor_units" {
+  description = "Number of Tempo worker units with distributor role"
+  type        = number
+  default     = 3
+}
+
+variable "tempo_ingester_units" {
+  description = "Number of Tempo worker units with ingester role"
+  type        = number
+  default     = 3
+}
+
+variable "tempo_metrics_generator_units" {
+  description = "Number of Tempo worker units with metrics-generator role"
+  type        = number
+  default     = 3
+}
+
+variable "tempo_querier_units" {
+  description = "Number of Tempo worker units with querier role"
+  type        = number
+  default     = 3
+}
+variable "tempo_query_frontend_units" {
+  description = "Number of Tempo worker units with query-frontend role"
+  type        = number
+  default     = 3
+}
+
+variable "cloud" {
+  description = "Kubernetes cloud or environment where this COS module will be deployed (e.g self-managed, aws)"
+  type        = string
+  default     = "self-managed"
+}
+
+# ssc doesn't have a "latest" track for ubuntu@24.04 base.
+variable "ssc_channel" {
+  description = "self-signed certificates charm channel."
+  type        = string
+  default     = "latest/edge"
+}
+
+```
+Then, create a `aws.tfvars` file with the following content:
+
 ```hcl
 cloud = "aws"
-# Add other required variables below
-model = "<model-name>"
-s3_user = "<s3-user>"
-...
+# If you're deploying on an ubuntu@24.04 base
+ssc_channel  = "1/edge"
+model        = "<model-name>"
+s3_endpoint  = "<s3-endpoint>"
+s3_user      = "<s3-user>"
+s3_password  = "<s3-user>"
+loki_bucket  = "<loki-bucket>"
+mimir_bucket = "<mimir-bucket>"
+tempo_bucket = "<tempo-bucket>"
 ```
-2. `terraform apply -var-file=aws.tfvars`
+
+Then, use terraform to deploy the module:
+```bash
+terraform init
+terraform apply -var-file=aws.tfvars
+```
