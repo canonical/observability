@@ -12,7 +12,7 @@
   - [`redaction` processor](#redaction-processor)
 - [Quick Notes:](#quick-notes)
 - [Decision: Redaction Processor](#decision-redaction-processor)
-  - [-](#-)
+  - [Use these configs in a `pipeline`](#use-these-configs-in-a-pipeline)
 - [Interaction through `juju` command line interface](#interaction-through-juju-command-line-interface)
 
 <!-- markdown-toc end -->
@@ -194,7 +194,7 @@ We have discarded `transform` processor because:
 - It is mor flexible, but the configuration with `OTTL` more complex.
 
 
-#### Use these configs in a `pipeline`
+### Use these configs in a `pipeline`
 
 In order to use one of these configs for the `redaction` procesor in a pipeline, we need to add it like this:
 
