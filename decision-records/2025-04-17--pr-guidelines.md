@@ -19,3 +19,4 @@ PR Reviews:
   * State what you want the other person to do (avoid "I think this is broken" if possible, instead saying "I think this wont handle the `relation-changed` event properly, but you can do ```codeblock``` instead")
   * Use suggestions where possible, especially for minor changes like variable renames or comments
   * When something is unclear, make an attempt at clarifying (don't say "this is unclear", but instead maybe "I wasn't sure if this should return X or Y, should the comment here be '..."?")
+  * If you find yourself writing "this is a nit"; consider omitting the comment altogether.
