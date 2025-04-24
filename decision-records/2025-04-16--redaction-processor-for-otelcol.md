@@ -6,14 +6,13 @@
 **Table of Contents**
 
 - [Context and Problem Statement](#context-and-problem-statement)
+- [Alternatives](#alternatives)
+  - [`filelog` receiver](#filelog-receiver)
+  - [`transform` processor](#transform-processor)
+  - [`redaction` processor](#redaction-processor)
+- [Quick Notes:](#quick-notes)
 - [Decision: Redaction Processor](#decision-redaction-processor)
-  - [Config examples](#config-examples)
-    - [Log record in plain text format](#log-record-in-plain-text-format)
-    - [Log record in JSON format](#log-record-in-json-format)
-    - [Use these configs in a `pipeline`](#use-these-configs-in-a-pipeline)
-  - [How Loki stores the redacted logs:](#how-loki-stores-the-redacted-logs)
-    - [Log record in plain text format:](#log-record-in-plain-text-format)
-    - [Log record in JSON format:](#log-record-in-json-format)
+  - [-](#-)
 - [Interaction through `juju` command line interface](#interaction-through-juju-command-line-interface)
 
 <!-- markdown-toc end -->
@@ -28,72 +27,171 @@ This log masking feature should allow for specifying which field values to mask 
 
 OpenTelemetry Collector charms support masking logs before they are shipped to Loki (or another destination) with fields / regex specified through configuration.
 
+## Alternatives
 
-## Decision: Redaction Processor
+### `filelog` receiver
 
-We will use the [redaction processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/redactionprocessor) which will be enabled in the otelcol binaries we ship since it is specifically designed to prevent sensitive fields from leaking into your telemetry data. It offers powerful tools to:
+[This receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/filelogreceiver/README.md) is part of the `contrib` distribution and it is not part of the [`opentelemetry-collector-rock`](https://github.com/canonical/opentelemetry-collector-rock).
 
- - Remove any attributes not included in a predefined list of permitted attributes.
- - Strip confidential information from telemetry to prevent accidental data exposure.
- - Mask or obfuscate sensitive attribute values that match standard patterns.
+It is only valid for log files read from disk.
 
-
-
-### Config examples
-
-#### Log record in plain text format
-
-In a log line like this one:
+Given this log line:
 
 ```
 2025-04-14T10:45:32Z INFO User john.doe@example.com logged in with token abcdef123456
 ```
 
-We need to::
+we want to mask email and token, like this:
 
- - Mask the email → `***`
- - Mask the token → `***`
+```
+2025-04-14T10:45:32Z INFO User *** logged in with token ***
+```
 
-The `redaction` processor config block looks like:
+The config for the `filelog` receive would be:
+
+```yaml
+receivers:
+  filelog:
+    include: [/var/log/myapp.log]
+    start_at: beginning
+    operators:
+      - type: regex_parser
+        regex: '(?P<log>.*)'
+        parse_to: body
+
+      - type: regex_replace
+        regex: '(?P<log>.*)([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(.*)'
+        replace_with: "***"
+        field: body
+
+      - type: regex_replace
+        regex: '(?P<before>.*token\s+)(?P<token>\w+)(?P<after>.*)'
+        replace_with: "***"
+        field: body
+```
+
+
+### `transform` processor
+
+[This processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor) is part of the `contrib` distribution and it is not part of the [`opentelemetry-collector-rock`](https://github.com/canonical/opentelemetry-collector-rock).
+
+The `transform` processor let us mask, remove and transform logs. It use `OTTL` syntax which is powerful but can be more complex.
+
+```
+2025-04-14T10:45:32Z INFO User john.doe@example.com logged in with token abcdef123456
+```
+
+we want to mask email and token, like this:
+
+```
+2025-04-14T10:45:32Z INFO User *** logged in with token ***
+```
+
+Here’s how to configure OpenTelemetry Collector to apply redactions using the transform processor:
+
+
+```yaml
+processors:
+  transform/redact_email_token:
+    log_statements:
+      - context: log
+        statements:
+          # Redact email addresses in the body
+          - replace_pattern(body, "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}", "***")
+
+          # Redact token values after the word "token"
+          - replace_pattern(body, "(?<=token\\s)(\\w+)", "***")
+```
+
+In order to use this config for the `transfor` procesor in a pipeline, we need to add it like this:
+
+```yaml
+service:
+  pipelines:
+    logs/0:
+      receivers:
+      - loki
+      processors:
+      - transform/redact_email_token
+      exporters:
+      - loki/0
+```
+
+
+
+### `redaction` processor
+
+
+[This processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/redactionprocessor) is part of the `contrib` distribution and it is part of the [`opentelemetry-collector-rock`](https://github.com/canonical/opentelemetry-collector-rock).
+
+The `redaction` processor deletes span, log, and metric datapoint attributes that don't match a list of allowed attributes. It also masks attribute values that match a blocked value list. Attributes that aren't on the allowed list are removed before any value checks are done.
+
+Given this log line:
+
+```
+2025-04-14T10:45:32Z INFO User john.doe@example.com logged in with token abcdef123456
+```
+
+we want to mask email and token, like this:
+
+```
+2025-04-14T10:45:32Z INFO User *** logged in with token ***
+```
+
 
 ```yaml
 processors:
   redaction/redact_email_token:
-    rules:
-      - name: redact_email
-        pattern: '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
-        replacement: '***'
-      - name: redact_token
-        pattern: 'token\s+\w+'
-        replacement: 'token ***'
+    blocked_values:
+      - "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" ## email
+      - "(?<=token\s)\w+"                                ## token
 ```
 
-
-#### Log record in JSON format
-
-```json
-{"timestamp": "2025-04-14T10:45:32Z", "level": "INFO", "user": "john.doe@example.com", "token": "abcdef123456", "action": "login"}
-```
-
-We need to::
-
- - Mask the email → `***`
- - Mask the token → `***`
-
-
-The `redaction` processor config block looks like:
+In order to use this config for the `redaction` procesor in a pipeline, we need to add it like this:
 
 ```yaml
-processors:
-  redaction/redact_email_token:
-    rules:
-      - name: redact_email
-        pattern: '"user":\s*"[^"]+@[^"]+"'
-        replacement: '"user": "***"'
-      - name: redact_token
-        pattern: '"token":\s*"[^"]+"'
-        replacement: '"token": "***"'
+service:
+  pipelines:
+    logs/0:
+      receivers:
+      - loki
+      processors:
+      - redaction/redact_email_token
+      exporters:
+      - loki/0
 ```
+
+
+
+
+## Quick Notes:
+- **`filelog`** is ideal when reading plain-text log files and we need to parse them before applying transformations.
+- **`transform`** is powerful and flexible, great if we need conditional logic or want to work with multiple signal types (logs, metrics, traces).
+- **`redaction`** is simple and straightforward, perfect when we only need to replace or remove sensitive values without complex logic.
+
+
+
+## Decision: Redaction Processor
+
+We will use the [redaction processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/redactionprocessor) because:
+
+- It is already enabled in the [`opentelemetry-collector-rock`](https://github.com/canonical/opentelemetry-collector-rock/blob/main/0.123.1/manifest.yaml#L25)
+- It is specifically designed to prevent sensitive fields from leaking into your telemetry data
+- It is simple and direct for basic redaction use cases
+
+
+We have discarded `filelog` receiver because:
+
+- It is not included in the `opentelemetry-collector-rock`
+- It is only a `receiver` not a processor we can inject into pipelines
+- Only supports log from files, and we can receive logs in Loki format.
+- The configuration is slightly more complex.
+
+
+We have discarded `transform` processor because:
+
+- It is not included in the `opentelemetry-collector-rock`
+- It is mor flexible, but the configuration with `OTTL` more complex.
 
 
 #### Use these configs in a `pipeline`
@@ -112,49 +210,21 @@ service:
       - loki/0
 ```
 
-### How Loki stores the redacted logs:
-
-Loki stores the modified logs these ways
-
-#### Log record in plain text format:
-```json
-{
-  "stream": {
-    "job": "my-job",
-    "filename": "/var/log/myapp.log",
-    "level": "INFO"
-  },
-  "values": [
-    [
-      "1713081932000000000",
-      "2025-04-14T10:45:32Z INFO User *** logged in with token ***"
-    ]
-  ]
-}
-```
-
-#### Log record in JSON format:
-
-```json
-{
-  "stream": {
-    "job": "my-job",
-    "filename": "/var/log/myapp.log",
-    "level": "INFO"
-  },
-  "values": [
-    [
-      "1713081932000000000",
-      "{\"timestamp\": \"2025-04-14T10:45:32Z\", \"level\": \"INFO\", \"user\": \"***\", \"token\": \"***\", \"action\": \"login\"}"
-    ]
-  ]
-}
-```
 
 ## Interaction through `juju` command line interface
 
-The `redaction` processor confis should be defined in a `yaml` file and their mapping to pipelines like this:
+All the `redaction` processor configs should be defined in a `yaml` file and their mapping to pipelines like this:
 
 ```shell
-juju config otelcol redaction_file='@path/to/redaction_processor_config_file.yaml' pipelines_mapping='redaction/redact_email_token=logs/0, redaction/redact_email_token=logs/1`
+juju config otelcol redaction_config='@path/to/redaction_processor_config_file.yaml' redaction_mapping='redaction/redact_email_token:logs/0,logs/1`
+```
+
+The content of the `redaction_config` config option is a `yaml` string or a file with a content like this one:
+
+```yaml
+processors:
+  redaction/redact_email_token:
+    blocked_values:
+      - "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" ## email
+      - "(?<=token\s)\w+"                                ## token
 ```
