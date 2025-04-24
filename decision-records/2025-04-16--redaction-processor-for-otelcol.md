@@ -1,4 +1,5 @@
 **Date:** 2025-04-16
+
 **Author:** Jose Massón (@Abuelodelanda)
 
 
@@ -23,15 +24,14 @@
 
 For applications that deal with sensitive, private data, the ability to mask certain fields or regular expressions in their logs is important, in some cases required. As OpenTelemetry Collector charm deployments will serve as the entry points for log data, they should support log masking before they send logs to Loki (or another destination).
 
-This log masking feature should allow for specifying which field values to mask in the case of structured logs and regular expressions to use for masking parts of unstructurted log lines. These should be configurable through the charm libraries, relations and / or through Juju config.
+This log masking feature should allow for specifying which field values to mask in the case of structured logs and regular expressions to use for masking parts of unstructurted log lines. These should be configurable through Juju config.
 
-OpenTelemetry Collector charms support masking logs before they are shipped to Loki (or another destination) with fields / regex specified through configuration.
 
 ## Alternatives
 
 ### `filelog` receiver
 
-[This receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/filelogreceiver/README.md) is part of the `contrib` distribution and it is not part of the [`opentelemetry-collector-rock`](https://github.com/canonical/opentelemetry-collector-rock).
+[This receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/filelogreceiver/README.md) is part of the `contrib` distribution and **it is not** part of the [`opentelemetry-collector-rock`](https://github.com/canonical/opentelemetry-collector-rock).
 
 It is only valid for log files read from disk.
 
@@ -73,7 +73,7 @@ receivers:
 
 ### `transform` processor
 
-[This processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor) is part of the `contrib` distribution and it is not part of the [`opentelemetry-collector-rock`](https://github.com/canonical/opentelemetry-collector-rock).
+[This processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor) is part of the `contrib` distribution and **it is not** part of the [`opentelemetry-collector-rock`](https://github.com/canonical/opentelemetry-collector-rock).
 
 The `transform` processor let us mask, remove and transform logs. It use `OTTL` syntax which is powerful but can be more complex.
 
@@ -122,7 +122,7 @@ service:
 ### `redaction` processor
 
 
-[This processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/redactionprocessor) is part of the `contrib` distribution and it is part of the [`opentelemetry-collector-rock`](https://github.com/canonical/opentelemetry-collector-rock).
+[This processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/redactionprocessor) is part of the `contrib` distribution and **it is** part of the [`opentelemetry-collector-rock`](https://github.com/canonical/opentelemetry-collector-rock).
 
 The `redaction` processor deletes span, log, and metric datapoint attributes that don't match a list of allowed attributes. It also masks attribute values that match a blocked value list. Attributes that aren't on the allowed list are removed before any value checks are done.
 
