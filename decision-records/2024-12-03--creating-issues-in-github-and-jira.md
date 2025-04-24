@@ -20,8 +20,8 @@ rephrase it as part of the triage.
   else. However, this is almost never the case. If you are unsure - ask @simskij or @sed-i.
 - Issues of the story/enhancement type should have a title that describes the work to be done in
   the _imperative modus_, i.e "Add a bip to the bop", rather than "We should add a bip to the bop"
-- Issues of the bug type should have a title that describes the bug occuring, written in
-  this format: "When <condition> then <outcome>".
+- Issues of the bug type should have a title that describes the bug occuring, preferably
+  written in this format: "When <condition> then <outcome>".
 - Issue titles should _not_ contain any prefixes or namespaces, instead this should be part of
   the problem statement. I.e. "Write a document explaining the topic" rather than "[doc/explanation]
   Topic".
