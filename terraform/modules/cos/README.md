@@ -82,7 +82,7 @@ terraform apply -var='minio_password=Password' -var='minio_user=User' -var='mode
 
 ### Minimal sample deployment.
 
-In order to deploy COS with just one unit per worker charm create a `main.rf` file with the following content.
+In order to deploy COS with just one unit per worker charm create a `main.tf` file with the following content.
 
 ```hcl
 # COS module that deploy the whole Canonical Observability Stack
