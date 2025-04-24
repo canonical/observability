@@ -106,8 +106,6 @@ cos_model_name = "<cos_model_name>"
 ```
 Then, run `just apply`
 
-
-
 ---
 
 
