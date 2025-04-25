@@ -22,7 +22,7 @@ module "grafana" {
 }
 
 module "loki" {
-  source        = "git::https://github.com/canonical/loki-coordinator-k8s-operator//terraform"
+  source        = "git::https://github.com/canonical/observability//terraform/modules/loki"
   model_name    = var.model_name
   channel       = var.channel
   backend_units = var.loki_backend_units
@@ -35,7 +35,7 @@ module "loki" {
 }
 
 module "mimir" {
-  source        = "git::https://github.com/canonical/mimir-coordinator-k8s-operator//terraform"
+  source        = "git::https://github.com/canonical/observability//terraform/modules/mimir"
   model_name    = var.model_name
   channel       = var.channel
   backend_units = var.mimir_backend_units
@@ -56,7 +56,7 @@ module "ssc" {
 }
 
 module "tempo" {
-  source                  = "git::https://github.com/canonical/tempo-coordinator-k8s-operator//terraform"
+  source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo"
   model_name              = var.model_name
   channel                 = var.channel
   compactor_units         = var.tempo_compactor_units
