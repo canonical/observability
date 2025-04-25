@@ -22,8 +22,7 @@ module "grafana" {
 }
 
 module "loki" {
-  # FIXME: use remote module 
-  source        = "../loki"
+  source        = "git::https://github.com/canonical/loki-coordinator-k8s-operator//terraform"
   model_name    = var.model_name
   channel       = var.channel
   backend_units = var.loki_backend_units
@@ -36,8 +35,7 @@ module "loki" {
 }
 
 module "mimir" {
-  # FIXME: use remote module 
-  source        = "../mimir"
+  source        = "git::https://github.com/canonical/mimir-coordinator-k8s-operator//terraform"
   model_name    = var.model_name
   channel       = var.channel
   backend_units = var.mimir_backend_units
@@ -58,8 +56,7 @@ module "ssc" {
 }
 
 module "tempo" {
-  # FIXME: use remote module 
-  source                  = "../tempo"
+  source                  = "git::https://github.com/canonical/tempo-coordinator-k8s-operator//terraform"
   model_name              = var.model_name
   channel                 = var.channel
   compactor_units         = var.tempo_compactor_units
