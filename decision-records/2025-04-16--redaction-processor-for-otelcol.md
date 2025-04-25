@@ -152,7 +152,6 @@ service:
 
 - It is not included in the `opentelemetry-collector-rock`.
 - `OTTL` syntax can be complex for new users.
-- Less efficient than regex for simple match-and-replace
 
 ### `redaction` processor
 
