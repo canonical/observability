@@ -9,10 +9,16 @@
 - [Context and Problem Statement](#context-and-problem-statement)
 - [Alternatives](#alternatives)
   - [`filelog` receiver](#filelog-receiver)
+    - [Advantages](#advantages)
+    - [Disadvantages](#disadvantages)
   - [`transform` processor](#transform-processor)
+    - [Advantages](#advantages-1)
+    - [Disadvantages](#disadvantages-1)
   - [`redaction` processor](#redaction-processor)
-- [Quick Notes:](#quick-notes)
-- [Decision: Redaction Processor](#decision-redaction-processor)
+    - [Advantages](#advantages-2)
+    - [Disadvantages](#disadvantages-2)
+- [Decision: Transform Processor](#decision-transform-processor)
+  - [Why not the others?](#why-not-the-others)
   - [Use these configs in a `pipeline`](#use-these-configs-in-a-pipeline)
 - [Interaction through `juju` command line interface](#interaction-through-juju-command-line-interface)
 
@@ -70,6 +76,22 @@ receivers:
         field: body
 ```
 
+#### Advantages
+
+- Processes logs at the entry point (early filtering)
+- Supports regex match and replace via operators
+- Can apply logic before data reaches processors
+
+
+#### Disadvantages
+
+- Only supports log from files, and we can receive logs in Loki format.
+- It is not included in the `opentelemetry-collector-rock`.
+- It is only a `receiver` not a processor we can inject into pipelines.
+- Less flexible for structured JSON logs.
+- The configuration is slightly more complex.
+
+
 
 ### `transform` processor
 
@@ -117,7 +139,20 @@ service:
       - loki/0
 ```
 
+#### Advantages
 
+- Uses [`OTTL`](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/pkg/ottl/README.md), a small, domain-specific programming language intended to process data with OpenTelemetry-native concepts and constructs.
+- Highly flexible: supports conditional logic.
+- Works well with structured data (JSON logs).
+- Can remove, mask, or rename fields.
+
+
+
+#### Disadvantages
+
+- It is not included in the `opentelemetry-collector-rock`.
+- `OTTL` syntax can be complex for new users.
+- Less efficient than regex for simple match-and-replace
 
 ### `redaction` processor
 
@@ -162,41 +197,38 @@ service:
 ```
 
 
-
-
-## Quick Notes:
-- **`filelog`** is ideal when reading plain-text log files and we need to parse them before applying transformations.
-- **`transform`** is powerful and flexible, great if we need conditional logic or want to work with multiple signal types (logs, metrics, traces).
-- **`redaction`** is simple and straightforward, perfect when we only need to replace or remove sensitive values without complex logic.
-
-
-
-## Decision: Redaction Processor
-
-We will use the [redaction processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/redactionprocessor) because:
+#### Advantages
 
 - It is already enabled in the [`opentelemetry-collector-rock`](https://github.com/canonical/opentelemetry-collector-rock/blob/main/0.123.1/manifest.yaml#L25)
-- It is specifically designed to prevent sensitive fields from leaking into your telemetry data
-- It is simple and direct for basic redaction use cases
+- It is specifically designed to prevent sensitive fields leaks.
+- It is simple and direct for basic redaction use cases.
+- Works on both structured and plain text logs
 
 
-We have discarded `filelog` receiver because:
+#### Disadvantages
 
-- It is not included in the `opentelemetry-collector-rock`
-- It is only a `receiver` not a processor we can inject into pipelines
-- Only supports log from files, and we can receive logs in Loki format.
-- The configuration is slightly more complex.
+- Less flexible for complex logic.
+- blocked_values only replaces with asterisks (*)
+- Cannot do advanced transformations or conditional logic
 
 
-We have discarded `transform` processor because:
+## Decision: Transform Processor
 
-- It is not included in the `opentelemetry-collector-rock`
-- It is mor flexible, but the configuration with `OTTL` more complex.
+After evaluating the advantages and disadvantages of the three alternatives analysed, we chose to use the [`transform processor`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor).
+
+It allows modifying, deleting, renaming, redirecting fields; works with conditions, complex expressions and nested structures. Although the learning curve of the OTTL language is a bit higher, it is consistent and powerful. It works equally well for structured logs (JSON), metrics, traces.
+
+### Why not the others?
+
+
+- `filelog` receiver: It is great for intercepting and modifying logs on the fly, but limited to file sources. If your logs come from somewhere else (OTLP, syslog, etc.), it's useless.
+
+- `redaction` processor: It is very useful and easy, but only for masking and only with replacement by asterisks (`****`). You can't condition, change field names, or apply logic.
 
 
 ### Use these configs in a `pipeline`
 
-In order to use one of these configs for the `redaction` procesor in a pipeline, we need to add it like this:
+In order to use one of these configs for the `transform` procesor in a pipeline, we need to add it like this:
 
 ```yaml
 service:
@@ -213,18 +245,23 @@ service:
 
 ## Interaction through `juju` command line interface
 
-All the `redaction` processor configs should be defined in a `yaml` file and their mapping to pipelines like this:
+All the `transform` processor configs should be defined in a `yaml` file and their mapping to pipelines like this:
 
 ```shell
-juju config otelcol redaction_config='@path/to/redaction_processor_config_file.yaml' redaction_mapping='redaction/redact_email_token:logs/0,logs/1`
+juju config otelcol transform_config='@path/to/transform_processor_config_file.yaml' transform_mapping='transform/redact_email_token:logs/0,logs/1`
 ```
 
-The content of the `redaction_config` config option is a `yaml` string or a file with a content like this one:
+The content of the `transform_config` config option is a `yaml` string or a file with a content like this one:
 
 ```yaml
 processors:
-  redaction/redact_email_token:
-    blocked_values:
-      - "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" ## email
-      - "(?<=token\s)\w+"                                ## token
+  transform/redact_email_token:
+    log_statements:
+      - context: log
+        statements:
+          # Redact email addresses in the body
+          - replace_pattern(body, "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}", "***")
+
+          # Redact token values after the word "token"
+          - replace_pattern(body, "(?<=token\\s)(\\w+)", "***")
 ```
