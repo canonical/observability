@@ -45,13 +45,14 @@ module "mimir" {
   s3_endpoint   = var.s3_endpoint
   s3_password   = var.s3_password
   s3_user       = var.s3_user
+
 }
 
 module "ssc" {
   count   = var.use_tls ? 1 : 0
   source  = "git::https://github.com/canonical/self-signed-certificates-operator//terraform"
   model   = var.model_name
-  channel = var.channel
+  channel = var.ssc_channel
 }
 
 module "tempo" {
@@ -75,6 +76,7 @@ module "traefik" {
   app_name   = "traefik"
   model_name = var.model_name
   channel    = var.channel
+  config     = var.cloud == "aws" ? { "loadbalancer_annotations" = "service.beta.kubernetes.io/aws-load-balancer-scheme=internet-facing" } : {}
 }
 
 module "grafana_agent" {
@@ -83,6 +85,7 @@ module "grafana_agent" {
   model_name = var.model_name
   channel    = var.channel
 }
+
 
 
 # -------------- # Integrations --------------
