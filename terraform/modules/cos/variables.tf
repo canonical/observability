@@ -1,3 +1,8 @@
+
+# the list of kubernetes clouds where this COS module can be deployed.
+locals {
+  clouds = ["aws", "self-managed"]
+}
 variable "channel" {
   description = "Charms channel"
   type        = string
@@ -119,3 +124,22 @@ variable "tempo_query_frontend_units" {
   type        = number
   default     = 3
 }
+
+
+variable "cloud" {
+  description = "Kubernetes cloud or environment where this COS module will be deployed (e.g self-managed, aws)"
+  type        = string
+  default     = "self-managed"
+  validation {
+    condition     = contains(local.clouds, var.cloud)
+    error_message = "Allowed values are: ${join(", ", local.clouds)}."
+  }
+}
+
+# unlike other COS charms, ssc doesn't have a "latest" track for ubuntu@24.04 base.
+variable "ssc_channel" {
+  description = "self-signed certificates charm channel."
+  type        = string
+  default     = "latest/edge"
+}
+
