@@ -1,7 +1,11 @@
 # Arbitrary config for OpenTelemetry Collector
 **Date:** 2025-03-17
 
-**Authors:** Jose Massón
+**Authors:** Jose Massón, @sed-i
+
+## History
+- 2025-03-17 Initial adr by Jose Massón
+
 
 ## Context and Problem Statement
 
@@ -21,7 +25,89 @@ The OpenTelemetry Collector config file has 5 main sections:
 | `extensions`| To configure extra features like health checks, authentication, encoding, etc.|
 
 
-The `receivers` section could be auto-generated based on the established relations, for example if we implement `cos-agent` interface we could generate something like this:
+While
+- `receivers` and `exporters` sections could be auto-generated based on the joint relations; and
+- `extensions` section (e.g. health_check, pprof) could be very opinionated,
+
+the potential combinations of various `processors` per different `service`s is difficult to model with juju.
+
+
+## Alternative 1: Specify processor config and pipline mapping via juju config options
+
+In order to include `processors` or `extensions` we may use `juju config`.
+
+Let's imagine we want to enable the
+[`metricsgeneratorprocessor`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricsgenerationprocessor)
+to the `metrics` pipeline, and the
+[`batch`](https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor) processor to the
+`logs` and `metrics` pipelines, we need to create a file like this one:
+
+```yaml
+processors:
+  metricsgenerator:
+      rules:
+          # create pod.cpu.utilized following (pod.cpu.usage / node.cpu.limit)
+          - name: pod.cpu.utilized
+            type: calculate
+            metric1: pod.cpu.usage
+            metric2: node.cpu.limit
+            operation: divide
+
+          # create pod.memory.usage.bytes from pod.memory.usage.megabytes
+          - name: pod.memory.usage.bytes
+            unit: Bytes
+            type: scale
+            metric1: pod.memory.usage.megabytes
+            operation: multiply
+            scale_by: 1048576
+
+    batch:
+      send_batch_max_size: 10000
+      timeout: 0s
+```
+
+And then run:
+
+```shell
+juju config otel-col processors='@path/to/processors-config.yaml' proc_pipeline_map="metricsgenerator:metrics;batch:metrics,logs"
+```
+
+Once this config is added, the new section `processors` will be added, and the `service` section will be like this:
+
+```yaml
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp, prometheus_remote_write, prometheus]
+      processors: [batch, metricsgenerator]
+      exporters: [otlphttp/cos-mimir]
+
+    logs:
+      receivers: [otlp, filelog]
+      processors: [batch]
+      exporters: [otlphttp/cos-loki]
+
+    traces:
+      receivers: [otlp]
+      exporters: [otlphttp/cos-tempo]
+```
+
+### Advantages
+- Admin has full flexibility over otelcol config.
+
+### Disadvantages
+- Potential negative interaction between user config and how the charm configures the otelcol.
+- It would be tedious to come up with, and maintain the `proc_pipeline_map` config option.
+  - Simplest typos could badly break the entire setup.
+
+
+## Alternative 2: Divide the otelcol config into multiple workloadless integrator charms
+
+
+## Appendices
+
+### Appendix: Sample config for cos-agent relation
+for example if we implement `cos-agent` interface we could generate something like this:
 
 ```yaml
 receivers:
@@ -63,8 +149,7 @@ exporters:
     endpoint: "http://cos-tempo"
 ```
 
-
-Finally the `service` section will relate `receivers` and `exporters`
+Finally, the `service` section will relate `receivers` and `exporters`
 
 ```yaml
 service:
@@ -82,118 +167,7 @@ service:
       exporters: [otlphttp/cos-tempo]
 ```
 
-
-Now we need to decide how to add `processors` and `extensions` to the config file.
-
-
-## Alternative 1: `juju config`
-
-In order to include `processors` or `extensions` we may use `juju config`.
-
-Let's imagine we want to enable the [`metricsgeneratorprocessor`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricsgenerationprocessor) to the `metrics` pipeline, and the [`batch`](https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor) processor to the `logs` and `metrics` pipelines, we need to create a file like this one:
-
-```yaml
-processors:
-  metricsgenerator:
-      rules:
-          # create pod.cpu.utilized following (pod.cpu.usage / node.cpu.limit)
-          - name: pod.cpu.utilized
-            type: calculate
-            metric1: pod.cpu.usage
-            metric2: node.cpu.limit
-            operation: divide
-
-          # create pod.memory.usage.bytes from pod.memory.usage.megabytes
-          - name: pod.memory.usage.bytes
-            unit: Bytes
-            type: scale
-            metric1: pod.memory.usage.megabytes
-            operation: multiply
-            scale_by: 1048576
-
-    batch:
-      send_batch_max_size: 10000
-      timeout: 0s
-```
-
-
-And then run:
-
-```shell
-juju config otel-col processors='@path/to/processors-config.yaml' proc_pipeline_map="metricsgenerator:metrics;batch:metrics,logs"
-```
-
-
-Once this config is added, the new section `processors` will be added, and the `service` section will be like this:
-
-```yaml
-service:
-  pipelines:
-    metrics:
-      receivers: [otlp, prometheus_remote_write, prometheus]
-      processors: [batch, metricsgenerator]
-      exporters: [otlphttp/cos-mimir]
-
-    logs:
-      receivers: [otlp, filelog]
-      processors: [batch]
-      exporters: [otlphttp/cos-loki]
-
-    traces:
-      receivers: [otlp]
-      exporters: [otlphttp/cos-tempo]
-```
-
-
-On the other hand if we need to add `extensions` we may execute:
-
-```shell
-juju config otel-col extensions_file='@path/to/extensions-config.yaml'
-```
-
-The `extensions-config.yaml` would contain something like this:
-
-```yaml
-health_check:
-  endpoint: 0.0.0.0:13133
-pprof:
-  endpoint: 0.0.0.0:1777
-```
-
-And the config will have a new `extensions` section like this:
-
-```yaml
-extensions:
-  health_check:
-    endpoint: 0.0.0.0:13133
-  pprof:
-    endpoint: 0.0.0.0:1777
-```
-
-and the `service` section will have a new `extensions` section:
-
-```yaml
-service:
-  extensions: [health_check, pprof]
-  pipelines:
-    metrics:
-      receivers: [otlp, prometheus_remote_write, prometheus]
-      processors: [batch, metricsgenerator]
-      exporters: [otlphttp/cos-mimir]
-
-    logs:
-      receivers: [otlp, filelog]
-      processors: [batch]
-      exporters: [otlphttp/cos-loki]
-
-    traces:
-      receivers: [otlp]
-      exporters: [otlphttp/cos-tempo]
-```
-
-
-### A more real example
-
+## Appendix: Topology with complex, more realistic config
 Let's imagine this deployment in which we want to:
 
 - Send unmodified telemetry to COS
@@ -374,12 +348,4 @@ service:
       receivers: [otlp]
       processors: [batch, resource]
       exporters: [otlp/splunk]
-
 ```
-
-## Alternative 3: Integrator charm
-
-
-## History
-
-2025-03-17 Initial adr by Jose Massón
