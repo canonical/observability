@@ -1,8 +1,6 @@
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-# Usage documentation: static-code-analysis.md
-
 name: Tiobe TiCS Analysis
 
 on:
@@ -26,6 +24,7 @@ jobs:
           pipx install coverage
           pipx install "coverage[toml]"
           pipx install tox
+          sudo snap install astral-uv --classic
 
       - name: Run tox tests to create coverage.xml
         run: |
