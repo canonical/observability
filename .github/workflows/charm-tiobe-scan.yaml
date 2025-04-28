@@ -28,12 +28,7 @@ jobs:
 
       - name: Run tox tests to create coverage.xml
         run: |
-          tox -e unit && coverage xml
-
-      - name: Move results to necessary folder for TICS
-        run: |
-          mkdir -p ./cover
-          mv ./coverage.xml ./cover/
+          tox -e unit && coverage xml -o coverage/coverage.xml
 
       - name: Activate and prepare Python virtual environment
         run: |
