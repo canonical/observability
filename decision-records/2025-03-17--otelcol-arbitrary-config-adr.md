@@ -101,7 +101,57 @@ service:
   - Simplest typos could badly break the entire setup.
 
 
-## Alternative 2: Divide the otelcol config into multiple workloadless integrator charms
+## Alternative 2: All sources (receivers) go into all sinks (exporters)
+
+- Inside the otelcol charm, all sources (receivers) go into all sinks (exporters) - the same pipeline used per
+  (incoming, outgoing) relation pair.
+- Arbitrary config is accomplished by dividing the otelcol config into multiple, composable workloadless integrator charms.
+- The new "otelcol-processors-config" charm will:
+  - have to implement all the telemetry relations otelcol has.
+    - have a config option for "raw yaml" processors config which the admin would need to provide.
+- The otelcol charm will generate a config file from combining the processors configs from all incoming and outgoing
+  relations.
+
+(The particular details would be outlined in detail in a dedicated spec.)
+
+```mermaid
+graph LR
+
+avalanche ---|scrape| proc-config1 ---|scrape| otelcol
+avalanche2 ---|scrape| proc-config1 ---|scrape| otelcol
+avalanche2 ---|scrape| proc-config2 ---|scrape| otelcol
+flog ---|logging| proc-config3 ---|logging| otelcol
+
+otelcol ---|remote-write| proc-config10
+otelcol ---|logging| proc-config10
+otelcol ---|remote-write| proc-config11
+otelcol ---|logging| proc-config11
+
+proc-config10 ---|remote-write| grafana-cloud-integrator
+proc-config10 ---|logging| grafana-cloud-integrator
+proc-config10 ---|remote-write| mimir
+proc-config10 --- |logging| loki
+
+proc-config11 ---|remote-write| mimir-longterm
+proc-config11 ---|logging| loki-longterm
+```
+
+
+### Advantages
+- By imposing the "all sources go to all sinks" restriction, we are able to fully model arbitrary pipeline architectures
+  using juju primitives.
+- Design is consistent with tiered otelcol setups.
+
+### Disadvantages
+- Would need to augment existing relation schemas (prometheus scrape/remote-write, loki logging, tempo tracing) with
+  otelcol-specific information (processor config).
+
+
+## References
+- https://opentelemetry.io/docs/collector/configuration/
+
+
+---
 
 
 ## Appendices
