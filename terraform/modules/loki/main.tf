@@ -39,6 +39,7 @@ module "loki_coordinator" {
   app_name   = "loki"
   model_name = var.model_name
   channel    = var.channel
+  units      = var.coordinator_units
 }
 
 module "loki_backend" {

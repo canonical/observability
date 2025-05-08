@@ -41,6 +41,7 @@ module "mimir_coordinator" {
   app_name   = "mimir"
   model_name = var.model_name
   channel    = var.channel
+  units      = var.coordinator_units
 }
 
 module "mimir_read" {

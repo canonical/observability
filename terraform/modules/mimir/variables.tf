@@ -74,3 +74,9 @@ variable "backend_units" {
   type        = number
   default     = 1
 }
+
+variable "coordinator_units" {
+  description = "Number of Mimir coordinator units"
+  type        = number
+  default     = 1
+}

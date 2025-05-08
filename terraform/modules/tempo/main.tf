@@ -2,6 +2,7 @@ module "tempo_coordinator" {
   source     = "git::https://github.com/canonical/tempo-coordinator-k8s-operator//terraform"
   model_name = var.model_name
   channel    = var.channel
+  units      = var.coordinator_units
 }
 
 module "tempo_querier" {

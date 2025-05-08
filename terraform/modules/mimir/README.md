@@ -36,6 +36,7 @@ The module offers the following configurable inputs:
 | `query_scheduler_units`| number | Number of Mimir worker units with the query-scheduler role | 1 |
 | `ruler_units`| number | Number of Mimir worker units with the ruler role | 1 |
 | `store_gateway_units`| number | Number of Mimir worker units with the store-gateway role | 1 |
+| `coordinator_units`| number | Number of Mimir coordinator units | 1 |
 | `s3_integrator_name` | string | Name of the s3-integrator app | 1 |
 | `s3_bucket` | string | Name of the bucke in which Mimir stores metrics | 1 |
 | `s3_user` | string | User to connect to the S3 provider | 1 |
