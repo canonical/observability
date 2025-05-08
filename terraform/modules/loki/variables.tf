@@ -74,3 +74,9 @@ variable "write_units" {
   type        = number
   default     = 1
 }
+
+variable "coordinator_units" {
+  description = "Number of Loki coordinator units"
+  type        = number
+  default     = 1
+}

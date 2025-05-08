@@ -72,6 +72,12 @@ variable "loki_write_units" {
   default     = 3
 }
 
+variable "loki_coordinator_units" {
+  description = "Number of Loki coordinator units"
+  type        = number
+  default     = 3
+}
+
 variable "mimir_backend_units" {
   description = "Number of Mimir worker units with backend role"
   type        = number
@@ -86,6 +92,12 @@ variable "mimir_read_units" {
 
 variable "mimir_write_units" {
   description = "Number of Mimir worker units with write role"
+  type        = number
+  default     = 3
+}
+
+variable "mimir_coordinator_units" {
+  description = "Number of Mimir coordinator units"
   type        = number
   default     = 3
 }
@@ -119,8 +131,15 @@ variable "tempo_querier_units" {
   type        = number
   default     = 3
 }
+
 variable "tempo_query_frontend_units" {
   description = "Number of Tempo worker units with query-frontend role"
+  type        = number
+  default     = 3
+}
+
+variable "tempo_coordinator_units" {
+  description = "Number of Tempo coordinator units"
   type        = number
   default     = 3
 }

@@ -29,6 +29,7 @@ The module offers the following configurable inputs:
 | `model_name`| string | Name of the model that the charm is deployed on |  |
 | `read_units`| number | Number of Loki worker units with the read role | 1 |
 | `write_units`| number | Number of Loki worker units with the write role | 1 |
+| `coordinator_units`| number | Number of Loki coordinator units | 1 |
 | `s3_integrator_name` | string | Name of the s3-integrator app | 1 |
 | `s3_bucket` | string | Name of the bucke in which Loki stores logs | 1 |
 | `s3_user` | string | User to connect to the S3 provider | 1 |
