@@ -50,6 +50,9 @@ module "loki_backend" {
     role-backend = true
   }
   units = var.backend_units
+  depends_on = [
+    module.loki_coordinator
+  ]
 }
 
 module "loki_read" {
@@ -61,6 +64,9 @@ module "loki_read" {
     role-read = true
   }
   units = var.read_units
+  depends_on = [
+    module.loki_coordinator
+  ]
 }
 
 module "loki_write" {
@@ -72,6 +78,9 @@ module "loki_write" {
     role-write = true
   }
   units = var.write_units
+  depends_on = [
+    module.loki_coordinator
+  ]
 }
 
 # -------------- # Integrations --------------
