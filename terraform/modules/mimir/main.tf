@@ -52,6 +52,9 @@ module "mimir_read" {
     role-read = true
   }
   units = var.read_units
+  depends_on = [
+    module.mimir_coordinator
+  ]
 }
 
 module "mimir_write" {
@@ -63,6 +66,9 @@ module "mimir_write" {
     role-write = true
   }
   units = var.write_units
+  depends_on = [
+    module.mimir_coordinator
+  ]
 }
 
 module "mimir_backend" {
@@ -74,6 +80,9 @@ module "mimir_backend" {
     role-backend = true
   }
   units = var.backend_units
+  depends_on = [
+    module.mimir_coordinator
+  ]
 }
 
 # -------------- # Integrations --------------
