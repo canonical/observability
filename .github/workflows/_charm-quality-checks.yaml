@@ -274,6 +274,7 @@ jobs:
           export CHARM_PATH
           if [[ "${{ runner.debug }}" == "1" ]]; then
             export KEEP_MODELS=true
+            sudo snap install jhack --channel=latest/edge && sudo snap connect jhack:dot-local-share-juju snapd
             uvx tox -e integration -- -k "${{ matrix.suite }}" --keep-models
           else
             uvx tox -e integration -- -k "${{ matrix.suite }}"
