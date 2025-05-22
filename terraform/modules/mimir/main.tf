@@ -1,39 +1,36 @@
 # TODO: Replace s3_integrator resource to use its remote terraform module once available
 resource "juju_application" "s3_integrator" {
-  name  = var.s3_integrator_name
+  name  = "s3-integrator"
   model = var.model_name
-  trust = true
 
   charm {
     name    = "s3-integrator"
-    channel = var.channel
+    channel = "2/edge"  # hardcoding instead of using var.channel
   }
   config = {
     endpoint = var.s3_endpoint
     bucket   = var.s3_bucket
+    credentials = "secret:${juju_secret.s3_secret.secret_id}"
   }
   units = 1
-
 }
 
-resource "terraform_data" "s3management" {
-  depends_on = [
-    juju_application.s3_integrator,
+resource "juju_secret" "s3_secret" {
+  model = var.model_name
+  name = "s3_secret"
+  value = {
+    access-key = var.s3_user
+    secret-key = var.s3_password
+  }
+  info = "This is the secret key for the S3 account"
+}
+
+resource "juju_access_secret" "s3_secret_access" {
+  model = var.model_name
+  applications = [
+    juju_application.s3_integrator.name
   ]
-
-  input = {
-    S3_USER       = var.s3_user
-    S3_PASSWORD   = var.s3_password
-    MODEL_NAME    = var.model_name
-    S3_INTEGRATOR = var.s3_integrator_name
-  }
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      juju wait-for application -m "${self.input.MODEL_NAME}" "${self.input.S3_INTEGRATOR}" --query='forEach(units,  unit => unit.workload-status=="blocked" && unit.agent-status=="idle")' --timeout=30m
-      juju run -m "${self.input.MODEL_NAME}" "${self.input.S3_INTEGRATOR}/leader" sync-s3-credentials access-key="${self.input.S3_USER}" secret-key="${self.input.S3_PASSWORD}"
-    EOT
-  }
+  secret_id = juju_secret.s3_secret.secret_id
 }
 
 module "mimir_coordinator" {
