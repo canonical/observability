@@ -5,11 +5,11 @@ resource "juju_application" "s3_integrator" {
 
   charm {
     name    = "s3-integrator"
-    channel = "2/edge"  # hardcoding instead of using var.channel
+    channel = "2/edge" # hardcoding instead of using var.channel
   }
   config = {
-    endpoint = var.s3_endpoint
-    bucket   = var.s3_bucket
+    endpoint    = var.s3_endpoint
+    bucket      = var.s3_bucket
     credentials = "secret:${juju_secret.s3_secret.secret_id}"
   }
   units = 1
@@ -17,7 +17,7 @@ resource "juju_application" "s3_integrator" {
 
 resource "juju_secret" "s3_secret" {
   model = var.model_name
-  name = "s3_secret"
+  name  = "s3_secret"
   value = {
     access-key = var.s3_user
     secret-key = var.s3_password
