@@ -4,8 +4,9 @@ resource "juju_application" "s3_integrator" {
   model = var.model_name
 
   charm {
-    name    = "s3-integrator"
-    channel = "2/edge" # hardcoding instead of using var.channel
+    name    = var.s3_integrator_name
+    # track '2' allows us to use a juju secret instead of an action to manage s3 credentials
+    channel = "2/edge"
   }
   config = {
     endpoint    = var.s3_endpoint
