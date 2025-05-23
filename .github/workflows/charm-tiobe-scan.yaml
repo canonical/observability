@@ -1,0 +1,47 @@
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+name: Tiobe TiCS Analysis
+
+on:
+  workflow_call:
+
+jobs:
+  scan:
+    name: Scan and upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout the project
+        uses: actions/checkout@v4
+        with:
+          repository: canonical/${{ github.event.repository.name }}
+
+      - name: Install dependencies
+        run: |
+          sudo snap install charmcraft --classic
+          sudo apt update && sudo apt install -y pipx
+          pipx install coverage
+          pipx install "coverage[toml]"
+          pipx install tox
+          sudo snap install astral-uv --classic
+
+      - name: Run tox tests to create coverage.xml
+        run: |
+          tox -e unit && coverage xml -o .cover/cobertura.xml
+
+      - name: Activate and prepare Python virtual environment
+        run: |
+          source .tox/unit/bin/activate
+          pip install pylint flake8
+          echo "PATH=$PATH" >> "$GITHUB_ENV"
+
+      - name: Run TICS analysis with github-action
+        uses: tiobe/tics-github-action@v3
+        with:
+          mode: qserver
+          project: ${{ github.event.repository.name }}
+          branchdir: .
+          viewerUrl: https://canonical.tiobe.com/tiobeweb/TICS/api/cfg?name=default
+          ticsAuthToken: ${{ secrets.TICSAUTHTOKEN }}
+          installTics: true

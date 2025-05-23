@@ -129,6 +129,18 @@ repos:
     track: main
     url: git@github.com:canonical/traefik-route-k8s-operator.git
 
+  - path: ../istio-k8s-operator
+    track: main
+    url: git@github.com:canonical/istio-k8s-operator.git
+
+  - path: ../istio-beacon-k8s-operator
+    track: main
+    url: git@github.com:canonical/istio-beacon-k8s-operator.git
+
+  - path: ../istio-ingress-k8s-operator
+    track: main
+    url: git@github.com:canonical/istio-ingress-k8s-operator.git
+
   # rocks
   - path: ../alertmanager-rock
     track: main

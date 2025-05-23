@@ -1,0 +1,39 @@
+set quiet # Recipes are silent by default
+
+init:
+    terraform init
+    terraform -chdir=../cos init
+
+apply: init apply_infra apply_cos
+
+destroy: destroy_cos destroy_infra
+
+apply_infra:
+    terraform apply
+
+apply_cos:
+    terraform -chdir=../cos apply \
+        -var="loki_bucket=$(terraform output -raw loki_bucket)" \
+        -var="tempo_bucket=$(terraform output -raw tempo_bucket)" \
+        -var="mimir_bucket=$(terraform output -raw mimir_bucket)" \
+        -var="s3_endpoint=$(terraform output -raw s3_endpoint)" \
+        -var="s3_user=$(terraform output -raw s3_user)" \
+        -var="s3_password=$(terraform output -raw s3_password)" \
+        -var="model_name=$(terraform output -raw cos_model)" \
+        -var="ssc_channel=1/edge" \
+        -var="cloud=aws" \
+
+destroy_infra:
+   terraform destroy
+
+destroy_cos:
+    terraform -chdir=../cos destroy \
+        -var="loki_bucket=$(terraform output -raw loki_bucket)" \
+        -var="tempo_bucket=$(terraform output -raw tempo_bucket)" \
+        -var="mimir_bucket=$(terraform output -raw mimir_bucket)" \
+        -var="s3_endpoint=$(terraform output -raw s3_endpoint)" \
+        -var="s3_user=$(terraform output -raw s3_user)" \
+        -var="s3_password=$(terraform output -raw s3_password)" \
+        -var="model_name=$(terraform output -raw cos_model)" \
+        -var="ssc_channel=1/edge" \
+        -var="cloud=aws" \

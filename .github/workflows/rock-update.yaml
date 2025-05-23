@@ -25,20 +25,64 @@ on:
         description: "Custom script to update external dependencies in rockcraft.yaml"
         required: false
         type: string
+      commit-username:
+        description: "The username to use for committing the updates on the charm libraries"
+        default: 'Noctua'
+        required: false
+        type: string
+      commit-email:
+        description: "The email address to use for committing the updates on the charm libraries"
+        default: 'webops+observability-noctua-bot@canonical.com'
+        required: false
+        type: string
+    secrets:
+      OBSERVABILITY_NOCTUA_TOKEN:
+        required: true
+      NOCTUA_GPG_PASSPHRASE:
+        required: true
+      NOCTUA_GPG_PRIVATE:
+        required: true
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
+  merge-pr:
+    name: Merge previous green PRs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Merge any pre-existing PRs from the automatically generated "chore/add-version" branch if the CI is green
+        run: |
+          # If a PR from "chore/add-version" is open and CI checks are passing, merge it
+          is_pr_open="$(gh pr list --head chore/add-version --state open --json id --jq 'length')"
+          if [[ "$is_pr_open" == "1" ]]; then
+            if gh pr checks chore/add-version; then
+              echo "CI checks are passing, merging the chore/add-version PR"
+              gh pr merge chore/add-version --admin --squash --delete-branch
+            fi
+          elif [[ "$is_pr_open" != "0" ]]; then
+            # The number of open PRs should always be either 0 or 1
+            echo "There's two PRs from the same branch; this should never happen!"
+            exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
   check-version:
     name: Detect new releases
     runs-on: ubuntu-latest
+    needs:
+      - merge-pr
     steps:
       - name: Install dependencies
         run: |
           sudo snap install jq
           sudo snap install yq
+          sudo snap install just --classic
 
       - id: latest-release
         name: Fetch version used in *latest* release
@@ -49,7 +93,7 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/${{ inputs.source-repo }}/releases/latest \
             | jq -r 'select(.prerelease == false) | .tag_name')
-          echo "release=$TAG" >> $GITHUB_OUTPUT
+          echo "release=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Checkout the rock source
         uses: actions/checkout@v4
@@ -62,12 +106,14 @@ jobs:
         shell: bash
         run: |
           source_tag="${{ steps.latest-release.outputs.release }}"
-          version=${source_tag#"v"}
+          version="${source_tag#v}"
           # Explicitly filter for specific rocks because we'd rather notice if a new rock has a different release schema
-          version=${version#"mimir-"}
-          if [ ! -f $GITHUB_WORKSPACE/main/$version/rockcraft.yaml ]; then
-            echo "version=$version" >> $GITHUB_OUTPUT
-            echo "release=${{steps.latest-release.outputs.release}}" >> $GITHUB_OUTPUT
+          version="${version#mimir-}"
+          # Filter out opentelemetry-collector prefixes
+          version=${version#"cmd/builder/v"}
+          if [ ! -f "$GITHUB_WORKSPACE/main/$version/rockcraft.yaml" ]; then
+            echo "version=$version" >> "$GITHUB_OUTPUT"
+            echo "release=${{steps.latest-release.outputs.release}}" >> "$GITHUB_OUTPUT"
             echo "New upstream release ${{steps.latest-release.outputs.release}} found"
           else
             echo "No new upstream release found"
@@ -83,50 +129,63 @@ jobs:
       
       - name: Create a new rockcraft.yaml for the new application version
         if: steps.check.outputs.release != ''
-        shell: bash
+        env:
+          SOURCE_TAG: "${{ steps.check.outputs.release }}"
+          VERSION: "${{ steps.check.outputs.version }}"
         run: |
-          source_tag="${{ steps.check.outputs.release }}"
-          version="${{ steps.check.outputs.version }}"
-          latest_rockcraft_file=$(find $GITHUB_WORKSPACE/main/ -name "rockcraft.yaml" | sort -V | tail -n1)
-          cp -r "$(dirname $latest_rockcraft_file)" "$GITHUB_WORKSPACE/main/$version"
-          source_tag="$source_tag" \
-          version="$version" \
-          yq -i '.version = strenv(version) | .parts.${{ inputs.rock-name }}["source-tag"] = strenv(source_tag)' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
+          latest_rockcraft_file="$(find "$GITHUB_WORKSPACE/main/" -name "rockcraft.yaml" | sort -V | tail -n1)"
+          cp -r "$(dirname "$latest_rockcraft_file")" "$GITHUB_WORKSPACE/main/$VERSION"
+          source_tag="$SOURCE_TAG" version="$VERSION" yq -i \
+            '.version = strenv(version) | .parts.${{ inputs.rock-name }}["source-tag"] = strenv(source_tag)' \
+            "$GITHUB_WORKSPACE/main/$VERSION/rockcraft.yaml"
 
       - name: Update the Go version
         if: inputs.check-go && steps.check.outputs.release != ''
-        shell: bash
+        env:
+          VERSION: "${{ steps.check.outputs.version }}"
         run: |
-          version="${{ steps.check.outputs.version }}"
-          go_version=$(grep -Po "^go \K(\S+)" $GITHUB_WORKSPACE/application-src/go.mod) \
+          go_version="$(grep -Po "^go \K(\S+)" "$GITHUB_WORKSPACE/application-src/go.mod")" \
           # Delete the Go dependency and add the updated one
-          yq -i 'del(.parts.${{ inputs.rock-name }}.build-snaps.[] | select(. == "go/*"))' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
+          yq -i 'del(.parts.${{ inputs.rock-name }}.build-snaps.[] | select(. == "go/*"))' \
+            "$GITHUB_WORKSPACE/main/$VERSION/rockcraft.yaml"
           # Snap channels are named after major.minor only, so cut the go version to that format
-          go_major_minor=$(echo $go_version | sed -E "s/([0-9]+\.[0-9]+).*/\1/")
-          go_v="$go_major_minor" yq -i '.parts.${{ inputs.rock-name }}.build-snaps += "go/"+strenv(go_v)+"/stable"' $GITHUB_WORKSPACE/main/$version/rockcraft.yaml
+          go_major_minor="$(echo "$go_version" | sed -E "s/([0-9]+\.[0-9]+).*/\1/")"
+          go_v="$go_major_minor" yq -i \
+            '.parts.${{ inputs.rock-name }}.build-snaps += "go/"+strenv(go_v)+"/stable"' \
+            "$GITHUB_WORKSPACE/main/$VERSION/rockcraft.yaml"
 
       - name: Update other build dependencies
         if: steps.check.outputs.release != '' && inputs.update-script != ''
-        shell: bash
+        env:
+          VERSION: "${{ steps.check.outputs.version }}"
         run: |
-          version="${{ steps.check.outputs.version }}"
-          application_src=$GITHUB_WORKSPACE/application-src
-          rockcraft_yaml=$GITHUB_WORKSPACE/main/$version/rockcraft.yaml
+          export application_src="$GITHUB_WORKSPACE/application-src"
+          export rockcraft_yaml="$GITHUB_WORKSPACE/main/$VERSION/rockcraft.yaml"
           cat > update-script.sh << EOF
             ${{ inputs.update-script }}
           EOF
           source update-script.sh
+
+      - name: Import and configure the GPG key for Noctua
+        if: steps.check.outputs.release != ''
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.NOCTUA_GPG_PRIVATE }}
+          passphrase: ${{ secrets.NOCTUA_GPG_PASSPHRASE }}
+          git_config_global: true
+          git_user_signingkey: true
+          git_commit_gpgsign: true
 
       - name: Create a PR
         if: steps.check.outputs.release != ''
         uses: peter-evans/create-pull-request@v6
         with:
           path: main
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
           commit-message: "chore(deps): bump ${{ inputs.rock-name }} version to ${{ steps.check.outputs.release }}"
-          committer: "Github Actions <github-actions@github.com>"
-          author: "Github Actions <github-actions@github.com>"
+          committer: "${{ inputs.commit-username }} <${{ inputs.commit-email }}>"
+          author: "${{ inputs.commit-username }} <${{ inputs.commit-email }}>"
           title: "chore: add rock for ${{ inputs.rock-name }} ${{ steps.check.outputs.release }}"
           body: Automated update to follow upstream [release](https://github.com/${{ inputs.source-repo }}/releases/tag/${{ steps.check.outputs.release }}) of ${{ inputs.rock-name }}.
-          branch: "chore/bump-version-to-${{ steps.check.outputs.release }}"
+          branch: "chore/add-version"
           delete-branch: true
