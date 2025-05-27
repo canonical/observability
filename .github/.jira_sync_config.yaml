@@ -5,10 +5,7 @@ settings:
     closed: done
     not_planned: rejected
     
-  components:
-    - team-core
-    - team-mesh
-    - team-tracing
+  components: []
       
   add_gh_comment: false
   sync_description: false

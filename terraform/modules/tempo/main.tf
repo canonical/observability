@@ -15,6 +15,9 @@ module "tempo_querier" {
     role-querier = true
   }
   units = var.querier_units
+  depends_on = [
+    module.tempo_coordinator
+  ]
 }
 module "tempo_query_frontend" {
   source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
@@ -26,6 +29,9 @@ module "tempo_query_frontend" {
     role-query-frontend = true
   }
   units = var.query_frontend_units
+  depends_on = [
+    module.tempo_coordinator
+  ]
 }
 module "tempo_ingester" {
   source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
@@ -37,6 +43,9 @@ module "tempo_ingester" {
     role-ingester = true
   }
   units = var.ingester_units
+  depends_on = [
+    module.tempo_coordinator
+  ]
 }
 module "tempo_distributor" {
   source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
@@ -48,6 +57,9 @@ module "tempo_distributor" {
     role-distributor = true
   }
   units = var.distributor_units
+  depends_on = [
+    module.tempo_coordinator
+  ]
 }
 module "tempo_compactor" {
   source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
@@ -59,6 +71,9 @@ module "tempo_compactor" {
     role-compactor = true
   }
   units = var.compactor_units
+  depends_on = [
+    module.tempo_coordinator
+  ]
 }
 module "tempo_metrics_generator" {
   source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
@@ -70,6 +85,9 @@ module "tempo_metrics_generator" {
     role-metrics-generator = true
   }
   units = var.metrics_generator_units
+  depends_on = [
+    module.tempo_coordinator
+  ]
 }
 
 # TODO: Replace s3_integrator resource to use its remote terraform module once available
