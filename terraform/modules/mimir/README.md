@@ -26,16 +26,9 @@ The module offers the following configurable inputs:
 | - | - | - | - |
 | `channel`| string | Channel that the charms are deployed from | latest/edge |
 | `model_name`| string | Name of the model that the charm is deployed on |  |
-| `alertmanager_units`| number | Number of Mimir worker units with the alertmanager role | 1 |
-| `compactor_units`| number | Number of Mimir worker units with the compactor role | 1 |
-| `distributor_units`| number | Number of Mimir worker units with the distributor role | 1 |
-| `flusher_units`| number | Number of Mimir worker units with the flusher role | 1 |
-| `ingester_units`| number | Number of Mimir worker units with the ingester role | 1 |
-| `querier_units`| number | Number of Mimir worker units with the querier role | 1 |
-| `query_frontend_units`| number | Number of Mimir worker units with the query-frontend role | 1 |
-| `query_scheduler_units`| number | Number of Mimir worker units with the query-scheduler role | 1 |
-| `ruler_units`| number | Number of Mimir worker units with the ruler role | 1 |
-| `store_gateway_units`| number | Number of Mimir worker units with the store-gateway role | 1 |
+| `read_units`| number | Number of Mimir worker units with the read role | 1 |
+| `write_units`| number | Number of Mimir worker units with the write role | 1 |
+| `backend_units`| number | Number of Mimir worker units with the backend role | 1 |
 | `s3_integrator_name` | string | Name of the s3-integrator app | 1 |
 | `s3_bucket` | string | Name of the bucke in which Mimir stores metrics | 1 |
 | `s3_user` | string | User to connect to the S3 provider | 1 |
