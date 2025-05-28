@@ -61,22 +61,42 @@ variable "read_units" {
   description = "Number of Mimir worker units with the read meta role"
   type        = number
   default     = 1
+
+  validation {
+    condition     = var.read_units >= 1
+    error_message = "The number of units must be greater than or equal to 1."
+  }
 }
 
 variable "write_units" {
   description = "Number of Mimir worker units with the write meta role"
   type        = number
   default     = 1
+
+  validation {
+    condition     = var.write_units >= 1
+    error_message = "The number of units must be greater than or equal to 1."
+  }
 }
 
 variable "backend_units" {
   description = "Number of Mimir worker units with the backend meta role"
   type        = number
   default     = 1
+
+  validation {
+    condition     = var.backend_units >= 1
+    error_message = "The number of units must be greater than or equal to 1."
+  }
 }
 
 variable "coordinator_units" {
   description = "Number of Mimir coordinator units"
   type        = number
   default     = 1
+
+  validation {
+    condition     = var.coordinator_units >= 1
+    error_message = "The number of units must be greater than or equal to 1."
+  }
 }
