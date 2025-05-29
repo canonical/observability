@@ -13,6 +13,12 @@ lint-terraform:
   if [ -z "${terraform}" ]; then echo "ERROR: please install terraform or opentofu"; exit 1; fi
   $terraform fmt -check -recursive -diff
 
+# Format the Terraform modules
+[group("Format")]
+format-terraform:
+  if [ -z "${terraform}" ]; then echo "ERROR: please install terraform or opentofu"; exit 1; fi
+  $terraform fmt -recursive -diff
+
 # Lint the Github workflows
 [group("Lint")]
 lint-workflows:
@@ -22,5 +28,6 @@ lint-workflows:
 [group("Lint")]
 lint: lint-terraform lint-workflows
 
-
-
+# Format everything
+[group("Format")]
+fmt: format-terraform
