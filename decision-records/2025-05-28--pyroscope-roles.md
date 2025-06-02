@@ -31,6 +31,7 @@ We will support the following deployment model in the Pyroscope charm:
 ## Benefits
 
 - We can independently scale out individual components if needed.
+- We can easily transition back and forth between monolithic and distributed modes
 - Supports Pyroscope’s native ability to co-locate roles without enforcing any meta-roles that the upstream doesn't define.
 
 ## Disadvantages
