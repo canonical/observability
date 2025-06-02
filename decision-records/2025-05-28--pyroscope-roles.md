@@ -8,7 +8,7 @@ Pyroscope supports two deployment modes:
 - **Monolithic mode** (`--target=all`): runs all components in a single process.
 - **Microservices mode**: deployed as several processes, each one running a partition of the set of all existing roles.
 
-Although the [official documentation](https://grafana.com/docs/pyroscope/latest/reference-pyroscope-architecture/deployment-modes/) does not mention it explicitly, Pyroscope **allows multiple targets to be specified** in a single process (e.g., `--target=ingester,distributor`). This allows co-locating components as meta-roles and allows them to run in a single process.
+Although the [official documentation](https://grafana.com/docs/pyroscope/latest/reference-pyroscope-architecture/deployment-modes/) does not mention it explicitly, Pyroscope **allows multiple targets to be specified** in a single process (e.g., `--target=ingester,distributor`). This allows running several components in a single process.
 
 Unlike projects such as **Loki HA** or **Mimir**, the Pyroscope documentation does not specify a **recommended deployment mode** (e.g., Simple Scalable as in Loki HA).
 
