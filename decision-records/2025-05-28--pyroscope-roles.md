@@ -23,7 +23,7 @@ The question is whether to follow:
 We will support the following deployment model in the Pyroscope charm:
 
 - Support only one meta-role (i.e. `all`) which can be set by `juju config pyroscope-worker role-all=true`.
-- Support individual roles by setting `juju config role-X=True` (e.g., `role-ingester=True`).
+- Toggle individual roles by setting `juju config pyroscope-worker role-X=true|false` (e.g., `role-ingester=true`).
 - Support a combination of roles by setting multiple `juju config role-X=true` config options (e.g., `juju config role-ingester=True role-distributor=True`).  
     → This would run the selected roles in the same worker process using `--target=X,Y`.
 
