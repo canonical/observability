@@ -28,7 +28,7 @@ jobs:
 
       - name: Run tox tests to create coverage.xml
         run: |
-          tox -e unit && coverage xml -o .cover/cobertura.xml
+          tox -e unit && coverage xml -o cover/cobertura.xml
 
       - name: Activate and prepare Python virtual environment
         run: |
