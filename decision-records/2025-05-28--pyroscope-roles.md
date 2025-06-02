@@ -36,7 +36,7 @@ We will support the following deployment model in the Pyroscope charm:
 
 ## Disadvantages
 
-- If each role runs on a dedicated worker, this increases the total number of deployed units. However, as we support a combination of roles, the user can choose their own combination to reduce the number of units.
+- none really?
 
 ## Alternatives considered
 
