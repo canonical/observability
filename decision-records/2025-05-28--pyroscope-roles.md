@@ -41,7 +41,7 @@ We will support the following deployment model in the Pyroscope charm:
 ## Alternatives considered
 
 ### Introduce meta-roles
-Group roles into logical clusters like `read`, `write`, and `backend`.
+Group roles into logical clusters like `read`, `write`, and `backend`, and only expose those as our charm's toplevel API, or expose them alongside the upstream-provided atomic roles.
 
 ### Disadvantages
 
