@@ -13,7 +13,9 @@ Although the [official documentation](https://grafana.com/docs/pyroscope/latest/
 Unlike projects such as **Loki HA** or **Mimir**, the Pyroscope documentation does not specify a **recommended deployment mode** (e.g., Simple Scalable as in Loki HA).
 
 
-The problem is whether to follow [Tempo’s approach](https://github.com/canonical/tempo-worker-k8s-operator/blob/main/charmcraft.yaml#L55) (i.e. no meta roles except for `all`), or adopt a meta-role pattern like Loki/Mimir.
+The question is whether to follow: 
+- [Tempo’s approach](https://github.com/canonical/tempo-worker-k8s-operator/blob/main/charmcraft.yaml#L55) (i.e. no meta roles except for `all`), only one role per process, or 
+- Like Loki/Mimir, introduce some meta-roles (that WE own and define, and translate implicitly to sets of primitive roles, but are not captured in the upstream code or docs)
 
 
 ## Decision 
