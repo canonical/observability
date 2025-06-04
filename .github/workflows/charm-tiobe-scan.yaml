@@ -6,7 +6,7 @@ name: Tiobe TiCS Analysis
 on:
   workflow_call:
     inputs:
-      charms:
+      charm-path:
         description: "Path to the charm we want to publish. Defaults to the current working directory."
         default: '.'
         required: false
