@@ -41,6 +41,7 @@ module "mimir_coordinator" {
   app_name   = "mimir"
   model = var.model
   channel    = var.channel
+  revision   = var.coordinator_revision
   units      = var.coordinator_units
 }
 
@@ -49,6 +50,7 @@ module "mimir_read" {
   app_name   = var.read_name
   model = var.model
   channel    = var.channel
+  revision   = var.worker_revision
   config = {
     role-read = true
   }
@@ -63,6 +65,7 @@ module "mimir_write" {
   app_name   = var.write_name
   model = var.model
   channel    = var.channel
+  revision   = var.worker_revision
   config = {
     role-write = true
   }
@@ -77,6 +80,7 @@ module "mimir_backend" {
   app_name   = var.backend_name
   model = var.model
   channel    = var.channel
+  revision   = var.worker_revision
   config = {
     role-backend = true
   }
