@@ -5,6 +5,12 @@ name: Tiobe TiCS Analysis
 
 on:
   workflow_call:
+    inputs:
+      charm-path:
+        description: "Path to the charm we want to publish. Defaults to the current working directory."
+        default: '.'
+        required: false
+        type: string
 
 jobs:
   scan:
@@ -28,20 +34,24 @@ jobs:
 
       - name: Run tox tests to create coverage.xml
         run: |
-          tox -e unit && coverage xml -o .cover/cobertura.xml
+          tox -e unit && coverage xml -o cover/cobertura.xml
 
       - name: Activate and prepare Python virtual environment
+        env:
+          CHARM_PATH: ${{ inputs.charm-path }}
         run: |
-          source .tox/unit/bin/activate
-          pip install pylint flake8
+          pushd "${CHARM_PATH}"
+          uv sync --extra=dev
+          source .venv/bin/activate
+          uv pip install pylint flake8
           echo "PATH=$PATH" >> "$GITHUB_ENV"
+          popd
 
       - name: Run TICS analysis with github-action
         uses: tiobe/tics-github-action@v3
         with:
           mode: qserver
           project: ${{ github.event.repository.name }}
-          branchdir: .
           viewerUrl: https://canonical.tiobe.com/tiobeweb/TICS/api/cfg?name=default
           ticsAuthToken: ${{ secrets.TICSAUTHTOKEN }}
           installTics: true

@@ -43,7 +43,7 @@ on:
          required: false
 
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{ github.ref }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
   cancel-in-progress: true
 
 jobs:

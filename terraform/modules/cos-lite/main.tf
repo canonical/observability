@@ -1,7 +1,3 @@
-provider "juju" {
-}
-
-
 # -------------- # Applications --------------
 
 module "ssc" {
