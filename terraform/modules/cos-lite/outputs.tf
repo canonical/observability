@@ -7,7 +7,6 @@ output "app_names" {
       loki          = module.loki.app_name,
       prometheus    = module.prometheus.app_name,
       traefik       = module.traefik.app_name,
-      grafana_agent = module.grafana_agent.app_name,
     }
   )
 }

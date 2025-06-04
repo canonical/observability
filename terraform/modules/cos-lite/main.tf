@@ -49,12 +49,6 @@ module "traefik" {
   channel    = var.channel
 }
 
-module "grafana_agent" {
-  source     = "git::https://github.com/canonical/grafana-agent-k8s-operator//terraform"
-  app_name   = "grafana-agent"
-  model_name = var.model_name
-  channel    = var.channel
-}
 
 # -------------- # Integrations --------------
 
@@ -89,6 +83,20 @@ resource "juju_integration" "alertmanager_prometheus" {
   }
 }
 
+resource "juju_integration" "alertmanager_self_monitoring_prometheus" {
+  model = var.model_name
+
+  application {
+    name     = module.prometheus.app_name
+    endpoint = module.prometheus.endpoints.metrics_endpoint
+  }
+
+  application {
+    name     = module.alertmanager.app_name
+    endpoint = module.alertmanager.endpoints.self_metrics_endpoint
+  }
+}
+
 resource "juju_integration" "alertmanager_loki" {
   model = var.model_name
 
@@ -103,19 +111,6 @@ resource "juju_integration" "alertmanager_loki" {
   }
 }
 
-resource "juju_integration" "agent_alertmanager_metrics" {
-  model = var.model_name
-
-  application {
-    name     = module.alertmanager.app_name
-    endpoint = module.alertmanager.endpoints.self_metrics_endpoint
-  }
-
-  application {
-    name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.requires.metrics_endpoint
-  }
-}
 
 resource "juju_integration" "grafana_source_alertmanager" {
   model = var.model_name
@@ -128,6 +123,22 @@ resource "juju_integration" "grafana_source_alertmanager" {
   application {
     name     = module.grafana.app_name
     endpoint = module.grafana.endpoints.grafana_source
+  }
+}
+
+# Provided by Grafana
+
+resource "juju_integration" "grafana_self_monitoring_prometheus" {
+  model = var.model_name
+
+  application {
+    name     = module.prometheus.app_name
+    endpoint = module.prometheus.endpoints.metrics_endpoint
+  }
+
+  application {
+    name     = module.grafana.app_name
+    endpoint = module.grafana.endpoints.metrics_endpoint
   }
 }
 
@@ -162,34 +173,7 @@ resource "juju_integration" "prometheus_grafana_source" {
   }
 }
 
-resource "juju_integration" "prometheus_tracing_grafana_agent_traicing_provider" {
-  model = var.model_name
 
-  application {
-    name     = module.prometheus.app_name
-    endpoint = module.prometheus.endpoints.charm_tracing
-  }
-
-  application {
-    name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.provides.tracing_provider
-  }
-}
-
-
-resource "juju_integration" "prometheus_self_metrics_endpoint_grafana_agent_metrics_endpoint" {
-  model = var.model_name
-
-  application {
-    name     = module.prometheus.app_name
-    endpoint = module.prometheus.endpoints.self_metrics_endpoint
-  }
-
-  application {
-    name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.requires.metrics_endpoint
-  }
-}
 
 
 # Provided by Loki
@@ -222,45 +206,17 @@ resource "juju_integration" "loki_grafana_source" {
   }
 }
 
-resource "juju_integration" "loki_logging_consumer_grafana_agent_logging_provider" {
+resource "juju_integration" "loki_self_monitoring_prometheus" {
   model = var.model_name
 
   application {
-    name     = module.loki.app_name
-    endpoint = module.loki.endpoints.logging
+    name     = module.prometheus.app_name
+    endpoint = module.prometheus.endpoints.metrics_endpoint
   }
-
-  application {
-    name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.provides.logging_provider
-  }
-}
-
-resource "juju_integration" "loki_logging_grafana_agent_logging_consumer" {
-  model = var.model_name
 
   application {
     name     = module.loki.app_name
-    endpoint = module.loki.endpoints.logging
-  }
-
-  application {
-    name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.requires.logging_consumer
-  }
-}
-
-resource "juju_integration" "loki_tracing_grafana_agent_traicing_provider" {
-  model = var.model_name
-
-  application {
-    name     = module.loki.app_name
-    endpoint = module.loki.endpoints.charm_tracing
-  }
-
-  application {
-    name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.provides.tracing_provider
+    endpoint = module.loki.endpoints.metrics_endpoint
   }
 }
 
@@ -360,7 +316,7 @@ resource "juju_integration" "prometheus_ingress" {
 
   application {
     name     = module.traefik.app_name
-    endpoint = module.traefik.endpoints.ingress
+    endpoint = module.traefik.endpoints.ingress_per_unit
   }
 
   application {
@@ -374,7 +330,7 @@ resource "juju_integration" "loki_ingress" {
 
   application {
     name     = module.traefik.app_name
-    endpoint = module.traefik.endpoints.ingress
+    endpoint = module.traefik.endpoints.ingress_per_unit
   }
 
   application {
@@ -383,33 +339,16 @@ resource "juju_integration" "loki_ingress" {
   }
 }
 
-
-# Grafana agent
-
-resource "juju_integration" "agent_loki_metrics" {
-  model = var.model_name
-
-  application {
-    name     = module.loki.app_name
-    endpoint = module.loki.endpoints.metrics_endpoint
-  }
-
-  application {
-    name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.requires.metrics_endpoint
-  }
-}
-
-resource "juju_integration" "agent_prometheus_metrics" {
+resource "juju_integration" "traefik_self_monitoring_prometheus" {
   model = var.model_name
 
   application {
     name     = module.prometheus.app_name
-    endpoint = module.prometheus.endpoints.receive_remote_write
+    endpoint = module.prometheus.endpoints.metrics_endpoint
   }
 
   application {
-    name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.requires.send_remote_write
+    name     = module.traefik.app_name
+    endpoint = module.traefik.endpoints.metrics_endpoint
   }
 }
