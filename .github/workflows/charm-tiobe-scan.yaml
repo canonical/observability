@@ -41,6 +41,8 @@ jobs:
           popd
 
       - name: Activate and prepare Python virtual environment
+        env:
+          CHARM_PATH: ${{ inputs.charm-path }}
         run: |
           pushd "${CHARM_PATH}"
           uv sync --extra=dev
