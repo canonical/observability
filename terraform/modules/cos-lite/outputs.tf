@@ -1,12 +1,12 @@
 output "app_names" {
   value = merge(
     {
-      alertmanager  = module.alertmanager.app_name,
-      catalogue     = module.catalogue.app_name,
-      grafana       = module.grafana.app_name,
-      loki          = module.loki.app_name,
-      prometheus    = module.prometheus.app_name,
-      traefik       = module.traefik.app_name,
+      alertmanager = module.alertmanager.app_name,
+      catalogue    = module.catalogue.app_name,
+      grafana      = module.grafana.app_name,
+      loki         = module.loki.app_name,
+      prometheus   = module.prometheus.app_name,
+      traefik      = module.traefik.app_name,
     }
   )
 }
