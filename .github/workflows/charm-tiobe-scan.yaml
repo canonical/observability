@@ -32,31 +32,31 @@ jobs:
           pipx install tox
           sudo snap install astral-uv --classic
 
-      - name: Run tox tests to create coverage.xml
+      - name: run tox tests to create coverage.xml
         env:
-          CHARM_PATH: ${{ inputs.charm-path }}
+          charm_path: ${{ inputs.charm-path }}
         run: |
-          pushd "${CHARM_PATH}"
+          pushd "${charm_path}"
           tox -e unit && coverage xml -o cover/cobertura.xml
           popd
 
-      - name: Activate and prepare Python virtual environment
+      - name: activate and prepare python virtual environment
         env:
-          CHARM_PATH: ${{ inputs.charm-path }}
+          charm_path: ${{ inputs.charm-path }}
         run: |
-          pushd "${CHARM_PATH}"
+          pushd "${charm_path}"
           uv sync --extra=dev
           source .venv/bin/activate
           uv pip install pylint flake8
-          echo "PATH=$PATH" >> "$GITHUB_ENV"
+          echo "path=$path" >> "$github_env"
           popd
 
-      - name: Run TICS analysis with github-action
+      - name: run tics analysis with github-action
         uses: tiobe/tics-github-action@v3
         with:
           mode: qserver
           project: ${{ github.event.repository.name }}
-          branchdir: ${{ inputs.charm-path }}
-          viewerUrl: https://canonical.tiobe.com/tiobeweb/TICS/api/cfg?name=default
-          ticsAuthToken: ${{ secrets.TICSAUTHTOKEN }}
-          installTics: true
+          branchdir: .
+          viewerurl: https://canonical.tiobe.com/tiobeweb/tics/api/cfg?name=default
+          ticsauthtoken: ${{ secrets.ticsauthtoken }}
+          installtics: true
