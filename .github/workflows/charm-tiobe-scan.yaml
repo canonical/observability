@@ -56,7 +56,7 @@ jobs:
         with:
           mode: qserver
           project: ${{ github.event.repository.name }}
-          branchdir: .
+          branchdir: ${{ inputs.charm-path }}
           viewerUrl: https://canonical.tiobe.com/tiobeweb/TICS/api/cfg?name=default
           ticsAuthToken: ${{ secrets.TICSAUTHTOKEN }}
           installTics: true
