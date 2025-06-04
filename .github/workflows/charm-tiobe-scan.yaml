@@ -39,6 +39,8 @@ jobs:
           pushd "${CHARM_PATH}"
           tox -e unit && coverage xml -o cover/cobertura.xml
           popd
+          coverage combine "${CHARM_PATH}/.coverage"
+          coverage xml -o cover/cobertura.xml
 
       - name: Activate and prepare Python virtual environment
         env:
