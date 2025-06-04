@@ -45,7 +45,7 @@ permissions:
 jobs:
   update-lib:
     name: Check libraries
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     env:
       GIT_BRANCH: ${{ inputs.git-branch }}
     steps:
