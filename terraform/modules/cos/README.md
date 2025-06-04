@@ -33,15 +33,18 @@ The module offers the following configurable inputs:
 | `loki_backend_units` | number | Number of Loki worker units with `backend` role                |
 | `loki_read_units` | number | Number of Loki worker units with `read` role                   |
 | `loki_write_units` | number | Number of Loki worker units with `write` role                  |
+| `loki_coordinator_units` | number | Number of Loki coordinator units                 |
 | `mimir_backend_units` | number | Number of Mimir worker units with `backend` role               |
 | `mimir_read_units` | number | Number of Mimir worker units with `read` role                  |
 | `mimir_write_units` | number | Number of Mimir worker units with `write` role                 |
+| `mimir_coordinator_units` | number | Number of Mimir coordinator units                 |
 | `tempo_compactor_units` | number | Number of Tempo worker units with `compactor` role             |
 | `tempo_distributor_units` | number | Number of Tempo worker units with `distributor` role           |
 | `tempo_ingester_units` | number | Number of Tempo worker units with `ingester` role              |
 | `tempo_metrics_generator_units` | number | Number of Tempo worker units with `metrics_generator` role     |
 | `tempo_querier_units` | number | Number of Tempo worker units with `querier` role               |
 | `tempo_query_frontend_units` | number | Number of Tempo worker units with `query_frontend` role        |
+| `tempo_coordinator_units` | number | Number of Tempo coordinator units        |
 | `s3_user` | string | S3 provider username credential                                | 1 |
 | `s3_password` | string | S3 provider password credential                                | 1 |
 | `s3_endpoint` | string | S3 provider endpoint                                           | 1 |

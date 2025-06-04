@@ -32,6 +32,7 @@ The module offers the following configurable inputs:
 | `model_name`| string | Name of the model that the charm is deployed on |  |
 | `querier_units`| number | Number of Tempo worker units with querier role | 1 |
 | `query_frontend_units`| number | Number of Tempo worker units with query-frontend role | 1 |
+| `coordinator_units`| number | Number of Tempo coordinator units | 1 |
 | `s3_integrator_name` | string | Name of the s3-integrator app | 1 |
 | `s3_bucket` | string | Name of the bucke in which Tempo stores traces | 1 |
 | `s3_user` | string | User to connect to the S3 provider | 1 |

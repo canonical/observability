@@ -44,6 +44,16 @@ variable "metrics_generator_units" {
   }
 }
 
+variable "coordinator_units" {
+  description = "Number of Tempo coordinator units"
+  type        = number
+  default     = 1
+  validation {
+    condition     = var.coordinator_units >= 1
+    error_message = "The number of units must be greater than or equal to 1."
+  }
+}
+
 
 variable "model_name" {
   description = "Model name"

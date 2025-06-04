@@ -26,6 +26,7 @@ The module offers the following configurable inputs:
 | - | - | - | - |
 | `channel`| string | Channel that the charms are deployed from | latest/edge |
 | `model_name`| string | Name of the model that the charm is deployed on |  |
+| `coordinator_units`| number | Number of Mimir coordinator units | 1 |
 | `read_units`| number | Number of Mimir worker units with the read role | 1 |
 | `write_units`| number | Number of Mimir worker units with the write role | 1 |
 | `backend_units`| number | Number of Mimir worker units with the backend role | 1 |

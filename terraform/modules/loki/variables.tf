@@ -61,16 +61,38 @@ variable "backend_units" {
   description = "Number of Loki worker units with the backend role"
   type        = number
   default     = 1
+  validation {
+    condition     = var.backend_units >= 1
+    error_message = "The number of units must be greater than or equal to 1."
+  }
 }
 
 variable "read_units" {
   description = "Number of Loki worker units with the read role"
   type        = number
   default     = 1
+  validation {
+    condition     = var.read_units >= 1
+    error_message = "The number of units must be greater than or equal to 1."
+  }
 }
 
 variable "write_units" {
   description = "Number of Loki worker units with the write role"
   type        = number
   default     = 1
+  validation {
+    condition     = var.write_units >= 1
+    error_message = "The number of units must be greater than or equal to 1."
+  }
+}
+
+variable "coordinator_units" {
+  description = "Number of Loki coordinator units"
+  type        = number
+  default     = 1
+  validation {
+    condition     = var.coordinator_units >= 1
+    error_message = "The number of units must be greater than or equal to 1."
+  }
 }
