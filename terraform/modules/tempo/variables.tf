@@ -4,6 +4,18 @@ variable "channel" {
   default     = "latest/edge"
 }
 
+variable "coordinator_revision" {
+  description = "Revision number of the coordinator charm"
+  type        = number
+  default     = null
+}
+
+variable "worker_revision" {
+  description = "Revision number of the worker charm"
+  type        = number
+  default     = null
+}
+
 variable "compactor_units" {
   description = "Number of Tempo worker units with compactor role"
   type        = number
