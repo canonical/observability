@@ -39,6 +39,7 @@ module "loki_coordinator" {
   app_name   = "loki"
   model = var.model
   channel    = var.channel
+  revision   = var.coordinator_revision
   units      = var.coordinator_units
 }
 
@@ -50,7 +51,8 @@ module "loki_backend" {
   config = {
     role-backend = true
   }
-  units = var.backend_units
+  revision = var.worker_revision
+  units    = var.backend_units
   depends_on = [
     module.loki_coordinator
   ]
@@ -64,7 +66,8 @@ module "loki_read" {
   config = {
     role-read = true
   }
-  units = var.read_units
+  revision = var.worker_revision
+  units    = var.read_units
   depends_on = [
     module.loki_coordinator
   ]
@@ -78,7 +81,8 @@ module "loki_write" {
   config = {
     role-write = true
   }
-  units = var.write_units
+  revision = var.worker_revision
+  units    = var.write_units
   depends_on = [
     module.loki_coordinator
   ]

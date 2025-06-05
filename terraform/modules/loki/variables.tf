@@ -9,6 +9,18 @@ variable "model" {
   type        = string
 }
 
+variable "coordinator_revision" {
+  description = "Revision number of the coordinator charm"
+  type        = number
+  default     = null
+}
+
+variable "worker_revision" {
+  description = "Revision number of the worker charm"
+  type        = number
+  default     = null
+}
+
 variable "s3_bucket" {
   description = "Bucket name"
   type        = string

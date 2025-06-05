@@ -2,6 +2,7 @@ module "tempo_coordinator" {
   source     = "git::https://github.com/canonical/tempo-coordinator-k8s-operator//terraform"
   model = var.model
   channel    = var.channel
+  revision   = var.coordinator_revision
   units      = var.coordinator_units
 }
 
@@ -14,7 +15,8 @@ module "tempo_querier" {
     role-all     = false
     role-querier = true
   }
-  units = var.querier_units
+  revision = var.worker_revision
+  units    = var.querier_units
   depends_on = [
     module.tempo_coordinator
   ]
@@ -28,7 +30,8 @@ module "tempo_query_frontend" {
     role-all            = false
     role-query-frontend = true
   }
-  units = var.query_frontend_units
+  revision = var.worker_revision
+  units    = var.query_frontend_units
   depends_on = [
     module.tempo_coordinator
   ]
@@ -42,7 +45,8 @@ module "tempo_ingester" {
     role-all      = false
     role-ingester = true
   }
-  units = var.ingester_units
+  revision = var.worker_revision
+  units    = var.ingester_units
   depends_on = [
     module.tempo_coordinator
   ]
@@ -56,7 +60,8 @@ module "tempo_distributor" {
     role-all         = false
     role-distributor = true
   }
-  units = var.distributor_units
+  revision = var.worker_revision
+  units    = var.distributor_units
   depends_on = [
     module.tempo_coordinator
   ]
@@ -70,7 +75,8 @@ module "tempo_compactor" {
     role-all       = false
     role-compactor = true
   }
-  units = var.compactor_units
+  revision = var.worker_revision
+  units    = var.compactor_units
   depends_on = [
     module.tempo_coordinator
   ]
@@ -84,7 +90,8 @@ module "tempo_metrics_generator" {
     role-all               = false
     role-metrics-generator = true
   }
-  units = var.metrics_generator_units
+  revision = var.worker_revision
+  units    = var.metrics_generator_units
   depends_on = [
     module.tempo_coordinator
   ]
