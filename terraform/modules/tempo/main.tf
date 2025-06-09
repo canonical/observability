@@ -1,6 +1,6 @@
 module "tempo_coordinator" {
   source     = "git::https://github.com/canonical/tempo-coordinator-k8s-operator//terraform"
-  model_name = var.model_name
+  model = var.model
   channel    = var.channel
   units      = var.coordinator_units
 }
@@ -8,7 +8,7 @@ module "tempo_coordinator" {
 module "tempo_querier" {
   source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name   = "tempo-querier"
-  model_name = var.model_name
+  model = var.model
   channel    = var.channel
   config = {
     role-all     = false
@@ -22,7 +22,7 @@ module "tempo_querier" {
 module "tempo_query_frontend" {
   source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name   = "tempo-query-frontend"
-  model_name = var.model_name
+  model = var.model
   channel    = var.channel
   config = {
     role-all            = false
@@ -36,7 +36,7 @@ module "tempo_query_frontend" {
 module "tempo_ingester" {
   source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name   = "tempo-ingester"
-  model_name = var.model_name
+  model = var.model
   channel    = var.channel
   config = {
     role-all      = false
@@ -50,7 +50,7 @@ module "tempo_ingester" {
 module "tempo_distributor" {
   source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name   = "tempo-distributor"
-  model_name = var.model_name
+  model = var.model
   channel    = var.channel
   config = {
     role-all         = false
@@ -64,7 +64,7 @@ module "tempo_distributor" {
 module "tempo_compactor" {
   source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name   = "tempo-compactor"
-  model_name = var.model_name
+  model = var.model
   channel    = var.channel
   config = {
     role-all       = false
@@ -78,7 +78,7 @@ module "tempo_compactor" {
 module "tempo_metrics_generator" {
   source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name   = "tempo-metrics-generator"
-  model_name = var.model_name
+  model = var.model
   channel    = var.channel
   config = {
     role-all               = false
@@ -93,7 +93,7 @@ module "tempo_metrics_generator" {
 # TODO: Replace s3_integrator resource to use its remote terraform module once available
 resource "juju_application" "s3_integrator" {
   name  = var.s3_integrator_name
-  model = var.model_name
+  model = var.model
   trust = true
 
   charm {
@@ -113,9 +113,9 @@ resource "terraform_data" "s3management" {
     juju_application.s3_integrator
   ]
   input = {
-    S3_USER       = var.s3_user
+    S3_USER       = var.s3_access_key
     S3_PASSWORD   = var.s3_password
-    MODEL_NAME    = var.model_name
+    MODEL_NAME    = var.model
     S3_INTEGRATOR = var.s3_integrator_name
   }
 
@@ -130,7 +130,7 @@ resource "terraform_data" "s3management" {
 #Integrations
 
 resource "juju_integration" "coordinator_to_s3_integrator" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = juju_application.s3_integrator.name
@@ -144,7 +144,7 @@ resource "juju_integration" "coordinator_to_s3_integrator" {
 }
 
 resource "juju_integration" "coordinator_to_querier" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.tempo_coordinator.app_name
@@ -158,7 +158,7 @@ resource "juju_integration" "coordinator_to_querier" {
 }
 
 resource "juju_integration" "coordinator_to_query_frontend" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.tempo_coordinator.app_name
@@ -172,7 +172,7 @@ resource "juju_integration" "coordinator_to_query_frontend" {
 }
 
 resource "juju_integration" "coordinator_to_ingester" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.tempo_coordinator.app_name
@@ -186,7 +186,7 @@ resource "juju_integration" "coordinator_to_ingester" {
 }
 
 resource "juju_integration" "coordinator_to_distributor" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.tempo_coordinator.app_name
@@ -200,7 +200,7 @@ resource "juju_integration" "coordinator_to_distributor" {
 }
 
 resource "juju_integration" "coordinator_to_compactor" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.tempo_coordinator.app_name
@@ -214,7 +214,7 @@ resource "juju_integration" "coordinator_to_compactor" {
 }
 
 resource "juju_integration" "coordinator_to_metrics_generator" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.tempo_coordinator.app_name

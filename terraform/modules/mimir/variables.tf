@@ -4,7 +4,7 @@ variable "channel" {
   default     = "latest/edge"
 }
 
-variable "model_name" {
+variable "model" {
   description = "Model name"
   type        = string
 }
@@ -15,14 +15,15 @@ variable "s3_bucket" {
   default     = "mimir"
 }
 
-variable "s3_user" {
-  description = "S3 user"
+variable "s3_access_key" {
+  description = "S3 access-key credential"
   type        = string
 }
 
-variable "s3_password" {
-  description = "S3 password"
+variable "s3_secret_key" {
+  description = "S3 secret-key credential"
   type        = string
+  sensitive   = true
 }
 
 variable "s3_endpoint" {

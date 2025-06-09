@@ -1,7 +1,7 @@
 # TODO: Replace s3_integrator resource to use its remote terraform module once available
 resource "juju_application" "s3_integrator" {
   name  = var.s3_integrator_name
-  model = var.model_name
+  model = var.model
   trust = true
 
   charm {
@@ -22,9 +22,9 @@ resource "terraform_data" "s3management" {
   ]
 
   input = {
-    S3_USER       = var.s3_user
-    S3_PASSWORD   = var.s3_password
-    MODEL_NAME    = var.model_name
+    S3_USER       = var.s3_access_key
+    S3_PASSWORD   = var.s3_secret_key
+    MODEL_NAME    = var.model
     S3_INTEGRATOR = var.s3_integrator_name
   }
 
@@ -39,7 +39,7 @@ resource "terraform_data" "s3management" {
 module "mimir_coordinator" {
   source     = "git::https://github.com/canonical/mimir-coordinator-k8s-operator//terraform"
   app_name   = "mimir"
-  model_name = var.model_name
+  model = var.model
   channel    = var.channel
   units      = var.coordinator_units
 }
@@ -47,7 +47,7 @@ module "mimir_coordinator" {
 module "mimir_read" {
   source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.read_name
-  model_name = var.model_name
+  model = var.model
   channel    = var.channel
   config = {
     role-read = true
@@ -61,7 +61,7 @@ module "mimir_read" {
 module "mimir_write" {
   source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.write_name
-  model_name = var.model_name
+  model = var.model
   channel    = var.channel
   config = {
     role-write = true
@@ -75,7 +75,7 @@ module "mimir_write" {
 module "mimir_backend" {
   source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name   = var.backend_name
-  model_name = var.model_name
+  model = var.model
   channel    = var.channel
   config = {
     role-backend = true
@@ -89,7 +89,7 @@ module "mimir_backend" {
 # -------------- # Integrations --------------
 
 resource "juju_integration" "coordinator_to_s3_integrator" {
-  model = var.model_name
+  model = var.model
   application {
     name     = juju_application.s3_integrator.name
     endpoint = "s3-credentials"
@@ -102,7 +102,7 @@ resource "juju_integration" "coordinator_to_s3_integrator" {
 }
 
 resource "juju_integration" "coordinator_to_read" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.mimir_coordinator.app_name
@@ -116,7 +116,7 @@ resource "juju_integration" "coordinator_to_read" {
 }
 
 resource "juju_integration" "coordinator_to_write" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.mimir_coordinator.app_name
@@ -130,7 +130,7 @@ resource "juju_integration" "coordinator_to_write" {
 }
 
 resource "juju_integration" "coordinator_to_backend" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.mimir_coordinator.app_name

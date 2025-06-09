@@ -9,8 +9,8 @@ variable "channel" {
   default     = "latest/edge"
 }
 
-variable "model_name" {
-  description = "Model name"
+variable "model" {
+  description = "Reference to an existing model resource or data source for the model to deploy to"
   type        = string
 }
 
@@ -25,13 +25,13 @@ variable "s3_endpoint" {
   type        = string
 }
 
-variable "s3_user" {
-  description = "User for S3"
+variable "s3_access_key" {
+  description = "S3 access-key credential"
   type        = string
 }
 
-variable "s3_password" {
-  description = "Password for S3"
+variable "s3_secret_key" {
+  description = "S3 secret-key credential"
   type        = string
   sensitive   = true
 }
