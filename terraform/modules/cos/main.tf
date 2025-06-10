@@ -52,29 +52,29 @@ module "mimir" {
 }
 
 module "ssc" {
-  count   = var.use_tls ? 1 : 0
-  source  = "git::https://github.com/canonical/self-signed-certificates-operator//terraform"
-  model   = var.model_name
-  channel = var.ssc_channel
+  count         = var.use_tls ? 1 : 0
+  source        = "git::https://github.com/canonical/self-signed-certificates-operator//terraform"
+  model         = var.model_name
+  channel       = var.ssc_channel
   anti_affinity = var.anti_affinity
 }
 
 module "tempo" {
-  source            = "git::https://github.com/canonical/observability//terraform/modules/tempo"
-  model_name        = var.model_name
-  channel           = var.channel
-  coordinator_units = var.coordinator_units
-  querier_units     = var.temporal_querier_units
-  query_frontend_units = var.temporal_query_frontend_units
-  ingester_units    = var.temporal_ingester_units
-  distributor_units = var.temporal_distributor_units
-  compactor_units   = var.temporal_compactor_units
+  source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo"
+  model_name              = var.model_name
+  channel                 = var.channel
+  coordinator_units       = var.coordinator_units
+  querier_units           = var.temporal_querier_units
+  query_frontend_units    = var.temporal_query_frontend_units
+  ingester_units          = var.temporal_ingester_units
+  distributor_units       = var.temporal_distributor_units
+  compactor_units         = var.temporal_compactor_units
   metrics_generator_units = var.temporal_metrics_generator_units
-  s3_bucket         = var.tempo_bucket
-  s3_endpoint       = var.s3_endpoint
-  s3_password       = var.s3_password
-  s3_user           = var.s3_user
-  anti_affinity     = var.anti_affinity
+  s3_bucket               = var.tempo_bucket
+  s3_endpoint             = var.s3_endpoint
+  s3_password             = var.s3_password
+  s3_user                 = var.s3_user
+  anti_affinity           = var.anti_affinity
 }
 
 module "traefik" {
