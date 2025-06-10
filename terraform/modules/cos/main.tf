@@ -95,7 +95,7 @@ module "traefik" {
   source   = "git::https://github.com/canonical/traefik-k8s-operator//terraform?ref=fix/tf-housekeeping"
   app_name = "traefik"
   model    = var.model
-  channel  = var.channel
+  channel  = var.traefik_channel
   config   = var.cloud == "aws" ? { "loadbalancer_annotations" = "service.beta.kubernetes.io/aws-load-balancer-scheme=internet-facing" } : {}
   revision = var.charm_revisions.traefik
 }
