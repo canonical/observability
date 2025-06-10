@@ -48,6 +48,12 @@ variable "mimir_bucket" {
   sensitive   = true
 }
 
+variable "anti_affinity" {
+  description = "Enable anti-affinity constraints across all HA modules (Mimir, Loki, Tempo)"
+  type        = bool
+  default     = true
+}
+
 variable "tempo_bucket" {
   description = "Tempo bucket name"
   type        = string
