@@ -109,7 +109,7 @@ resource "juju_integration" "alertmanager_grafana_dashboards" {
 
   application {
     name     = module.alertmanager.app_name
-    endpoint = module.alertmanager
+    endpoint = module.alertmanager.endpoints.grafana_dashboard
   }
 
   application {
