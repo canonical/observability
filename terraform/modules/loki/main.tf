@@ -1,3 +1,21 @@
+resource "juju_secret" "loki_s3_credentials_secret" {
+  model = var.model
+  name  = "loki_s3_credentials"
+  value = {
+    access-key = var.s3_access_key
+    secret-key = var.s3_secret_key
+  }
+  info = "Credentials for the S3 endpoint"
+}
+
+resource "juju_access_secret" "loki_s3_secret_access" {
+  model = var.model
+  applications = [
+    juju_application.s3_integrator.name
+  ]
+  secret_id = juju_secret.loki_s3_credentials_secret.secret_id
+}
+
 # TODO: Replace s3_integrator resource to use its remote terraform module once available
 resource "juju_application" "s3_integrator" {
   name  = var.s3_integrator_name
@@ -11,27 +29,9 @@ resource "juju_application" "s3_integrator" {
   config = {
     endpoint = var.s3_endpoint
     bucket   = var.s3_bucket
+    credentials = "secret:${juju_secret.loki_s3_credentials_secret.secret_id}"
   }
   units = 1
-}
-
-resource "terraform_data" "s3management" {
-  depends_on = [
-    juju_application.s3_integrator,
-  ]
-  input = {
-    S3_USER       = var.s3_access_key
-    S3_PASSWORD   = var.s3_secret_key
-    MODEL_NAME    = var.model
-    S3_INTEGRATOR = var.s3_integrator_name
-  }
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      juju wait-for application -m "${self.input.MODEL_NAME}" "${self.input.S3_INTEGRATOR}" --query='forEach(units,  unit => unit.workload-status=="blocked" && unit.agent-status=="idle")' --timeout=30m
-      juju run -m "${self.input.MODEL_NAME}" "${self.input.S3_INTEGRATOR}/leader" sync-s3-credentials access-key="${self.input.S3_USER}" secret-key="${self.input.S3_PASSWORD}"
-    EOT
-  }
 }
 
 module "loki_coordinator" {
