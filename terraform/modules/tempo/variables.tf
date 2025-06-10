@@ -4,6 +4,12 @@ variable "channel" {
   default     = "latest/edge"
 }
 
+variable "anti_affinity" {
+  description = "Enable anti-affinity constraints"
+  type        = bool
+  default     = true
+}
+
 variable "compactor_units" {
   description = "Number of Tempo worker units with compactor role"
   type        = number

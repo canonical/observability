@@ -40,6 +40,7 @@ module "loki_coordinator" {
   model_name = var.model_name
   channel    = var.channel
   units      = var.coordinator_units
+  constraints = var.anti_affinity ? "anti-pod.app.kubernetes.io/name=loki,anti-pod.topology-key=kubernetes.io/hostname" : null
 }
 
 module "loki_backend" {
@@ -47,6 +48,7 @@ module "loki_backend" {
   app_name   = var.backend_name
   model_name = var.model_name
   channel    = var.channel
+  constraints = var.anti_affinity ? "anti-pod.app.kubernetes.io/name=${var.backend_name},anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-backend = true
   }
@@ -61,6 +63,7 @@ module "loki_read" {
   app_name   = var.read_name
   model_name = var.model_name
   channel    = var.channel
+  constraints = var.anti_affinity ? "anti-pod.app.kubernetes.io/name=${var.read_name},anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-read = true
   }
@@ -75,6 +78,7 @@ module "loki_write" {
   app_name   = var.write_name
   model_name = var.model_name
   channel    = var.channel
+  constraints = var.anti_affinity ? "anti-pod.app.kubernetes.io/name=${var.write_name},anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-write = true
   }
