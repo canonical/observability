@@ -128,7 +128,7 @@ resource "juju_integration" "mimir_alertmanager" {
 
   application {
     name     = module.alertmanager.app_name
-    endpoint = module.alertmanager.provides.alerting
+    endpoint = module.alertmanager.endpoints.alerting
   }
 }
 
@@ -142,7 +142,7 @@ resource "juju_integration" "loki_alertmanager" {
 
   application {
     name     = module.alertmanager.app_name
-    endpoint = module.alertmanager.provides.alerting
+    endpoint = module.alertmanager.endpoints.alerting
   }
 }
 
@@ -151,7 +151,7 @@ resource "juju_integration" "agent_alertmanager_metrics" {
 
   application {
     name     = module.alertmanager.app_name
-    endpoint = module.alertmanager.provides.self_metrics_endpoint
+    endpoint = module.alertmanager.endpoints.self_metrics_endpoint
   }
 
   application {
@@ -165,7 +165,7 @@ resource "juju_integration" "grafana_source_alertmanager" {
 
   application {
     name     = module.alertmanager.app_name
-    endpoint = module.alertmanager.provides.grafana_source
+    endpoint = module.alertmanager.endpoints.grafana_source
   }
 
   application {
@@ -390,7 +390,7 @@ resource "juju_integration" "alertmanager_catalogue" {
 
   application {
     name     = module.alertmanager.app_name
-    endpoint = module.alertmanager.requires.catalogue
+    endpoint = module.alertmanager.endpoints.catalogue
   }
 }
 
@@ -448,7 +448,7 @@ resource "juju_integration" "alertmanager_ingress" {
 
   application {
     name     = module.alertmanager.app_name
-    endpoint = module.alertmanager.requires.ingress
+    endpoint = module.alertmanager.endpoints.ingress
   }
 }
 
