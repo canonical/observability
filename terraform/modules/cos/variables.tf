@@ -27,6 +27,7 @@ variable "charm_revisions" {
     loki_worker       = null
     mimir_coordinator = null
     mimir_worker      = null
+    ssc               = null
     tempo_coordinator = null
     tempo_worker      = null
     traefik           = null
