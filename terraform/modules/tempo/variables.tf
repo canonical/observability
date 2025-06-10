@@ -1,7 +1,11 @@
 variable "channel" {
   description = "Charms channel"
   type        = string
-  default     = "latest/edge"
+}
+
+variable "model" {
+  description = "Reference to an existing model resource or data source for the model to deploy to"
+  type        = string
 }
 
 variable "coordinator_revision" {
@@ -64,12 +68,6 @@ variable "coordinator_units" {
     condition     = var.coordinator_units >= 1
     error_message = "The number of units must be greater than or equal to 1."
   }
-}
-
-
-variable "model" {
-  description = "Model name"
-  type        = string
 }
 
 variable "querier_units" {

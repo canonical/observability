@@ -37,20 +37,20 @@ resource "terraform_data" "s3management" {
 }
 
 module "mimir_coordinator" {
-  source     = "git::https://github.com/canonical/mimir-coordinator-k8s-operator//terraform"
-  app_name   = "mimir"
-  model = var.model
-  channel    = var.channel
-  revision   = var.coordinator_revision
-  units      = var.coordinator_units
+  source   = "git::https://github.com/canonical/mimir-coordinator-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  app_name = "mimir"
+  model    = var.model
+  channel  = var.channel
+  revision = var.coordinator_revision
+  units    = var.coordinator_units
 }
 
 module "mimir_read" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.read_name
-  model = var.model
-  channel    = var.channel
-  revision   = var.worker_revision
+  source   = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  app_name = var.read_name
+  model    = var.model
+  channel  = var.channel
+  revision = var.worker_revision
   config = {
     role-read = true
   }
@@ -61,11 +61,11 @@ module "mimir_read" {
 }
 
 module "mimir_write" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.write_name
-  model = var.model
-  channel    = var.channel
-  revision   = var.worker_revision
+  source   = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  app_name = var.write_name
+  model    = var.model
+  channel  = var.channel
+  revision = var.worker_revision
   config = {
     role-write = true
   }
@@ -76,11 +76,11 @@ module "mimir_write" {
 }
 
 module "mimir_backend" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.backend_name
-  model = var.model
-  channel    = var.channel
-  revision   = var.worker_revision
+  source   = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  app_name = var.backend_name
+  model    = var.model
+  channel  = var.channel
+  revision = var.worker_revision
   config = {
     role-backend = true
   }

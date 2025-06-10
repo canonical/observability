@@ -3,15 +3,34 @@
 locals {
   clouds = ["aws", "self-managed"]
 }
+
 variable "channel" {
   description = "Charms channel"
   type        = string
-  default     = "latest/edge"
 }
 
 variable "model" {
   description = "Reference to an existing model resource or data source for the model to deploy to"
   type        = string
+}
+
+variable "charm_revisions" {
+  description = "Map of revision numbers for the charms"
+  type        = map(number)
+  # TODO Try to deploy ommitting some to see if it equates to null
+  default = {
+    alertmanager      = null
+    catalogue         = null
+    grafana           = null
+    grafana_agent     = null
+    loki_coordinator  = null
+    loki_worker       = null
+    mimir_coordinator = null
+    mimir_worker      = null
+    tempo_coordinator = null
+    tempo_worker      = null
+    traefik           = null
+  }
 }
 
 variable "use_tls" {
@@ -52,6 +71,42 @@ variable "tempo_bucket" {
   description = "Tempo bucket name"
   type        = string
   sensitive   = true
+}
+
+variable "loki_coordinator_revision" {
+  description = "Revision number of the Loki coordinator charm"
+  type        = number
+  default     = null
+}
+
+variable "loki_worker_revision" {
+  description = "Revision number of the Loki worker charm"
+  type        = number
+  default     = null
+}
+
+variable "mimir_coordinator_revision" {
+  description = "Revision number of the Mimir coordinator charm"
+  type        = number
+  default     = null
+}
+
+variable "mimir_worker_revision" {
+  description = "Revision number of the Mimir worker charm"
+  type        = number
+  default     = null
+}
+
+variable "tempo_coordinator_revision" {
+  description = "Revision number of the Tempo coordinator charm"
+  type        = number
+  default     = null
+}
+
+variable "tempo_worker_revision" {
+  description = "Revision number of the Tempo worker charm"
+  type        = number
+  default     = null
 }
 
 variable "loki_backend_units" {
@@ -155,10 +210,16 @@ variable "cloud" {
   }
 }
 
-# unlike other COS charms, ssc doesn't have a "latest" track for ubuntu@24.04 base.
+# O11y does not own this charm, so we allow users to specify the channel directly.
 variable "ssc_channel" {
-  description = "self-signed certificates charm channel."
+  description = "Channel that the self-signed certificates charm is deployed from"
   type        = string
   default     = "latest/edge"
 }
 
+# O11y does not own this charm, so we allow users to specify the channel directly.
+variable "traefik_channel" {
+  description = "Channel that the traefik charm is deployed from"
+  type        = string
+  default     = "latest/edge"
+}

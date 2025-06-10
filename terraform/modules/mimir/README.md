@@ -1,4 +1,4 @@
-Terraform module for Mimir solution
+# Terraform module for Mimir solution
 
 This is a Terraform module facilitating the deployment of Mimir solution, using the [Terraform juju provider](https://github.com/juju/terraform-provider-juju/). For more information, refer to the provider [documentation](https://registry.terraform.io/providers/juju/juju/latest/docs).
 
@@ -22,29 +22,28 @@ This module requires a `juju` model to be available. Refer to the [usage section
 ### Inputs
 The module offers the following configurable inputs:
 
-| Name | Type | Description | Required |
+| Name | Type | Description | Default |
 | - | - | - | - |
-| `channel`| string | Channel that the charms are deployed from | latest/edge |
-| `model_name`| string | Name of the model that the charm is deployed on |  |
+| `channel`| string | Channel that the charms are deployed from |  |
+| `model`| string | Name of the model that the charm is deployed on |  |
 | `coordinator_units`| number | Number of Mimir coordinator units | 1 |
 | `read_units`| number | Number of Mimir worker units with the read role | 1 |
 | `write_units`| number | Number of Mimir worker units with the write role | 1 |
 | `backend_units`| number | Number of Mimir worker units with the backend role | 1 |
 | `s3_integrator_name` | string | Name of the s3-integrator app | 1 |
 | `s3_bucket` | string | Name of the bucke in which Mimir stores metrics | 1 |
-| `s3_user` | string | User to connect to the S3 provider | 1 |
-| `s3_password` | string | Password to connect to the S3 provider | 1 |
+| `s3_access_key` | string | Access key credential to connect to the S3 provider | 1 |
+| `s3_secret_key` | string | Secret key credential to connect to the S3 provider | 1 |
 | `s3_endpoint` | string | Endpoint of the S3 provider | 1 |
 
 
 ### Outputs
 Upon application, the module exports the following outputs:
 
-| Name | Description |
-| - | - |
-| `app_name`|  Application name |
-| `provides`| Map of `provides` endpoints |
-| `requires`|  Map of `requires` endpoints |
+| Name | Type | Description |
+| - | - | - |
+| `app_name`| string | Name of the deployed application |
+| `endpoints`| map(string) | Map of all `provides` and `requires` endpoints |
 
 ## Usage
 

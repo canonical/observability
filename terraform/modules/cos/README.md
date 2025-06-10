@@ -1,17 +1,19 @@
-Terraform module for COS solution
+# Terraform module for COS solution
 
 This is a Terraform module facilitating the deployment of COS solution, using the [Terraform juju provider](https://github.com/juju/terraform-provider-juju/). For more information, refer to the provider [documentation](https://registry.terraform.io/providers/juju/juju/latest/docs).
 
 The HA solution consists of the following Terraform modules:
-- [grafana-k8s](https://github.com/canonical/grafana-k8s-operator): Visualization, monitoring, and dashboards.
-- [alertmanager-k8s](https://github.com/canonical/alertmanager-k8s-operator): Handles alerts sent by clients applications.
-- [mimir](https://github.com/canonical/observability/tree/main/terraform/modules/mimir): Backend for metrics
-- [loki](https://github.com/canonical/observability/tree/main/terraform/modules/loki): Backend for logs
-- [tempo](https://github.com/canonical/observability/tree/main/terraform/modules/tempo): Backend for traces
+- [alertmanager-k8s](https://github.com/canonical/alertmanager-k8s-operator/tree/main/terraform): Handles alerts sent by clients applications.
+- [grafana-k8s](https://github.com/canonical/grafana-k8s-operator/tree/main/terraform): Visualization, monitoring, and dashboards.
+- [grafana-agent-k8s](https://github.com/canonical/grafana-agent-k8s-operator/tree/main/terraform): Aggregate and send telemetry data.
+- [loki](https://github.com/canonical/observability/tree/main/terraform/modules/loki): Backend for logs.
+- [mimir](https://github.com/canonical/observability/tree/main/terraform/modules/mimir): Backend for metrics.
+- [tempo](https://github.com/canonical/observability/tree/main/terraform/modules/tempo): Backend for traces.
 - [s3-integrator](https://github.com/canonical/s3-integrator): facade for S3 storage configurations.
-- [self-signed-certificates](https://github.com/canonical/self-signed-certificates-operator): certificates operator to secure traffic with TLS.
+- [self-signed-certificates](https://github.com/canonical/self-signed-certificates-operator/tree/main/terraform): certificates operator to secure traffic with TLS.
+- [traefik](https://github.com/canonical/traefik-k8s-operator/tree/main/terraform): ingress.
 
-This Terraform module deploys COS with Mimir, Tempo and Loki in their microservices modes, and grafana, prometheus, and loki in monolithic mode.
+This Terraform module deploys COS with Mimir, Tempo and Loki in their microservices modes, and other charms in monolithic mode.
 
 > [!NOTE]
 > `s3-integrator` itself doesn't act as an S3 object storage system. For the HA solution to be functional, `s3-integrator` needs to point to an S3-like storage. See [this guide](https://discourse.charmhub.io/t/cos-lite-docs-set-up-minio/15211) to learn how to connect to an S3-like storage for traces.
@@ -24,46 +26,44 @@ This module requires a `juju` model to be available. Refer to the [usage section
 ### Inputs
 The module offers the following configurable inputs:
 
-| Name | Type | Description                                                    | Required |
+| Name | Type | Description                                                    | Default |
 | - | - |----------------------------------------------------------------| - |
-| `channel` | string | Channel that all the charms are deployed from                  | latest/edge |
-| `model_name` | string | Name of the model to deploy COS in                             |  |
+| `channel` | string | Channel that all the charms (unless overwritten) are deployed from |
+| `ssc_channel` | string | Channel that the self-signed certificates charm is deployed from | latest/edge |
+| `traefik_channel` | string | Channel that the traefik charm is deployed from | latest/edge |
+| `model` | string | Reference to an existing model resource or data source for the model to deploy to |
 | `use_tls` | bool | Specify whether to use TLS or not for in-cluster communication |
-| `loki_backend_units` | number | Number of Loki worker units with `backend` role                |
-| `loki_backend_units` | number | Number of Loki worker units with `backend` role                |
-| `loki_read_units` | number | Number of Loki worker units with `read` role                   |
-| `loki_write_units` | number | Number of Loki worker units with `write` role                  |
-| `loki_coordinator_units` | number | Number of Loki coordinator units                 |
-| `mimir_backend_units` | number | Number of Mimir worker units with `backend` role               |
-| `mimir_read_units` | number | Number of Mimir worker units with `read` role                  |
-| `mimir_write_units` | number | Number of Mimir worker units with `write` role                 |
-| `mimir_coordinator_units` | number | Number of Mimir coordinator units                 |
-| `tempo_compactor_units` | number | Number of Tempo worker units with `compactor` role             |
-| `tempo_distributor_units` | number | Number of Tempo worker units with `distributor` role           |
-| `tempo_ingester_units` | number | Number of Tempo worker units with `ingester` role              |
-| `tempo_metrics_generator_units` | number | Number of Tempo worker units with `metrics_generator` role     |
-| `tempo_querier_units` | number | Number of Tempo worker units with `querier` role               |
-| `tempo_query_frontend_units` | number | Number of Tempo worker units with `query_frontend` role        |
-| `tempo_coordinator_units` | number | Number of Tempo coordinator units        |
-| `s3_user` | string | S3 provider username credential                                | 1 |
-| `s3_password` | string | S3 provider password credential                                | 1 |
+| `loki_coordinator_units` | number | Number of Loki coordinator units |
+| `loki_backend_units` | number | Number of Loki worker units with `backend` role |
+| `loki_read_units` | number | Number of Loki worker units with `read` role |
+| `loki_write_units` | number | Number of Loki worker units with `write` role |
+| `mimir_coordinator_units` | number | Number of Mimir coordinator units |
+| `mimir_backend_units` | number | Number of Mimir worker units with `backend` role |
+| `mimir_read_units` | number | Number of Mimir worker units with `read` role |
+| `mimir_write_units` | number | Number of Mimir worker units with `write` role |
+| `tempo_coordinator_units` | number | Number of Tempo coordinator units |
+| `tempo_compactor_units` | number | Number of Tempo worker units with `compactor` role |
+| `tempo_distributor_units` | number | Number of Tempo worker units with `distributor` role |
+| `tempo_ingester_units` | number | Number of Tempo worker units with `ingester` role |
+| `tempo_metrics_generator_units` | number | Number of Tempo worker units with `metrics_generator` role |
+| `tempo_querier_units` | number | Number of Tempo worker units with `querier` role |
+| `tempo_query_frontend_units` | number | Number of Tempo worker units with `query_frontend` role |
+| `s3_access_key` | string | Access key credential to connect to the S3 provider | 1 |
+| `s3_secret_key` | string | Secret key credential to connect to the S3 provider | 1 |
 | `s3_endpoint` | string | S3 provider endpoint                                           | 1 |
 | `loki_bucket` | string | Name of the bucket in which Loki should store its logs         | 1 |
 | `mimir_bucket` | string | Name of the bucket in which Mimir should store its metrics     | 1 |
 | `tempo_bucket` | string | Name of the bucket in which Tempo should store its traces      | 1 |
 | `cloud` | string | Kubernetes cloud or environment where this COS module will be deployed | self-managed |
-| `ssc_channel` | string | self-signed certificates charm channel | latest/edge |
-
 
 
 ### Outputs
 Upon application, the module exports the following outputs:
 
-| Name | Description |
-| - | - |
-| `app_name`|  Application name |
-| `provides`| Map of `provides` endpoints |
-| `requires`|  Map of `requires` endpoints |
+| Name | Type | Description |
+| - | - | - |
+| `app_name`| string | Name of the deployed application |
+| `endpoints`| map(string) | Map of all `provides` and `requires` endpoints |
 
 ## Usage
 
@@ -72,14 +72,14 @@ Upon application, the module exports the following outputs:
 
 Users should ensure that Terraform is aware of the `juju_model` dependency of the charm module.
 
-To deploy this module with its needed dependency, you can run `terraform apply -var="model_name=<MODEL_NAME>" -auto-approve`. This would deploy all COS HA solution modules in the same model.
+To deploy this module with its needed dependency, you can run `terraform apply -var="model=<MODEL_NAME>" -auto-approve`. This would deploy all COS HA solution modules in the same model.
 
 ### High Availability
 
 By default, this Terraform module will deploy each worker with `1` unit. If you want to scale each Loki, Mimir or Tempo worker unit please check the variables available for that purpose in `variables.tf`. For instance to deploy 3 units of each Loki worker, you can run:
 
 ```shell
-terraform apply -var='minio_password=Password' -var='minio_user=User' -var='model_name=test'\
+terraform apply -var='minio_password=Password' -var='minio_user=User' -var='model=test'\
 -var='loki_backend_units=3' -var='loki_read_units=3' -var='loki_write_units=3'
 ```
 
@@ -95,8 +95,8 @@ module "cos" {
   model_name   = var.model_name
   channel      = var.channel
   s3_endpoint  = var.s3_endpoint
-  s3_password  = var.s3_password
-  s3_user      = var.s3_user
+  s3_access_key  = var.s3_access_key
+  s3_secret_key  = var.s3_secret_key
   loki_bucket  = var.loki_bucket
   mimir_bucket = var.mimir_bucket
   tempo_bucket = var.tempo_bucket
@@ -121,7 +121,7 @@ variable "channel" {
   default     = "latest/edge"
 }
 
-variable "model_name" {
+variable "model" {
   description = "Model name"
   type        = string
 }
@@ -137,14 +137,14 @@ variable "s3_endpoint" {
   type        = string
 }
 
-variable "s3_user" {
-  description = "S3 user"
+variable "s3_access_key" {
+  description = "Access key credential to connect to the S3 provider"
   type        = string
   sensitive   = true
 }
 
-variable "s3_password" {
-  description = "S3 password"
+variable "s3_secret_key" {
+  description = "Secret key credential to connect to the S3 provider"
   type        = string
   sensitive   = true
 }
@@ -244,8 +244,8 @@ Then, use terraform to deploy the module, using 3 units per worker:
 ```shell
 terraform init
 
-terraform apply -var='s3_password=bar' -var='s3_user=foo' -var='s3_endpoint=http://192.168.1.145' \
--var='loki_bucket=loki' -var='model_name=cos' -var='mimir_bucket=mimir' -var='tempo_bucket=tempo' \
+terraform apply -var='s3_secret_key=bar' -var='s3_access_key=foo' -var='s3_endpoint=http://192.168.1.145' \
+-var='loki_bucket=loki' -var='model=cos' -var='mimir_bucket=mimir' -var='tempo_bucket=tempo' \
 -var='loki_backend_units=3' -var='loki_read_units=3' -var='loki_write_units=3' \
 -var='mimir_backend_units=3' -var='mimir_read_units=3' -var='mimir_write_units=3' \
 -var='tempo_compactor_units=3' -var='tempo_distributor_units=3' -var='tempo_ingester_units=3' \
@@ -411,8 +411,8 @@ module "cos" {
   model_name                    = var.model_name
   channel                       = var.channel
   s3_endpoint                   = var.s3_endpoint
-  s3_password                   = var.s3_password
-  s3_user                       = var.s3_user
+  s3_access_key                 = var.s3_access_key
+  s3_secret_key                 = var.s3_secret_key
   loki_bucket                   = var.loki_bucket
   mimir_bucket                  = var.mimir_bucket
   tempo_bucket                  = var.tempo_bucket
@@ -454,14 +454,14 @@ variable "s3_endpoint" {
   type        = string
 }
 
-variable "s3_user" {
-  description = "S3 user"
+variable "s3_access_key" {
+  description = "S3 access key"
   type        = string
   sensitive   = true
 }
 
-variable "s3_password" {
-  description = "S3 password"
+variable "s3_secret_key" {
+  description = "S3 secret key"
   type        = string
   sensitive   = true
 }
@@ -577,8 +577,8 @@ cloud = "aws"
 ssc_channel  = "1/edge"
 model        = "<model-name>"
 s3_endpoint  = "<s3-endpoint>"
-s3_user      = "<s3-user>"
-s3_password  = "<s3-user>"
+s3_access_key  = "<s3-access-key>"
+s3_secret_key  = "<s3-secret-key>"
 loki_bucket  = "<loki-bucket>"
 mimir_bucket = "<mimir-bucket>"
 tempo_bucket = "<tempo-bucket>"

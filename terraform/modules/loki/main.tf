@@ -35,19 +35,19 @@ resource "terraform_data" "s3management" {
 }
 
 module "loki_coordinator" {
-  source     = "git::https://github.com/canonical/loki-coordinator-k8s-operator//terraform"
-  app_name   = "loki"
-  model = var.model
-  channel    = var.channel
-  revision   = var.coordinator_revision
-  units      = var.coordinator_units
+  source   = "git::https://github.com/canonical/loki-coordinator-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  app_name = "loki"
+  model    = var.model
+  channel  = var.channel
+  revision = var.coordinator_revision
+  units    = var.coordinator_units
 }
 
 module "loki_backend" {
-  source     = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
-  app_name   = var.backend_name
-  model = var.model
-  channel    = var.channel
+  source   = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  app_name = var.backend_name
+  model    = var.model
+  channel  = var.channel
   config = {
     role-backend = true
   }
@@ -59,10 +59,10 @@ module "loki_backend" {
 }
 
 module "loki_read" {
-  source     = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
-  app_name   = var.read_name
-  model = var.model
-  channel    = var.channel
+  source   = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  app_name = var.read_name
+  model    = var.model
+  channel  = var.channel
   config = {
     role-read = true
   }
@@ -74,10 +74,10 @@ module "loki_read" {
 }
 
 module "loki_write" {
-  source     = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
-  app_name   = var.write_name
-  model = var.model
-  channel    = var.channel
+  source   = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  app_name = var.write_name
+  model    = var.model
+  channel  = var.channel
   config = {
     role-write = true
   }
