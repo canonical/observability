@@ -8,6 +8,11 @@ on:
         type: boolean
         default: false
         required: true
+      track:
+        description: "The track for which promotions should be run"
+        type: string
+        default: "1"
+        required: true
 
 jobs:
   promote:
@@ -80,9 +85,9 @@ jobs:
           cd ${{ steps.read-charm-path.outputs.charm_path }}
           charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
           status=$(charmcraft status "$charm_name" --format=json)
-          to_stable=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/stable") | .status' | head -n1)
-          to_candidate=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/candidate") | .status' | head -n1)
-          to_beta=$(echo "$status" | jq -r '.[] | select(.track == "latest") | .mappings[].releases[] | select(.channel == "latest/beta") | .status' | head -n1)
+          to_stable=$(echo "$status" | jq -r '.[] | select(.track == "${{ inputs.track }}") | .mappings[].releases[] | select(.channel == "${{ inputs.track }}/stable") | .status' | head -n1)
+          to_candidate=$(echo "$status" | jq -r '.[] | select(.track == "${{ inputs.track }}") | .mappings[].releases[] | select(.channel == "${{ inputs.track }}/candidate") | .status' | head -n1)
+          to_beta=$(echo "$status" | jq -r '.[] | select(.track == "${{ inputs.track }}") | .mappings[].releases[] | select(.channel == "${{ inputs.track }}/beta") | .status' | head -n1)
           { \
             echo "charm_name=$charm_name"; \
             echo "to_stable=$to_stable"; \
@@ -95,14 +100,16 @@ jobs:
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
           CHARM_NAME: "${{ steps.check-tracks.outputs.charm_name }}"
+          TRACK: ${{ inputs.track }}
         run: |
-          noctua charm promote-train "$CHARM_NAME" --track=latest --dry-run
+          noctua charm promote-train "$CHARM_NAME" --track="$TRACK" --dry-run
 
       - name: Run the promote train
         if: ${{ !inputs.dry-run && steps.check-tracks.outputs.to_stable == 'open' }}
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
           CHARM_NAME: "${{ steps.check-tracks.outputs.charm_name }}"
+          TRACK: ${{ inputs.track }}
         run: |
-          noctua charm promote-train "$CHARM_NAME" --track=latest
+          noctua charm promote-train "$CHARM_NAME" --track="$TRACK" 
 
