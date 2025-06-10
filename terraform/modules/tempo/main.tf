@@ -3,7 +3,7 @@ module "tempo_coordinator" {
   model_name  = var.model_name
   channel     = var.channel
   units       = var.coordinator_units
-  constraints = var.anti_affinity ? "anti-pod.app.kubernetes.io/name=tempo,anti-pod.topology-key=kubernetes.io/hostname" : null
+  constraints = var.anti_affinity ? "tags=anti-pod.app.kubernetes.io/name=tempo,anti-pod.topology-key=kubernetes.io/hostname" : null
 }
 
 module "tempo_querier" {
@@ -11,7 +11,7 @@ module "tempo_querier" {
   app_name    = "tempo-querier"
   model_name  = var.model_name
   channel     = var.channel
-  constraints = var.anti_affinity ? "anti-pod.app.kubernetes.io/name=tempo-querier,anti-pod.topology-key=kubernetes.io/hostname" : null
+  constraints = var.anti_affinity ? "tags=anti-pod.app.kubernetes.io/name=tempo-querier,anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-all     = false
     role-querier = true
@@ -26,7 +26,7 @@ module "tempo_query_frontend" {
   app_name    = "tempo-query-frontend"
   model_name  = var.model_name
   channel     = var.channel
-  constraints = var.anti_affinity ? "anti-pod.app.kubernetes.io/name=tempo-query-frontend,anti-pod.topology-key=kubernetes.io/hostname" : null
+  constraints = var.anti_affinity ? "tags=anti-pod.app.kubernetes.io/name=tempo-query-frontend,anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-all            = false
     role-query-frontend = true
@@ -41,7 +41,7 @@ module "tempo_ingester" {
   app_name    = "tempo-ingester"
   model_name  = var.model_name
   channel     = var.channel
-  constraints = var.anti_affinity ? "anti-pod.app.kubernetes.io/name=tempo-ingester,anti-pod.topology-key=kubernetes.io/hostname" : null
+  constraints = var.anti_affinity ? "tags=anti-pod.app.kubernetes.io/name=tempo-ingester,anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-all      = false
     role-ingester = true
@@ -56,7 +56,7 @@ module "tempo_distributor" {
   app_name    = "tempo-distributor"
   model_name  = var.model_name
   channel     = var.channel
-  constraints = var.anti_affinity ? "anti-pod.app.kubernetes.io/name=tempo-distributor,anti-pod.topology-key=kubernetes.io/hostname" : null
+  constraints = var.anti_affinity ? "tags=anti-pod.app.kubernetes.io/name=tempo-distributor,anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-all         = false
     role-distributor = true
@@ -71,7 +71,7 @@ module "tempo_compactor" {
   app_name    = "tempo-compactor"
   model_name  = var.model_name
   channel     = var.channel
-  constraints = var.anti_affinity ? "anti-pod.app.kubernetes.io/name=tempo-compactor,anti-pod.topology-key=kubernetes.io/hostname" : null
+  constraints = var.anti_affinity ? "tags=anti-pod.app.kubernetes.io/name=tempo-compactor,anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-all       = false
     role-compactor = true
@@ -86,7 +86,7 @@ module "tempo_metrics_generator" {
   app_name    = "tempo-metrics-generator"
   model_name  = var.model_name
   channel     = var.channel
-  constraints = var.anti_affinity ? "anti-pod.app.kubernetes.io/name=tempo-metrics-generator,anti-pod.topology-key=kubernetes.io/hostname" : null
+  constraints = var.anti_affinity ? "tags=anti-pod.app.kubernetes.io/name=tempo-metrics-generator,anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-all               = false
     role-metrics-generator = true
