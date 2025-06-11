@@ -4,6 +4,12 @@ variable "channel" {
   default     = "latest/edge"
 }
 
+variable "anti_affinity" {
+  description = "Enable anti-affinity constraints."
+  type        = bool
+  default     = true
+}
+
 variable "model_name" {
   description = "Model name"
   type        = string
