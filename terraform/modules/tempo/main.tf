@@ -23,12 +23,13 @@ resource "juju_application" "s3_integrator" {
   trust = true
 
   charm {
-    name    = "s3-integrator"
-    channel = var.channel
+    name     = "s3-integrator"
+    channel  = var.s3_integrator_channel
+    revision = var.s3_integrator_revision
   }
   config = {
-    endpoint = var.s3_endpoint
-    bucket   = var.s3_bucket
+    endpoint    = var.s3_endpoint
+    bucket      = var.s3_bucket
     credentials = "secret:${juju_secret.tempo_s3_credentials_secret.secret_id}"
   }
   units = 1
@@ -43,7 +44,7 @@ module "tempo_coordinator" {
 }
 
 module "tempo_querier" {
-  source   = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name = "tempo-querier"
   model    = var.model
   channel  = var.channel
@@ -57,8 +58,9 @@ module "tempo_querier" {
     module.tempo_coordinator
   ]
 }
+
 module "tempo_query_frontend" {
-  source   = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name = "tempo-query-frontend"
   model    = var.model
   channel  = var.channel
@@ -72,8 +74,9 @@ module "tempo_query_frontend" {
     module.tempo_coordinator
   ]
 }
+
 module "tempo_ingester" {
-  source   = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name = "tempo-ingester"
   model    = var.model
   channel  = var.channel
@@ -87,8 +90,9 @@ module "tempo_ingester" {
     module.tempo_coordinator
   ]
 }
+
 module "tempo_distributor" {
-  source   = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name = "tempo-distributor"
   model    = var.model
   channel  = var.channel
@@ -102,8 +106,9 @@ module "tempo_distributor" {
     module.tempo_coordinator
   ]
 }
+
 module "tempo_compactor" {
-  source   = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name = "tempo-compactor"
   model    = var.model
   channel  = var.channel
@@ -117,8 +122,9 @@ module "tempo_compactor" {
     module.tempo_coordinator
   ]
 }
+
 module "tempo_metrics_generator" {
-  source   = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
   app_name = "tempo-metrics-generator"
   model    = var.model
   channel  = var.channel

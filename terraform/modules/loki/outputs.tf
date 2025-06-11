@@ -28,9 +28,3 @@ output "endpoints" {
     self_metrics_endpoint       = "self-metrics-endpoint",
   }
 }
-
-
-output "s3_integrator_name" {
-  value       = var.s3_integrator_name
-  description = "Name of the s3-integrator for Loki"
-}

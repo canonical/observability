@@ -23,8 +23,9 @@ resource "juju_application" "s3_integrator" {
   trust = true
 
   charm {
-    name    = "s3-integrator"
-    channel = var.channel
+    name     = "s3-integrator"
+    channel  = var.s3_integrator_channel
+    revision = var.s3_integrator_revision
   }
   config = {
     endpoint    = var.s3_endpoint
@@ -36,7 +37,7 @@ resource "juju_application" "s3_integrator" {
 }
 
 module "mimir_coordinator" {
-  source   = "git::https://github.com/canonical/mimir-coordinator-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/mimir-coordinator-k8s-operator//terraform"
   app_name = "mimir"
   model    = var.model
   channel  = var.channel
@@ -45,7 +46,7 @@ module "mimir_coordinator" {
 }
 
 module "mimir_read" {
-  source   = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name = var.read_name
   model    = var.model
   channel  = var.channel
@@ -60,7 +61,7 @@ module "mimir_read" {
 }
 
 module "mimir_write" {
-  source   = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name = var.write_name
   model    = var.model
   channel  = var.channel
@@ -75,7 +76,7 @@ module "mimir_write" {
 }
 
 module "mimir_backend" {
-  source   = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
   app_name = var.backend_name
   model    = var.model
   channel  = var.channel

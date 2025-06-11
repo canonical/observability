@@ -40,13 +40,12 @@ The module offers the following configurable inputs:
 | `s3_endpoint` | string | Endpoint of the S3 provider | 1 |
 
 
-
 ### Outputs
 Upon application, the module exports the following outputs:
 
 | Name | Type | Description |
 | - | - | - |
-| `app_name`| string | Name of the deployed application |
+| `app_names`| map(string) | Names of the deployed applications |
 | `endpoints`| map(string) | Map of all `provides` and `requires` endpoints |
 
 ## Usage

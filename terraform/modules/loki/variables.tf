@@ -1,6 +1,12 @@
 variable "channel" {
-  description = "Charms channel"
+  description = "Channel that the charms are deployed from"
   type        = string
+}
+
+variable "s3_integrator_channel" {
+  description = "Channel that the s3-integrator charm is deployed from"
+  type        = string
+  default     = "2/edge"
 }
 
 variable "model" {
@@ -40,6 +46,13 @@ variable "s3_secret_key" {
 variable "s3_endpoint" {
   description = "S3 endpoint"
   type        = string
+}
+
+variable "s3_integrator_revision" {
+  description = "Revision number of the s3-integrator charm"
+  type        = number
+  # FIXME: This is a temporary fix until the spec for the s3-integrator is stable.
+  default = 157
 }
 
 # -------------- # App Names --------------

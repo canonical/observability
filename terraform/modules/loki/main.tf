@@ -23,12 +23,13 @@ resource "juju_application" "s3_integrator" {
   trust = true
 
   charm {
-    name    = "s3-integrator"
-    channel = var.channel
+    name     = "s3-integrator"
+    channel  = var.s3_integrator_channel
+    revision = var.s3_integrator_revision
   }
   config = {
-    endpoint = var.s3_endpoint
-    bucket   = var.s3_bucket
+    endpoint    = var.s3_endpoint
+    bucket      = var.s3_bucket
     credentials = "secret:${juju_secret.loki_s3_credentials_secret.secret_id}"
   }
   units = 1
@@ -44,7 +45,7 @@ module "loki_coordinator" {
 }
 
 module "loki_backend" {
-  source   = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
   app_name = var.backend_name
   model    = var.model
   channel  = var.channel
@@ -59,7 +60,7 @@ module "loki_backend" {
 }
 
 module "loki_read" {
-  source   = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
   app_name = var.read_name
   model    = var.model
   channel  = var.channel
@@ -74,7 +75,7 @@ module "loki_read" {
 }
 
 module "loki_write" {
-  source   = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
   app_name = var.write_name
   model    = var.model
   channel  = var.channel

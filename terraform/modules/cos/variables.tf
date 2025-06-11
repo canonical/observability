@@ -5,7 +5,7 @@ locals {
 }
 
 variable "channel" {
-  description = "Charms channel"
+  description = "Channel that the charms are (unless overwritten by external_channels) deployed from"
   type        = string
 }
 
@@ -14,31 +14,44 @@ variable "model" {
   type        = string
 }
 
-variable "charm_revisions" {
-  description = "Map of revision numbers for the charms"
-  type        = map(number)
-  # TODO Try to deploy ommitting some to see if it equates to null
-  default = {
-    alertmanager      = null
-    catalogue         = null
-    grafana           = null
-    grafana_agent     = null
-    loki_coordinator  = null
-    loki_worker       = null
-    mimir_coordinator = null
-    mimir_worker      = null
-    ssc               = null
-    tempo_coordinator = null
-    tempo_worker      = null
-    traefik           = null
-  }
-}
-
 variable "use_tls" {
   description = "Specify whether to use TLS or not for coordinator-worker communication. By default, TLS is enabled through self-signed-certificates"
   type        = bool
   default     = true
 }
+
+variable "cloud" {
+  description = "Kubernetes cloud or environment where this COS module will be deployed (e.g self-managed, aws)"
+  type        = string
+  default     = "self-managed"
+  validation {
+    condition     = contains(local.clouds, var.cloud)
+    error_message = "Allowed values are: ${join(", ", local.clouds)}."
+  }
+}
+
+# -------------- # External channels --------------
+# O11y does not own these charms, so we allow users to specify their channels directly.
+
+variable "ssc_channel" {
+  description = "Channel that the self-signed certificates charm is deployed from"
+  type        = string
+  default     = "1/edge"
+}
+
+variable "s3_integrator_channel" {
+  description = "Channel that the self-signed certificates charm is deployed from"
+  type        = string
+  default     = "2/edge"
+}
+
+variable "traefik_channel" {
+  description = "Channel that the traefik charm is deployed from"
+  type        = string
+  default     = "latest/edge"
+}
+
+# -------------- # S3 storage configuration --------------
 
 variable "s3_endpoint" {
   description = "S3 endpoint"
@@ -74,6 +87,32 @@ variable "tempo_bucket" {
   sensitive   = true
 }
 
+# -------------- # Charm revisions --------------
+
+variable "alertmanager_revision" {
+  description = "Revision number of the Alertmanager charm"
+  type        = number
+  default     = null
+}
+
+variable "catalogue_revision" {
+  description = "Revision number of the Catalogue charm"
+  type        = number
+  default     = null
+}
+
+variable "grafana_revision" {
+  description = "Revision number of the Grafana charm"
+  type        = number
+  default     = null
+}
+
+variable "grafana_agent_revision" {
+  description = "Revision number of the Grafana agent charm"
+  type        = number
+  default     = null
+}
+
 variable "loki_coordinator_revision" {
   description = "Revision number of the Loki coordinator charm"
   type        = number
@@ -98,6 +137,18 @@ variable "mimir_worker_revision" {
   default     = null
 }
 
+variable "ssc_revision" {
+  description = "Revision number of the self-signed certificates charm"
+  type        = number
+  default     = null
+}
+
+variable "s3_integrator_revision" {
+  description = "Revision number of the s3-integrator charm"
+  type        = number
+  default     = 157 # FIXME: This is a temporary fix until the spec for the s3-integrator is stable.
+}
+
 variable "tempo_coordinator_revision" {
   description = "Revision number of the Tempo coordinator charm"
   type        = number
@@ -109,6 +160,14 @@ variable "tempo_worker_revision" {
   type        = number
   default     = null
 }
+
+variable "traefik_revision" {
+  description = "Revision number of the Traefik charm"
+  type        = number
+  default     = null
+}
+
+# -------------- # Charm unit counts --------------
 
 variable "loki_backend_units" {
   description = "Number of Loki worker units with backend role"
@@ -198,29 +257,4 @@ variable "tempo_coordinator_units" {
   description = "Number of Tempo coordinator units"
   type        = number
   default     = 3
-}
-
-
-variable "cloud" {
-  description = "Kubernetes cloud or environment where this COS module will be deployed (e.g self-managed, aws)"
-  type        = string
-  default     = "self-managed"
-  validation {
-    condition     = contains(local.clouds, var.cloud)
-    error_message = "Allowed values are: ${join(", ", local.clouds)}."
-  }
-}
-
-# O11y does not own this charm, so we allow users to specify the channel directly.
-variable "ssc_channel" {
-  description = "Channel that the self-signed certificates charm is deployed from"
-  type        = string
-  default     = "latest/edge"
-}
-
-# O11y does not own this charm, so we allow users to specify the channel directly.
-variable "traefik_channel" {
-  description = "Channel that the traefik charm is deployed from"
-  type        = string
-  default     = "latest/edge"
 }

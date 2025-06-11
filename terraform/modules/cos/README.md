@@ -33,6 +33,7 @@ The module offers the following configurable inputs:
 | `traefik_channel` | string | Channel that the traefik charm is deployed from | latest/edge |
 | `model` | string | Reference to an existing model resource or data source for the model to deploy to |
 | `use_tls` | bool | Specify whether to use TLS or not for in-cluster communication |
+| `cloud` | string | Kubernetes cloud or environment where this COS module will be deployed | self-managed |
 | `loki_coordinator_units` | number | Number of Loki coordinator units |
 | `loki_backend_units` | number | Number of Loki worker units with `backend` role |
 | `loki_read_units` | number | Number of Loki worker units with `read` role |
@@ -54,16 +55,35 @@ The module offers the following configurable inputs:
 | `loki_bucket` | string | Name of the bucket in which Loki should store its logs         | 1 |
 | `mimir_bucket` | string | Name of the bucket in which Mimir should store its metrics     | 1 |
 | `tempo_bucket` | string | Name of the bucket in which Tempo should store its traces      | 1 |
-| `cloud` | string | Kubernetes cloud or environment where this COS module will be deployed | self-managed |
-
+| `alertmanager_revision` | number | Revision number of the charm | null |
+| `catalogue_revision` | number | Revision number of the charm | null |
+| `grafana_revision` | number | Revision number of the charm | null |
+| `grafana_agent_revision` | number | Revision number of the charm | null |
+| `loki_coordinator_revision` | number | Revision number of the charm | null |
+| `loki_worker_revision` | number | Revision number of the charm | null |
+| `mimir_coordinator_revision` | number | Revision number of the charm | null |
+| `mimir_worker_revision` | number | Revision number of the charm | null |
+| `ssc_revision` | number | Revision number of the charm | null |
+| `s3_integrator_revision` | number | Revision number of the charm | null |
+| `tempo_coordinator_revision` | number | Revision number of the charm | null |
+| `tempo_worker_revision` | number | Revision number of the charm | null |
+| `traefik_revision` | number | Revision number of the charm | null |
 
 ### Outputs
 Upon application, the module exports the following outputs:
 
 | Name | Type | Description |
 | - | - | - |
-| `app_name`| string | Name of the deployed application |
-| `endpoints`| map(string) | Map of all `provides` and `requires` endpoints |
+| `alertmanager`| module | Alertmanager module |
+| `catalogue`| module | Catalogue module |
+| `grafana`| module | Grafana module |
+| `grafana_agent`| module | Grafana agent module |
+| `loki`| module | Loki module |
+| `mimir`| module | Mimir module |
+| `ssc`| module | Self-signed certificates module |
+| `tempo`| module | Tempo module |
+| `traefik`| module | Traefik module |
+
 
 ## Usage
 
@@ -76,180 +96,79 @@ To deploy this module with its needed dependency, you can run `terraform apply -
 
 ### High Availability
 
-By default, this Terraform module will deploy each worker with `1` unit. If you want to scale each Loki, Mimir or Tempo worker unit please check the variables available for that purpose in `variables.tf`. For instance to deploy 3 units of each Loki worker, you can run:
-
-```shell
-terraform apply -var='minio_password=Password' -var='minio_user=User' -var='model=test'\
--var='loki_backend_units=3' -var='loki_read_units=3' -var='loki_write_units=3'
-```
-
+By default, this Terraform module will deploy each worker with `3` unit. If you want to scale each Loki, Mimir or Tempo worker unit please check the variables available for that purpose in `variables.tf`.
 
 ### Minimal sample deployment.
 
-In order to deploy COS with just one unit per worker charm create a `main.tf` file with the following content.
+In order to deploy COS with just one unit per worker charm create a `main.tf` file with the following content:
 
 ```hcl
+terraform {
+  required_version = ">= 1.5"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.0"
+    }
+  }
+}
+
 # COS module that deploy the whole Canonical Observability Stack
 module "cos" {
-  source       = "git::https://github.com/canonical/observability//terraform/modules/cos"
-  model_name   = var.model_name
-  channel      = var.channel
-  s3_endpoint  = var.s3_endpoint
-  s3_access_key  = var.s3_access_key
-  s3_secret_key  = var.s3_secret_key
-  loki_bucket  = var.loki_bucket
-  mimir_bucket = var.mimir_bucket
-  tempo_bucket = var.tempo_bucket
-
-  loki_backend_units            = var.loki_backend_units
-  loki_read_units               = var.loki_read_units
-  loki_write_units              = var.loki_write_units
-  mimir_backend_units           = var.mimir_backend_units
-  mimir_read_units              = var.mimir_read_units
-  mimir_write_units             = var.mimir_write_units
-  tempo_compactor_units         = var.tempo_compactor_units
-  tempo_distributor_units       = var.tempo_distributor_units
-  tempo_ingester_units          = var.tempo_ingester_units
-  tempo_metrics_generator_units = var.tempo_metrics_generator_units
-  tempo_querier_units           = var.tempo_querier_units
-  tempo_query_frontend_units    = var.tempo_query_frontend_units
-}
-
-variable "channel" {
-  description = "Charms channel"
-  type        = string
-  default     = "latest/edge"
-}
-
-variable "model" {
-  description = "Model name"
-  type        = string
-}
-
-variable "use_tls" {
-  description = "Specify whether to use TLS or not for coordinator-worker communication. By default, TLS is enabled through self-signed-certificates"
-  type        = bool
-  default     = true
-}
-
-variable "s3_endpoint" {
-  description = "S3 endpoint"
-  type        = string
-}
-
-variable "s3_access_key" {
-  description = "Access key credential to connect to the S3 provider"
-  type        = string
-  sensitive   = true
-}
-
-variable "s3_secret_key" {
-  description = "Secret key credential to connect to the S3 provider"
-  type        = string
-  sensitive   = true
-}
-
-variable "loki_bucket" {
-  description = "Loki bucket name"
-  type        = string
-  sensitive   = true
-}
-
-variable "mimir_bucket" {
-  description = "Mimir bucket name"
-  type        = string
-  sensitive   = true
-}
-
-variable "tempo_bucket" {
-  description = "Tempo bucket name"
-  type        = string
-  sensitive   = true
-}
-
-variable "loki_backend_units" {
-  description = "Number of Loki worker units with backend role"
-  type        = number
-  default     = 1
-}
-
-variable "loki_read_units" {
-  description = "Number of Loki worker units with read role"
-  type        = number
-  default     = 1
-}
-
-variable "loki_write_units" {
-  description = "Number of Loki worker units with write roles"
-  type        = number
-  default     = 1
-}
-
-variable "mimir_backend_units" {
-  description = "Number of Mimir worker units with backend role"
-  type        = number
-  default     = 1
-}
-
-variable "mimir_read_units" {
-  description = "Number of Mimir worker units with read role"
-  type        = number
-  default     = 1
-}
-
-variable "mimir_write_units" {
-  description = "Number of Mimir worker units with write role"
-  type        = number
-  default     = 1
-}
-
-variable "tempo_compactor_units" {
-  description = "Number of Tempo worker units with compactor role"
-  type        = number
-  default     = 1
-}
-
-variable "tempo_distributor_units" {
-  description = "Number of Tempo worker units with distributor role"
-  type        = number
-  default     = 1
-}
-
-variable "tempo_ingester_units" {
-  description = "Number of Tempo worker units with ingester role"
-  type        = number
-  default     = 1
-}
-
-variable "tempo_metrics_generator_units" {
-  description = "Number of Tempo worker units with metrics-generator role"
-  type        = number
-  default     = 1
-}
-
-variable "tempo_querier_units" {
-  description = "Number of Tempo worker units with querier role"
-  type        = number
-  default     = 1
-}
-variable "tempo_query_frontend_units" {
-  description = "Number of Tempo worker units with query-frontend role"
-  type        = number
-  default     = 1
+    source                        = "git::https://github.com/canonical/observability//terraform/modules/cos"
+    model                         = "cos"
+    channel                       = "2/edge"
+    s3_integrator_channel         = "2/edge"
+    ssc_channel                   = "1/edge"
+    traefik_channel               = "latest/edge"
+    cloud                         = "self-managed"
+    use_tls                       = true
+    s3_endpoint                   = "http://S3_HOST_IP:8080"
+    s3_secret_key                 = "secret-key"
+    s3_access_key                 = "access-key"
+    loki_bucket                   = "loki"
+    mimir_bucket                  = "mimir"
+    tempo_bucket                  = "tempo"
+    loki_coordinator_units        = 3
+    loki_backend_units            = 3
+    loki_read_units               = 3
+    loki_write_units              = 3
+    mimir_coordinator_units       = 3
+    mimir_backend_units           = 3
+    mimir_read_units              = 3
+    mimir_write_units             = 3
+    tempo_coordinator_units       = 3
+    tempo_compactor_units         = 3
+    tempo_distributor_units       = 3
+    tempo_ingester_units          = 3
+    tempo_metrics_generator_units = 3
+    tempo_querier_units           = 3
+    tempo_query_frontend_units    = 3
+    alertmanager_revision         = null
+    catalogue_revision            = null
+    grafana_revision              = null
+    grafana_agent_revision        = null
+    loki_coordinator_revision     = null
+    loki_worker_revision          = null
+    mimir_coordinator_revision    = null
+    mimir_worker_revision         = null
+    ssc_revision                  = null
+    s3_integrator_revision        = 157 # FIXME: This is a temporary fix until the spec for the s3-integrator is stable.
+    tempo_coordinator_revision    = null
+    tempo_worker_revision         = null
+    traefik_revision              = null
 }
 ```
 
-Then, use terraform to deploy the module, using 3 units per worker:
+Then, use terraform to deploy the module:
 
 ```shell
 terraform init
-
-terraform apply -var='s3_secret_key=bar' -var='s3_access_key=foo' -var='s3_endpoint=http://192.168.1.145' \
--var='loki_bucket=loki' -var='model=cos' -var='mimir_bucket=mimir' -var='tempo_bucket=tempo' \
--var='loki_backend_units=3' -var='loki_read_units=3' -var='loki_write_units=3' \
--var='mimir_backend_units=3' -var='mimir_read_units=3' -var='mimir_write_units=3' \
--var='tempo_compactor_units=3' -var='tempo_distributor_units=3' -var='tempo_ingester_units=3' \
--var='tempo_metrics_generator_units=3' -var='tempo_querier_units=3' -var='tempo_query_frontend_units=3'
+terraform apply
 ```
 
 Some minutes after running these two commands, we have a distributed COS deployment!
@@ -264,18 +183,18 @@ alertmanager              0.27.0   active      1  alertmanager-k8s          late
 catalogue                          active      1  catalogue-k8s             latest/edge   81  10.152.183.88   no
 grafana                   9.5.3    active      1  grafana-k8s               latest/edge  141  10.152.183.138  no
 grafana-agent             0.40.4   active      1  grafana-agent-k8s         latest/edge  112  10.152.183.37   no       grafana-dashboards-provider: off
-loki                               active      1  loki-coordinator-k8s      latest/edge   20  10.152.183.201  no
+loki                               active      3  loki-coordinator-k8s      latest/edge   20  10.152.183.201  no
 loki-backend              3.0.0    active      3  loki-worker-k8s           latest/edge   34  10.152.183.112  no       backend ready.
 loki-read                 3.0.0    active      3  loki-worker-k8s           latest/edge   34  10.152.183.87   no       read ready.
 loki-s3-integrator                 active      1  s3-integrator             latest/edge  139  10.152.183.20   no
 loki-write                3.0.0    active      3  loki-worker-k8s           latest/edge   34  10.152.183.167  no       write ready.
-mimir                              active      1  mimir-coordinator-k8s     latest/edge   38  10.152.183.207  no
+mimir                              active      3  mimir-coordinator-k8s     latest/edge   38  10.152.183.207  no
 mimir-backend             2.13.0   active      3  mimir-worker-k8s          latest/edge   45  10.152.183.45   no       backend ready.
 mimir-read                2.13.0   active      3  mimir-worker-k8s          latest/edge   45  10.152.183.160  no       read ready.
 mimir-s3-integrator                active      1  s3-integrator             latest/edge  139  10.152.183.85   no
 mimir-write               2.13.0   active      3  mimir-worker-k8s          latest/edge   45  10.152.183.125  no       write ready.
 self-signed-certificates           active      1  self-signed-certificates  1/edge       268  10.152.183.34   no
-tempo                              active      1  tempo-coordinator-k8s     latest/edge   70  10.152.183.72   no
+tempo                              active      3  tempo-coordinator-k8s     latest/edge   70  10.152.183.72   no
 tempo-compactor           2.7.1    active      3  tempo-worker-k8s          latest/edge   52  10.152.183.99   no       compactor ready.
 tempo-distributor         2.7.1    active      3  tempo-worker-k8s          latest/edge   52  10.152.183.162  no       distributor ready.
 tempo-ingester            2.7.1    active      3  tempo-worker-k8s          latest/edge   52  10.152.183.195  no       ingester ready.

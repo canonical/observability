@@ -1,19 +1,19 @@
 # -------------- # Applications --------------
 
 module "alertmanager" {
-  source   = "git::https://github.com/canonical/alertmanager-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/alertmanager-k8s-operator//terraform"
   app_name = "alertmanager"
   model    = var.model
   channel  = var.channel
-  revision = var.charm_revisions.alertmanager
+  revision = var.alertmanager_revision
 }
 
 module "catalogue" {
-  source   = "git::https://github.com/canonical/catalogue-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/catalogue-k8s-operator//terraform"
   app_name = "catalogue"
   model    = var.model
   channel  = var.channel
-  revision = var.charm_revisions.catalogue
+  revision = var.catalogue_revision
 }
 
 module "grafana" {
@@ -21,7 +21,7 @@ module "grafana" {
   app_name = "grafana"
   model    = var.model
   channel  = var.channel
-  revision = var.charm_revisions.grafana
+  revision = var.grafana_revision
 }
 
 module "grafana_agent" {
@@ -29,39 +29,43 @@ module "grafana_agent" {
   app_name = "grafana-agent"
   model    = var.model
   channel  = var.channel
-  revision = var.charm_revisions.grafana_agent
+  revision = var.grafana_agent_revision
 }
 
 module "loki" {
-  source               = "git::https://github.com/canonical/observability//terraform/modules/loki?ref=fix/tf-housekeeping"
-  model                = var.model
-  channel              = var.channel
-  coordinator_revision = var.charm_revisions.loki_coordinator
-  worker_revision      = var.charm_revisions.loki_worker
-  coordinator_units    = var.loki_coordinator_units
-  backend_units        = var.loki_backend_units
-  read_units           = var.loki_read_units
-  write_units          = var.loki_write_units
-  s3_bucket            = var.loki_bucket
-  s3_endpoint          = var.s3_endpoint
-  s3_secret_key        = var.s3_secret_key
-  s3_access_key        = var.s3_access_key
+  source                 = "git::https://github.com/canonical/observability//terraform/modules/loki?ref=fix/tf-housekeeping"
+  model                  = var.model
+  channel                = var.channel
+  coordinator_revision   = var.loki_coordinator_revision
+  worker_revision        = var.loki_worker_revision
+  coordinator_units      = var.loki_coordinator_units
+  backend_units          = var.loki_backend_units
+  read_units             = var.loki_read_units
+  write_units            = var.loki_write_units
+  s3_bucket              = var.loki_bucket
+  s3_endpoint            = var.s3_endpoint
+  s3_secret_key          = var.s3_secret_key
+  s3_access_key          = var.s3_access_key
+  s3_integrator_revision = var.s3_integrator_revision
+  s3_integrator_channel  = var.s3_integrator_channel
 }
 
 module "mimir" {
-  source               = "git::https://github.com/canonical/observability//terraform/modules/mimir?ref=fix/tf-housekeeping"
-  model                = var.model
-  channel              = var.channel
-  coordinator_revision = var.charm_revisions.mimir_coordinator
-  worker_revision      = var.charm_revisions.mimir_worker
-  coordinator_units    = var.mimir_coordinator_units
-  backend_units        = var.mimir_backend_units
-  read_units           = var.mimir_read_units
-  write_units          = var.mimir_write_units
-  s3_bucket            = var.mimir_bucket
-  s3_endpoint          = var.s3_endpoint
-  s3_secret_key        = var.s3_secret_key
-  s3_access_key        = var.s3_access_key
+  source                = "git::https://github.com/canonical/observability//terraform/modules/mimir?ref=fix/tf-housekeeping"
+  model                  = var.model
+  channel                = var.channel
+  coordinator_revision   = var.mimir_coordinator_revision
+  worker_revision        = var.mimir_worker_revision
+  coordinator_units      = var.mimir_coordinator_units
+  backend_units          = var.mimir_backend_units
+  read_units             = var.mimir_read_units
+  write_units            = var.mimir_write_units
+  s3_bucket              = var.mimir_bucket
+  s3_endpoint            = var.s3_endpoint
+  s3_secret_key          = var.s3_secret_key
+  s3_access_key          = var.s3_access_key
+  s3_integrator_revision = var.s3_integrator_revision
+  s3_integrator_channel  = var.s3_integrator_channel
 }
 
 module "ssc" {
@@ -69,15 +73,15 @@ module "ssc" {
   source   = "git::https://github.com/canonical/self-signed-certificates-operator//terraform"
   model    = var.model
   channel  = var.ssc_channel
-  revision = var.charm_revisions.ssc
+  revision = var.ssc_revision
 }
 
 module "tempo" {
   source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo?ref=fix/tf-housekeeping"
   model                   = var.model
   channel                 = var.channel
-  coordinator_revision    = var.charm_revisions.tempo_coordinator
-  worker_revision         = var.charm_revisions.tempo_worker
+  coordinator_revision    = var.tempo_coordinator_revision
+  worker_revision         = var.tempo_worker_revision
   coordinator_units       = var.tempo_coordinator_units
   compactor_units         = var.tempo_compactor_units
   distributor_units       = var.tempo_distributor_units
@@ -89,6 +93,8 @@ module "tempo" {
   s3_endpoint             = var.s3_endpoint
   s3_access_key           = var.s3_access_key
   s3_secret_key           = var.s3_secret_key
+  s3_integrator_revision  = var.s3_integrator_revision
+  s3_integrator_channel   = var.s3_integrator_channel
 }
 
 module "traefik" {
@@ -97,7 +103,7 @@ module "traefik" {
   model    = var.model
   channel  = var.traefik_channel
   config   = var.cloud == "aws" ? { "loadbalancer_annotations" = "service.beta.kubernetes.io/aws-load-balancer-scheme=internet-facing" } : {}
-  revision = var.charm_revisions.traefik
+  revision = var.traefik_revision
 }
 
 # -------------- # Integrations --------------
@@ -566,4 +572,34 @@ resource "juju_integration" "grafana_tracing_grafana_agent_traicing_provider" {
     name     = module.grafana_agent.app_name
     endpoint = module.grafana_agent.provides.tracing_provider
   }
+}
+
+# -------------- # Offers --------------
+
+resource "juju_offer" "alertmanager-karma-dashboard" {
+  name             = "alertmanager-karma-dashboard"
+  model            = var.model
+  application_name = module.alertmanager.app_name
+  endpoint         = "karma-dashboard"
+}
+
+resource "juju_offer" "grafana-dashboards" {
+  name             = "grafana-dashboards"
+  model            = var.model
+  application_name = module.grafana.app_name
+  endpoint         = "grafana-dashboard"
+}
+
+resource "juju_offer" "loki-logging" {
+  name             = "loki-logging"
+  model            = var.model
+  application_name = module.loki.app_names.loki_coordinator
+  endpoint         = "logging"
+}
+
+resource "juju_offer" "mimir-receive-remote-write" {
+  name             = "mimir-receive-remote-write"
+  model            = var.model
+  application_name = module.mimir.app_names.mimir_coordinator
+  endpoint         = "receive-remote-write"
 }

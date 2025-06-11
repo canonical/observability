@@ -41,7 +41,7 @@ Upon application, the module exports the following outputs:
 
 | Name | Type | Description |
 | - | - | - |
-| `app_name`| string | Name of the deployed application |
+| `app_names`| map(string) | Names of the deployed applications |
 | `endpoints`| map(string) | Map of all `provides` and `requires` endpoints |
 
 ## Usage
