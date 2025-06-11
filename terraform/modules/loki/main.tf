@@ -36,7 +36,7 @@ resource "juju_application" "s3_integrator" {
 }
 
 module "loki_coordinator" {
-  source   = "git::https://github.com/canonical/loki-coordinator-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/loki-coordinator-k8s-operator//terraform"
   app_name = "loki"
   model    = var.model
   channel  = var.channel
