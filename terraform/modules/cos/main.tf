@@ -28,7 +28,7 @@ module "loki" {
   backend_units     = var.loki_backend_units
   read_units        = var.loki_read_units
   write_units       = var.loki_write_units
-  coordinator_units = var.coordinator_units
+  coordinator_units = var.loki_coordinator_units
   s3_bucket         = var.loki_bucket
   s3_endpoint       = var.s3_endpoint
   s3_password       = var.s3_password
@@ -43,7 +43,7 @@ module "mimir" {
   backend_units     = var.mimir_backend_units
   read_units        = var.mimir_read_units
   write_units       = var.mimir_write_units
-  coordinator_units = var.coordinator_units
+  coordinator_units = var.mimir_coordinator_units
   s3_bucket         = var.mimir_bucket
   s3_endpoint       = var.s3_endpoint
   s3_password       = var.s3_password
@@ -62,7 +62,7 @@ module "tempo" {
   source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo"
   model_name              = var.model_name
   channel                 = var.channel
-  coordinator_units       = var.coordinator_units
+  coordinator_units       = var.tempo_coordinator_units
   querier_units           = var.tempo_querier_units
   query_frontend_units    = var.tempo_query_frontend_units
   ingester_units          = var.tempo_ingester_units
