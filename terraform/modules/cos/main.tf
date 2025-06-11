@@ -56,7 +56,6 @@ module "ssc" {
   source        = "git::https://github.com/canonical/self-signed-certificates-operator//terraform"
   model         = var.model_name
   channel       = var.ssc_channel
-  anti_affinity = var.anti_affinity
 }
 
 module "tempo" {
