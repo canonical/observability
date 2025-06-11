@@ -168,3 +168,9 @@ variable "ssc_channel" {
   default     = "latest/edge"
 }
 
+# unlike other COS charms, traefik doesn't have COS tracks
+variable "traefik_channel" {
+  description = "Traefik charm channel."
+  type        = string
+  default     = "latest/stable"
+}

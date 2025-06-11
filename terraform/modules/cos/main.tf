@@ -80,7 +80,7 @@ module "traefik" {
   source     = "git::https://github.com/canonical/traefik-k8s-operator//terraform"
   app_name   = "traefik"
   model_name = var.model_name
-  channel    = var.channel
+  channel    = var.traefik_channel
   config     = var.cloud == "aws" ? { "loadbalancer_annotations" = "service.beta.kubernetes.io/aws-load-balancer-scheme=internet-facing" } : {}
 }
 
