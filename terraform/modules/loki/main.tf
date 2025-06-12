@@ -30,25 +30,39 @@ resource "juju_application" "s3_integrator" {
   config = {
     endpoint    = var.s3_endpoint
     bucket      = var.s3_bucket
-    credentials = "secret:${juju_secret.loki_s3_credentials_secret.secret_id}"
+    # credentials = "secret:${juju_secret.loki_s3_credentials_secret.secret_id}"
   }
   units = 1
 }
 
+resource "null_resource" "s3_integrator_config" {
+  depends_on = [
+    juju_secret.loki_s3_credentials_secret,
+    juju_application.s3_integrator,
+    juju_access_secret.loki_s3_secret_access
+  ]
+
+  provisioner "local-exec" {
+    command = "juju config ${juju_application.s3_integrator.name} credentials=secret:${juju_secret.loki_s3_credentials_secret.secret_id}"
+  }
+}
+
 module "loki_coordinator" {
-  source   = "git::https://github.com/canonical/loki-coordinator-k8s-operator//terraform"
-  app_name = "loki"
-  model    = var.model
-  channel  = var.channel
-  revision = var.coordinator_revision
-  units    = var.coordinator_units
+  source      = "git::https://github.com/canonical/loki-coordinator-k8s-operator//terraform"
+  app_name    = "loki"
+  model       = var.model
+  channel     = var.channel
+  revision    = var.coordinator_revision
+  units       = var.coordinator_units
+  constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=loki,anti-pod.topology-key=kubernetes.io/hostname" : null
 }
 
 module "loki_backend" {
-  source   = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
-  app_name = var.backend_name
-  model    = var.model
-  channel  = var.channel
+  source      = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
+  app_name    = var.backend_name
+  model       = var.model
+  channel     = var.channel
+  constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=${var.backend_name},anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-backend = true
   }
@@ -60,10 +74,11 @@ module "loki_backend" {
 }
 
 module "loki_read" {
-  source   = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
-  app_name = var.read_name
-  model    = var.model
-  channel  = var.channel
+  source      = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
+  app_name    = var.read_name
+  model       = var.model
+  channel     = var.channel
+  constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=${var.read_name},anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-read = true
   }
@@ -75,10 +90,11 @@ module "loki_read" {
 }
 
 module "loki_write" {
-  source   = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
-  app_name = var.write_name
-  model    = var.model
-  channel  = var.channel
+  source      = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
+  app_name    = var.write_name
+  model       = var.model
+  channel     = var.channel
+  constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=${var.write_name},anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-write = true
   }

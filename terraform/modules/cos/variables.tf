@@ -30,25 +30,31 @@ variable "cloud" {
   }
 }
 
+variable "anti_affinity" {
+  description = "Enable anti-affinity constraints across all HA modules (Mimir, Loki, Tempo)"
+  type        = bool
+  default     = true
+}
+
 # -------------- # External channels --------------
 # O11y does not own these charms, so we allow users to specify their channels directly.
 
 variable "ssc_channel" {
   description = "Channel that the self-signed certificates charm is deployed from"
   type        = string
-  default     = "1/edge"
+  default     = "1/stable"
 }
 
 variable "s3_integrator_channel" {
-  description = "Channel that the self-signed certificates charm is deployed from"
+  description = "Channel that the s3-integrator charm is deployed from"
   type        = string
   default     = "2/edge"
 }
 
 variable "traefik_channel" {
-  description = "Channel that the traefik charm is deployed from"
+  description = "Channel that the Traefik charm is deployed from"
   type        = string
-  default     = "latest/edge"
+  default     = "latest/stable"
 }
 
 # -------------- # S3 storage configuration --------------
@@ -146,7 +152,7 @@ variable "ssc_revision" {
 variable "s3_integrator_revision" {
   description = "Revision number of the s3-integrator charm"
   type        = number
-  default     = 157 # FIXME: This is a temporary fix until the spec for the s3-integrator is stable.
+  default     = 157 # FIXME: https://github.com/canonical/observability/issues/342
 }
 
 variable "tempo_coordinator_revision" {

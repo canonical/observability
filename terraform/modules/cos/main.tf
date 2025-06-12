@@ -36,6 +36,8 @@ module "loki" {
   source                 = "git::https://github.com/canonical/observability//terraform/modules/loki?ref=fix/tf-housekeeping"
   model                  = var.model
   channel                = var.channel
+  s3_integrator_channel  = var.s3_integrator_channel
+  s3_integrator_revision = var.s3_integrator_revision
   coordinator_revision   = var.loki_coordinator_revision
   worker_revision        = var.loki_worker_revision
   coordinator_units      = var.loki_coordinator_units
@@ -46,14 +48,15 @@ module "loki" {
   s3_endpoint            = var.s3_endpoint
   s3_secret_key          = var.s3_secret_key
   s3_access_key          = var.s3_access_key
-  s3_integrator_revision = var.s3_integrator_revision
-  s3_integrator_channel  = var.s3_integrator_channel
+  anti_affinity          = var.anti_affinity
 }
 
 module "mimir" {
   source                 = "git::https://github.com/canonical/observability//terraform/modules/mimir?ref=fix/tf-housekeeping"
   model                  = var.model
   channel                = var.channel
+  s3_integrator_channel  = var.s3_integrator_channel
+  s3_integrator_revision = var.s3_integrator_revision
   coordinator_revision   = var.mimir_coordinator_revision
   worker_revision        = var.mimir_worker_revision
   coordinator_units      = var.mimir_coordinator_units
@@ -64,8 +67,7 @@ module "mimir" {
   s3_endpoint            = var.s3_endpoint
   s3_secret_key          = var.s3_secret_key
   s3_access_key          = var.s3_access_key
-  s3_integrator_revision = var.s3_integrator_revision
-  s3_integrator_channel  = var.s3_integrator_channel
+  anti_affinity          = var.anti_affinity
 }
 
 module "ssc" {
@@ -80,6 +82,8 @@ module "tempo" {
   source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo?ref=fix/tf-housekeeping"
   model                   = var.model
   channel                 = var.channel
+  s3_integrator_channel   = var.s3_integrator_channel
+  s3_integrator_revision  = var.s3_integrator_revision
   coordinator_revision    = var.tempo_coordinator_revision
   worker_revision         = var.tempo_worker_revision
   coordinator_units       = var.tempo_coordinator_units
@@ -93,12 +97,11 @@ module "tempo" {
   s3_endpoint             = var.s3_endpoint
   s3_access_key           = var.s3_access_key
   s3_secret_key           = var.s3_secret_key
-  s3_integrator_revision  = var.s3_integrator_revision
-  s3_integrator_channel   = var.s3_integrator_channel
+  anti_affinity          = var.anti_affinity
 }
 
 module "traefik" {
-  source   = "git::https://github.com/canonical/traefik-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/traefik-k8s-operator//terraform"
   app_name = "traefik"
   model    = var.model
   channel  = var.traefik_channel

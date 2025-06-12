@@ -29,14 +29,7 @@ variable "worker_revision" {
 variable "s3_integrator_revision" {
   description = "Revision number of the s3-integrator charm"
   type        = number
-  # FIXME: This is a temporary fix until the spec for the s3-integrator is stable.
-  default = 157
-}
-
-variable "s3_integrator_name" {
-  description = "Name of the Loki app with the write role"
-  type        = string
-  default     = "tempo-s3-integrator"
+  default     = 157 # FIXME: https://github.com/canonical/observability/issues/342
 }
 
 variable "s3_bucket" {
@@ -60,6 +53,58 @@ variable "s3_endpoint" {
   description = "S3 endpoint"
   type        = string
 }
+
+variable "anti_affinity" {
+  description = "Enable anti-affinity constraints"
+  type        = bool
+  default     = true
+}
+
+# -------------- # App Names --------------
+
+variable "querier_name" {
+  description = "Name of the Tempo querier app"
+  type        = string
+  default     = "tempo-querier"
+}
+
+variable "query_frontend_name" {
+  description = "Name of the Tempo query-frontend app"
+  type        = string
+  default     = "tempo-query-frontend"
+}
+
+variable "ingester_name" {
+  description = "Name of the Tempo ingester app"
+  type        = string
+  default     = "tempo-ingester"
+}
+
+variable "distributor_name" {
+  description = "Name of the Tempo distributor app"
+  type        = string
+  default     = "tempo-distributor"
+}
+
+variable "compactor_name" {
+  description = "Name of the Tempo compactor app"
+  type        = string
+  default     = "tempo-compactor"
+}
+
+variable "metrics_generator_name" {
+  description = "Name of the Tempo metrics-generator app"
+  type        = string
+  default     = "tempo-metrics-generator"
+}
+
+variable "s3_integrator_name" {
+  description = "Name of the s3-integrator app"
+  type        = string
+  default     = "tempo-s3-integrator"
+}
+
+# -------------- # Units Per App --------------
 
 variable "compactor_units" {
   description = "Number of Tempo worker units with compactor role"

@@ -29,8 +29,7 @@ variable "worker_revision" {
 variable "s3_integrator_revision" {
   description = "Revision number of the s3-integrator charm"
   type        = number
-  # FIXME: This is a temporary fix until the spec for the s3-integrator is stable.
-  default = 157
+  default     = 157 # FIXME: https://github.com/canonical/observability/issues/342
 }
 
 variable "s3_bucket" {
@@ -55,6 +54,12 @@ variable "s3_endpoint" {
   type        = string
 }
 
+variable "anti_affinity" {
+  description = "Enable anti-affinity constraints."
+  type        = bool
+  default     = true
+}
+
 # -------------- # App Names --------------
 
 variable "read_name" {
@@ -76,10 +81,11 @@ variable "backend_name" {
 }
 
 variable "s3_integrator_name" {
-  description = "Name of the Loki app with the write role"
+  description = "Name of the s3-integrator app"
   type        = string
   default     = "mimir-s3-integrator"
 }
+
 # -------------- # Units Per App --------------
 
 variable "read_units" {
