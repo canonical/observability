@@ -3,7 +3,7 @@
 module "alertmanager" {
   source     = "git::https://github.com/canonical/alertmanager-k8s-operator//terraform"
   app_name   = "alertmanager"
-  model_name = var.model_name
+  model      = var.model_name
   channel    = var.channel
 }
 
