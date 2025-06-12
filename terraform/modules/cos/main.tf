@@ -10,20 +10,20 @@ module "alertmanager" {
 module "catalogue" {
   source     = "git::https://github.com/canonical/catalogue-k8s-operator//terraform"
   app_name   = "catalogue"
-  model_name = var.model_name
+  model      = var.model_name
   channel    = var.channel
 }
 
 module "grafana" {
   source     = "git::https://github.com/canonical/grafana-k8s-operator//terraform"
   app_name   = "grafana"
-  model_name = var.model_name
+  model      = var.model_name
   channel    = var.channel
 }
 
 module "loki" {
   source            = "git::https://github.com/canonical/observability//terraform/modules/loki"
-  model_name        = var.model_name
+  model             = var.model_name
   channel           = var.channel
   backend_units     = var.loki_backend_units
   read_units        = var.loki_read_units
@@ -38,7 +38,7 @@ module "loki" {
 
 module "mimir" {
   source            = "git::https://github.com/canonical/observability//terraform/modules/mimir"
-  model_name        = var.model_name
+  model             = var.model_name
   channel           = var.channel
   backend_units     = var.mimir_backend_units
   read_units        = var.mimir_read_units
@@ -60,7 +60,7 @@ module "ssc" {
 
 module "tempo" {
   source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo"
-  model_name              = var.model_name
+  model                   = var.model_name
   channel                 = var.channel
   coordinator_units       = var.tempo_coordinator_units
   querier_units           = var.tempo_querier_units
@@ -79,7 +79,7 @@ module "tempo" {
 module "traefik" {
   source     = "git::https://github.com/canonical/traefik-k8s-operator//terraform"
   app_name   = "traefik"
-  model_name = var.model_name
+  model      = var.model_name
   channel    = var.traefik_channel
   config     = var.cloud == "aws" ? { "loadbalancer_annotations" = "service.beta.kubernetes.io/aws-load-balancer-scheme=internet-facing" } : {}
 }
@@ -87,7 +87,7 @@ module "traefik" {
 module "grafana_agent" {
   source     = "git::https://github.com/canonical/grafana-agent-k8s-operator//terraform"
   app_name   = "grafana-agent"
-  model_name = var.model_name
+  model      = var.model_name
   channel    = var.channel
 }
 
