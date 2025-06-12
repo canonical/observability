@@ -17,7 +17,7 @@ module "catalogue" {
 module "grafana" {
   source     = "git::https://github.com/canonical/grafana-k8s-operator//terraform"
   app_name   = "grafana"
-  model      = var.model_name
+  model_name = var.model_name
   channel    = var.channel
 }
 
