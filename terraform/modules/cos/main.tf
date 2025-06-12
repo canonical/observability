@@ -149,7 +149,7 @@ resource "juju_integration" "agent_alertmanager_metrics" {
 
   application {
     name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.requires.metrics_endpoint
+    endpoint = module.grafana_agent.endpoints.metrics_endpoint
   }
 }
 
@@ -207,7 +207,7 @@ resource "juju_integration" "mimir_tracing_grafana_agent_traicing_provider" {
 
   application {
     name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.provides.tracing_provider
+    endpoint = module.grafana_agent.endpoints.tracing_provider
   }
 }
 
@@ -222,7 +222,7 @@ resource "juju_integration" "mimir_self_metrics_endpoint_grafana_agent_metrics_e
 
   application {
     name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.requires.metrics_endpoint
+    endpoint = module.grafana_agent.endpoints.metrics_endpoint
   }
 }
 
@@ -267,7 +267,7 @@ resource "juju_integration" "loki_logging_consumer_grafana_agent_logging_provide
 
   application {
     name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.provides.logging_provider
+    endpoint = module.grafana_agent.endpoints.logging_provider
   }
 }
 
@@ -281,7 +281,7 @@ resource "juju_integration" "loki_logging_grafana_agent_logging_consumer" {
 
   application {
     name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.requires.logging_consumer
+    endpoint = module.grafana_agent.endpoints.logging_consumer
   }
 }
 
@@ -295,7 +295,7 @@ resource "juju_integration" "loki_tracing_grafana_agent_traicing_provider" {
 
   application {
     name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.provides.tracing_provider
+    endpoint = module.grafana_agent.endpoints.tracing_provider
   }
 }
 
@@ -325,7 +325,7 @@ resource "juju_integration" "tempo_tracing_grafana_agent_tracing" {
 
   application {
     name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.requires.tracing
+    endpoint = module.grafana_agent.endpoints.tracing
   }
 }
 
@@ -339,7 +339,7 @@ resource "juju_integration" "tempo_metrics_endpoint_grafana_agent_metrics_endpoi
 
   application {
     name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.requires.metrics_endpoint
+    endpoint = module.grafana_agent.endpoints.metrics_endpoint
   }
 }
 
@@ -353,7 +353,7 @@ resource "juju_integration" "tempo_logging_grafana_agent_logging_provider" {
 
   application {
     name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.provides.logging_provider
+    endpoint = module.grafana_agent.endpoints.logging_provider
   }
 }
 
@@ -528,7 +528,7 @@ resource "juju_integration" "agent_loki_metrics" {
 
   application {
     name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.requires.metrics_endpoint
+    endpoint = module.grafana_agent.endpoints.metrics_endpoint
   }
 }
 
@@ -542,7 +542,7 @@ resource "juju_integration" "agent_mimir_metrics" {
 
   application {
     name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.requires.send_remote_write
+    endpoint = module.grafana_agent.endpoints.send_remote_write
   }
 }
 
@@ -558,6 +558,6 @@ resource "juju_integration" "grafana_tracing_grafana_agent_traicing_provider" {
 
   application {
     name     = module.grafana_agent.app_name
-    endpoint = module.grafana_agent.provides.tracing_provider
+    endpoint = module.grafana_agent.endpoints.tracing_provider
   }
 }
