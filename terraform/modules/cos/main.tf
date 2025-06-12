@@ -22,7 +22,7 @@ module "grafana" {
 }
 
 module "loki" {
-  source            = "git::https://github.com/canonical/observability//terraform/modules/loki"
+  source            = "git::https://github.com/canonical/observability//terraform/modules/loki?ref=fix-variable-name-changes"
   model             = var.model_name
   channel           = var.channel
   backend_units     = var.loki_backend_units
@@ -37,7 +37,7 @@ module "loki" {
 }
 
 module "mimir" {
-  source            = "git::https://github.com/canonical/observability//terraform/modules/mimir"
+  source            = "git::https://github.com/canonical/observability//terraform/modules/mimir?ref=fix-variable-name-changes"
   model             = var.model_name
   channel           = var.channel
   backend_units     = var.mimir_backend_units
@@ -59,7 +59,7 @@ module "ssc" {
 }
 
 module "tempo" {
-  source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo"
+  source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo?ref=fix-variable-name-changes"
   model                   = var.model_name
   channel                 = var.channel
   coordinator_units       = var.tempo_coordinator_units
