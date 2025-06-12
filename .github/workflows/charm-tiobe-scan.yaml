@@ -1,12 +1,16 @@
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-# Usage documentation: static-code-analysis.md
-
 name: Tiobe TiCS Analysis
 
 on:
   workflow_call:
+    inputs:
+      charm-path:
+        description: "Path to the charm we want to publish. Defaults to the current working directory."
+        default: '.'
+        required: false
+        type: string
 
 jobs:
   scan:
@@ -23,29 +27,31 @@ jobs:
         run: |
           sudo snap install charmcraft --classic
           sudo apt update && sudo apt install -y pipx
-          sudo apt install -y python3-flake8 pylint
           pipx install coverage
           pipx install "coverage[toml]"
           pipx install tox
+          sudo snap install astral-uv --classic
 
       - name: Run tox tests to create coverage.xml
         run: |
-          tox -e unit && coverage xml
+          tox -e unit && coverage xml -o cover/cobertura.xml
 
-      - name: Move results to necessary folder for TICS
+      - name: Activate and prepare Python virtual environment
+        env:
+          CHARM_PATH: ${{ inputs.charm-path }}
         run: |
-          mkdir -p ./cover
-          mv ./coverage.xml ./cover/
-          source .tox/unit/bin/activate
+          pushd "${CHARM_PATH}"
+          uv sync --extra=dev
+          source .venv/bin/activate
+          uv pip install pylint flake8
+          echo "PATH=$PATH" >> "$GITHUB_ENV"
+          popd
 
       - name: Run TICS analysis with github-action
         uses: tiobe/tics-github-action@v3
-        env:
-          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/.tox/unit
         with:
           mode: qserver
           project: ${{ github.event.repository.name }}
-          branchdir: .
           viewerUrl: https://canonical.tiobe.com/tiobeweb/TICS/api/cfg?name=default
           ticsAuthToken: ${{ secrets.TICSAUTHTOKEN }}
           installTics: true

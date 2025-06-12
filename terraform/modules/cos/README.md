@@ -7,10 +7,11 @@ The HA solution consists of the following Terraform modules:
 - [alertmanager-k8s](https://github.com/canonical/alertmanager-k8s-operator): Handles alerts sent by clients applications.
 - [mimir](https://github.com/canonical/observability/tree/main/terraform/modules/mimir): Backend for metrics
 - [loki](https://github.com/canonical/observability/tree/main/terraform/modules/loki): Backend for logs
+- [tempo](https://github.com/canonical/observability/tree/main/terraform/modules/tempo): Backend for traces
 - [s3-integrator](https://github.com/canonical/s3-integrator): facade for S3 storage configurations.
 - [self-signed-certificates](https://github.com/canonical/self-signed-certificates-operator): certificates operator to secure traffic with TLS.
 
-This Terraform module deploys COS with Mimir and Loki in their microservices modes, and grafana, prometheus, and loki in monolithic mode.
+This Terraform module deploys COS with Mimir, Tempo and Loki in their microservices modes, and grafana, prometheus, and loki in monolithic mode.
 
 > [!NOTE]
 > `s3-integrator` itself doesn't act as an S3 object storage system. For the HA solution to be functional, `s3-integrator` needs to point to an S3-like storage. See [this guide](https://discourse.charmhub.io/t/cos-lite-docs-set-up-minio/15211) to learn how to connect to an S3-like storage for traces.
@@ -23,31 +24,35 @@ This module requires a `juju` model to be available. Refer to the [usage section
 ### Inputs
 The module offers the following configurable inputs:
 
-| Name | Type | Description | Required |
-| - | - | - | - |
-| `channel` | string | Channel that the charms are deployed from | latest/edge |
-| `model_name` | string | Name of the model that the charm is deployed on |  |
-| `use_tls` | bool | Specify whether to use TLS or not for coordinator-worker communication |
-| `loki_backend_units` | number | Number of Loki worker units with backend role |
-| `loki_backend_units` | number | Number of Loki worker units with backend role |
-| `loki_read_units` | number | Number of Loki worker units with read role |
-| `loki_write_units` | number | Number of Loki worker units with write role |
-| `mimir_backend_units` | number | Number of Mimir worker units with backend role |
-| `mimir_read_units` | number | Number of Mimir worker units with read role |
-| `mimir_write_units` | number | Number of Mimir worker units with write role |
-| `tempo_compactor_units` | number | Number of Tempo worker units with compactor role |
-| `tempo_distributor_units` | number | Number of Tempo worker units with distributor role |
-| `tempo_ingester_units` | number | Number of Tempo worker units with ingester role |
-| `tempo_metrics_generator_units` | number | Number of Tempo worker units with metrics_generator role |
-| `tempo_querier_units` | number | Number of Tempo worker units with querier role |
-| `tempo_query_frontend_units` | number | Number of Tempo worker units with query_frontend role |
-| `s3_user` | string | User to connect to the S3 provider | 1 |
-| `s3_password` | string | Password to connect to the S3 provider | 1 |
-| `s3_endpoint` | string | Endpoint of the S3 provider | 1 |
-| `loki_bucket` | string | Name of the bucke in which Loki stores logs | 1 |
-| `mimir_bucket` | string | Name of the bucke in which Mimir stores metrics | 1 |
-| `tempo_bucket` | string | Name of the bucke in which Tempo stores traces | 1 |
-
+| Name | Type | Description                                                    | Required |
+| - | - |----------------------------------------------------------------| - |
+| `channel` | string | Channel that all the charms are deployed from                  | latest/edge |
+| `model_name` | string | Name of the model to deploy COS in                             |  |
+| `use_tls` | bool | Specify whether to use TLS or not for in-cluster communication |
+| `loki_backend_units` | number | Number of Loki worker units with `backend` role                |
+| `loki_backend_units` | number | Number of Loki worker units with `backend` role                |
+| `loki_read_units` | number | Number of Loki worker units with `read` role                   |
+| `loki_write_units` | number | Number of Loki worker units with `write` role                  |
+| `loki_coordinator_units` | number | Number of Loki coordinator units                 |
+| `mimir_backend_units` | number | Number of Mimir worker units with `backend` role               |
+| `mimir_read_units` | number | Number of Mimir worker units with `read` role                  |
+| `mimir_write_units` | number | Number of Mimir worker units with `write` role                 |
+| `mimir_coordinator_units` | number | Number of Mimir coordinator units                 |
+| `tempo_compactor_units` | number | Number of Tempo worker units with `compactor` role             |
+| `tempo_distributor_units` | number | Number of Tempo worker units with `distributor` role           |
+| `tempo_ingester_units` | number | Number of Tempo worker units with `ingester` role              |
+| `tempo_metrics_generator_units` | number | Number of Tempo worker units with `metrics_generator` role     |
+| `tempo_querier_units` | number | Number of Tempo worker units with `querier` role               |
+| `tempo_query_frontend_units` | number | Number of Tempo worker units with `query_frontend` role        |
+| `tempo_coordinator_units` | number | Number of Tempo coordinator units        |
+| `s3_user` | string | S3 provider username credential                                | 1 |
+| `s3_password` | string | S3 provider password credential                                | 1 |
+| `s3_endpoint` | string | S3 provider endpoint                                           | 1 |
+| `loki_bucket` | string | Name of the bucket in which Loki should store its logs         | 1 |
+| `mimir_bucket` | string | Name of the bucket in which Mimir should store its metrics     | 1 |
+| `tempo_bucket` | string | Name of the bucket in which Tempo should store its traces      | 1 |
+| `cloud` | string | Kubernetes cloud or environment where this COS module will be deployed | self-managed |
+| `ssc_channel` | string | self-signed certificates charm channel | latest/edge |
 
 
 
@@ -81,7 +86,7 @@ terraform apply -var='minio_password=Password' -var='minio_user=User' -var='mode
 
 ### Minimal sample deployment.
 
-In orrder to deploy COS with just one unit per worker charm create a `main.rf` file with the following content.
+In order to deploy COS with just one unit per worker charm create a `main.tf` file with the following content.
 
 ```hcl
 # COS module that deploy the whole Canonical Observability Stack
@@ -388,4 +393,199 @@ traefik:ingress                          mimir:ingress                          
 traefik:peers                            traefik:peers                            traefik_peers            peer
 traefik:traefik-route                    grafana:ingress                          traefik_route            regular
 traefik:traefik-route                    tempo:ingress                            traefik_route            regular
+```
+
+### Deploy COS on AWS EKS
+
+> **Note:** This deployment assumes that the required AWS infrastructure is already provisioned and that a Juju controller has been bootstrapped.  
+> Additionally, a Juju model must be ready in advance.
+> 
+> See [provision AWS infrastructure](../aws-infra/README.md)
+
+In order to deploy COS on AWS, create a `main.tf` file with the following content.
+
+```hcl
+# COS module that deploy the whole Canonical Observability Stack
+module "cos" {
+  source                        = "git::https://github.com/canonical/observability//terraform/modules/cos"
+  model_name                    = var.model_name
+  channel                       = var.channel
+  s3_endpoint                   = var.s3_endpoint
+  s3_password                   = var.s3_password
+  s3_user                       = var.s3_user
+  loki_bucket                   = var.loki_bucket
+  mimir_bucket                  = var.mimir_bucket
+  tempo_bucket                  = var.tempo_bucket
+  loki_backend_units            = var.loki_backend_units
+  loki_read_units               = var.loki_read_units
+  loki_write_units              = var.loki_write_units
+  mimir_backend_units           = var.mimir_backend_units
+  mimir_read_units              = var.mimir_read_units
+  mimir_write_units             = var.mimir_write_units
+  tempo_compactor_units         = var.tempo_compactor_units
+  tempo_distributor_units       = var.tempo_distributor_units
+  tempo_ingester_units          = var.tempo_ingester_units
+  tempo_metrics_generator_units = var.tempo_metrics_generator_units
+  tempo_querier_units           = var.tempo_querier_units
+  tempo_query_frontend_units    = var.tempo_query_frontend_units
+  cloud                         = var.cloud
+  ssc_channel                   = var.ssc_channel
+}
+
+variable "channel" {
+  description = "Charms channel"
+  type        = string
+  default     = "latest/edge"
+}
+
+variable "model_name" {
+  description = "Model name"
+  type        = string
+}
+
+variable "use_tls" {
+  description = "Specify whether to use TLS or not for coordinator-worker communication. By default, TLS is enabled through self-signed-certificates"
+  type        = bool
+  default     = true
+}
+
+variable "s3_endpoint" {
+  description = "S3 endpoint"
+  type        = string
+}
+
+variable "s3_user" {
+  description = "S3 user"
+  type        = string
+  sensitive   = true
+}
+
+variable "s3_password" {
+  description = "S3 password"
+  type        = string
+  sensitive   = true
+}
+
+variable "loki_bucket" {
+  description = "Loki bucket name"
+  type        = string
+  sensitive   = true
+}
+
+variable "mimir_bucket" {
+  description = "Mimir bucket name"
+  type        = string
+  sensitive   = true
+}
+
+variable "tempo_bucket" {
+  description = "Tempo bucket name"
+  type        = string
+  sensitive   = true
+}
+
+variable "loki_backend_units" {
+  description = "Number of Loki worker units with backend role"
+  type        = number
+  default     = 3
+}
+
+variable "loki_read_units" {
+  description = "Number of Loki worker units with read role"
+  type        = number
+  default     = 3
+}
+
+variable "loki_write_units" {
+  description = "Number of Loki worker units with write roles"
+  type        = number
+  default     = 3
+}
+
+variable "mimir_backend_units" {
+  description = "Number of Mimir worker units with backend role"
+  type        = number
+  default     = 3
+}
+
+variable "mimir_read_units" {
+  description = "Number of Mimir worker units with read role"
+  type        = number
+  default     = 3
+}
+
+variable "mimir_write_units" {
+  description = "Number of Mimir worker units with write role"
+  type        = number
+  default     = 3
+}
+
+variable "tempo_compactor_units" {
+  description = "Number of Tempo worker units with compactor role"
+  type        = number
+  default     = 3
+}
+
+variable "tempo_distributor_units" {
+  description = "Number of Tempo worker units with distributor role"
+  type        = number
+  default     = 3
+}
+
+variable "tempo_ingester_units" {
+  description = "Number of Tempo worker units with ingester role"
+  type        = number
+  default     = 3
+}
+
+variable "tempo_metrics_generator_units" {
+  description = "Number of Tempo worker units with metrics-generator role"
+  type        = number
+  default     = 3
+}
+
+variable "tempo_querier_units" {
+  description = "Number of Tempo worker units with querier role"
+  type        = number
+  default     = 3
+}
+variable "tempo_query_frontend_units" {
+  description = "Number of Tempo worker units with query-frontend role"
+  type        = number
+  default     = 3
+}
+
+variable "cloud" {
+  description = "Kubernetes cloud or environment where this COS module will be deployed (e.g self-managed, aws)"
+  type        = string
+  default     = "self-managed"
+}
+
+# ssc doesn't have a "latest" track for ubuntu@24.04 base.
+variable "ssc_channel" {
+  description = "self-signed certificates charm channel."
+  type        = string
+  default     = "latest/edge"
+}
+
+```
+Then, create a `aws.tfvars` file with the following content:
+
+```hcl
+cloud = "aws"
+# If you're deploying on an ubuntu@24.04 base
+ssc_channel  = "1/edge"
+model        = "<model-name>"
+s3_endpoint  = "<s3-endpoint>"
+s3_user      = "<s3-user>"
+s3_password  = "<s3-user>"
+loki_bucket  = "<loki-bucket>"
+mimir_bucket = "<mimir-bucket>"
+tempo_bucket = "<tempo-bucket>"
+```
+
+Then, use terraform to deploy the module:
+```bash
+terraform init
+terraform apply -var-file=aws.tfvars
 ```

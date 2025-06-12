@@ -4,6 +4,12 @@ variable "channel" {
   default     = "latest/edge"
 }
 
+variable "anti_affinity" {
+  description = "Enable anti-affinity constraints"
+  type        = bool
+  default     = true
+}
+
 variable "compactor_units" {
   description = "Number of Tempo worker units with compactor role"
   type        = number
@@ -40,6 +46,16 @@ variable "metrics_generator_units" {
   default     = 1
   validation {
     condition     = var.metrics_generator_units >= 1
+    error_message = "The number of units must be greater than or equal to 1."
+  }
+}
+
+variable "coordinator_units" {
+  description = "Number of Tempo coordinator units"
+  type        = number
+  default     = 1
+  validation {
+    condition     = var.coordinator_units >= 1
     error_message = "The number of units must be greater than or equal to 1."
   }
 }

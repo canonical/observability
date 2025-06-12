@@ -1,6 +1,6 @@
 # Observability
 
-[Observability Repositories](https://github.com/search?q=topic%3Aobservability+org%3Acanonical+fork%3Atrue+archived%3Afalse&type=repositories) | [How to Contribute](https://github.com/canonical/observability/blob/main/CONTRIBUTING.md) 
+[Observability Repositories](https://documentation.ubuntu.com/observability/reference/charms/) | [How to Contribute](https://github.com/canonical/observability/blob/main/CONTRIBUTING.md) 
 
 A repository to collect all the initiatives around Observability currently being worked on at Canonical.
 

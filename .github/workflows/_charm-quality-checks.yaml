@@ -112,7 +112,7 @@ jobs:
           tar -xzf promtool.tar.gz --strip-components=1
           # Lint the alert rules
           if [[ -d "$CHARM_PATH"/src/prometheus_alert_rules ]]; then
-            ./promtool check rules "$CHARM_PATH"/src/prometheus_alert_rules/*
+            find "$CHARM_PATH"/src/prometheus_alert_rules -type f -exec ./promtool check rules {} \;
           else
             echo "This charm has no alert rules under /src/prometheus_alert_rules"
           fi
@@ -187,7 +187,7 @@ jobs:
       - name: Upload charm artifact
         uses: actions/upload-artifact@v4
         with:
-          name: charms-tests
+          name: charms-tests${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           path: ${{ inputs.charm-path }}/*.charm
 
   integration-mono:
@@ -211,7 +211,7 @@ jobs:
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
-          name: charms-tests
+          name: charms-tests${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           path: ${{ inputs.charm-path }}
       - name: Run integration tests
         run: |
@@ -234,6 +234,7 @@ jobs:
       - name: Generate matrix list
         id: suites
         run: |
+          cd ${{ inputs.charm-path }}
           list="$(find tests/integration -name 'test_*.py' -printf '%f\n' | jq -r -ncR '[inputs]')"
           echo "suites=$list"
           echo "suites=$list" >> "$GITHUB_OUTPUT"
@@ -263,7 +264,7 @@ jobs:
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
-          name: charms-tests
+          name: charms-tests${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           path: ${{ inputs.charm-path }}
       - name: Run integration tests
         run: |
@@ -271,4 +272,16 @@ jobs:
           charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | tail -n1)"
           CHARM_PATH="$(realpath "$charm_relative_path")"
           export CHARM_PATH
-          uvx tox -e integration -- -k "${{ matrix.suite }}"
+          if [[ "${{ runner.debug }}" == "1" ]]; then
+            export KEEP_MODELS=true
+            sudo snap install jhack --channel=latest/edge && sudo snap connect jhack:dot-local-share-juju snapd
+            uvx tox -e integration -- -k "${{ matrix.suite }}" --keep-models
+          else
+            uvx tox -e integration -- -k "${{ matrix.suite }}"
+          fi
+      - name: Open SSH session on failure
+        if: ${{ failure() && (runner.debug == '1') }}
+        uses: mxschmitt/action-tmate@v3
+        with:
+          timeout-minutes: 30
+          limit-access-to-actor: true

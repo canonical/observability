@@ -37,43 +37,57 @@ resource "terraform_data" "s3management" {
 }
 
 module "mimir_coordinator" {
-  source     = "git::https://github.com/canonical/mimir-coordinator-k8s-operator//terraform"
-  app_name   = "mimir"
-  model_name = var.model_name
-  channel    = var.channel
+  source      = "git::https://github.com/canonical/mimir-coordinator-k8s-operator//terraform"
+  app_name    = "mimir"
+  model_name  = var.model_name
+  channel     = var.channel
+  units       = var.coordinator_units
+  constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=mimir,anti-pod.topology-key=kubernetes.io/hostname" : null
 }
 
 module "mimir_read" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.read_name
-  model_name = var.model_name
-  channel    = var.channel
+  source      = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
+  app_name    = var.read_name
+  model_name  = var.model_name
+  channel     = var.channel
+  constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=${var.read_name},anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-read = true
   }
   units = var.read_units
+  depends_on = [
+    module.mimir_coordinator
+  ]
 }
 
 module "mimir_write" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.write_name
-  model_name = var.model_name
-  channel    = var.channel
+  source      = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
+  app_name    = var.write_name
+  model_name  = var.model_name
+  channel     = var.channel
+  constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=${var.write_name},anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-write = true
   }
   units = var.write_units
+  depends_on = [
+    module.mimir_coordinator
+  ]
 }
 
 module "mimir_backend" {
-  source     = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
-  app_name   = var.backend_name
-  model_name = var.model_name
-  channel    = var.channel
+  source      = "git::https://github.com/canonical/mimir-worker-k8s-operator//terraform"
+  app_name    = var.backend_name
+  model_name  = var.model_name
+  channel     = var.channel
+  constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=${var.backend_name},anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-backend = true
   }
   units = var.backend_units
+  depends_on = [
+    module.mimir_coordinator
+  ]
 }
 
 # -------------- # Integrations --------------

@@ -43,7 +43,7 @@ on:
          required: false
 
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{ github.ref }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
   cancel-in-progress: true
 
 jobs:
@@ -104,9 +104,9 @@ jobs:
           fetch_lib="$(charmcraft fetch-lib)"
           # If charm libraries are not up-to-date
           if echo "$fetch_lib" | grep -qE "not found in Charmhub|updated to version|has local changes"; then
-            gh pr edit "$PR_NUMBER" --remove-label "Libraries: OK" --add-label "Libraries: Out of Sync"
+            gh pr edit "$PR_NUMBER" --remove-label "Charm Libraries: OK" --add-label "Charm Libraries: Out of Sync"
           else
-            gh pr edit "$PR_NUMBER" --remove-label "Libraries: Out of Sync" --add-label "Libraries: OK"
+            gh pr edit "$PR_NUMBER" --remove-label "Charm Libraries: Out of Sync" --add-label "Charm Libraries: OK"
           fi
 
   quality-checks:

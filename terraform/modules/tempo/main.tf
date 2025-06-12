@@ -1,74 +1,100 @@
 module "tempo_coordinator" {
-  source     = "git::https://github.com/canonical/tempo-coordinator-k8s-operator//terraform"
-  model_name = var.model_name
-  channel    = var.channel
+  source      = "git::https://github.com/canonical/tempo-coordinator-k8s-operator//terraform"
+  model_name  = var.model_name
+  channel     = var.channel
+  units       = var.coordinator_units
+  constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=tempo,anti-pod.topology-key=kubernetes.io/hostname" : null
 }
 
 module "tempo_querier" {
-  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
-  app_name   = "tempo-querier"
-  model_name = var.model_name
-  channel    = var.channel
+  source      = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
+  app_name    = "tempo-querier"
+  model_name  = var.model_name
+  channel     = var.channel
+  constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=tempo-querier,anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-all     = false
     role-querier = true
   }
   units = var.querier_units
+  depends_on = [
+    module.tempo_coordinator
+  ]
 }
 module "tempo_query_frontend" {
-  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
-  app_name   = "tempo-query-frontend"
-  model_name = var.model_name
-  channel    = var.channel
+  source      = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
+  app_name    = "tempo-query-frontend"
+  model_name  = var.model_name
+  channel     = var.channel
+  constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=tempo-query-frontend,anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-all            = false
     role-query-frontend = true
   }
   units = var.query_frontend_units
+  depends_on = [
+    module.tempo_coordinator
+  ]
 }
 module "tempo_ingester" {
-  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
-  app_name   = "tempo-ingester"
-  model_name = var.model_name
-  channel    = var.channel
+  source      = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
+  app_name    = "tempo-ingester"
+  model_name  = var.model_name
+  channel     = var.channel
+  constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=tempo-ingester,anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-all      = false
     role-ingester = true
   }
   units = var.ingester_units
+  depends_on = [
+    module.tempo_coordinator
+  ]
 }
 module "tempo_distributor" {
-  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
-  app_name   = "tempo-distributor"
-  model_name = var.model_name
-  channel    = var.channel
+  source      = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
+  app_name    = "tempo-distributor"
+  model_name  = var.model_name
+  channel     = var.channel
+  constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=tempo-distributor,anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-all         = false
     role-distributor = true
   }
   units = var.distributor_units
+  depends_on = [
+    module.tempo_coordinator
+  ]
 }
 module "tempo_compactor" {
-  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
-  app_name   = "tempo-compactor"
-  model_name = var.model_name
-  channel    = var.channel
+  source      = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
+  app_name    = "tempo-compactor"
+  model_name  = var.model_name
+  channel     = var.channel
+  constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=tempo-compactor,anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-all       = false
     role-compactor = true
   }
   units = var.compactor_units
+  depends_on = [
+    module.tempo_coordinator
+  ]
 }
 module "tempo_metrics_generator" {
-  source     = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
-  app_name   = "tempo-metrics-generator"
-  model_name = var.model_name
-  channel    = var.channel
+  source      = "git::https://github.com/canonical/tempo-worker-k8s-operator//terraform"
+  app_name    = "tempo-metrics-generator"
+  model_name  = var.model_name
+  channel     = var.channel
+  constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=tempo-metrics-generator,anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
     role-all               = false
     role-metrics-generator = true
   }
   units = var.metrics_generator_units
+  depends_on = [
+    module.tempo_coordinator
+  ]
 }
 
 # TODO: Replace s3_integrator resource to use its remote terraform module once available

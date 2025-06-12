@@ -22,59 +22,66 @@ module "grafana" {
 }
 
 module "loki" {
-  source        = "git::https://github.com/canonical/observability//terraform/modules/loki"
-  model_name    = var.model_name
-  channel       = var.channel
-  backend_units = var.loki_backend_units
-  read_units    = var.loki_read_units
-  write_units   = var.loki_write_units
-  s3_bucket     = var.loki_bucket
-  s3_endpoint   = var.s3_endpoint
-  s3_password   = var.s3_password
-  s3_user       = var.s3_user
+  source            = "git::https://github.com/canonical/observability//terraform/modules/loki"
+  model_name        = var.model_name
+  channel           = var.channel
+  backend_units     = var.loki_backend_units
+  read_units        = var.loki_read_units
+  write_units       = var.loki_write_units
+  coordinator_units = var.loki_coordinator_units
+  s3_bucket         = var.loki_bucket
+  s3_endpoint       = var.s3_endpoint
+  s3_password       = var.s3_password
+  s3_user           = var.s3_user
+  anti_affinity     = var.anti_affinity
 }
 
 module "mimir" {
-  source        = "git::https://github.com/canonical/observability//terraform/modules/mimir"
-  model_name    = var.model_name
-  channel       = var.channel
-  backend_units = var.mimir_backend_units
-  read_units    = var.mimir_read_units
-  write_units   = var.mimir_write_units
-  s3_bucket     = var.mimir_bucket
-  s3_endpoint   = var.s3_endpoint
-  s3_password   = var.s3_password
-  s3_user       = var.s3_user
+  source            = "git::https://github.com/canonical/observability//terraform/modules/mimir"
+  model_name        = var.model_name
+  channel           = var.channel
+  backend_units     = var.mimir_backend_units
+  read_units        = var.mimir_read_units
+  write_units       = var.mimir_write_units
+  coordinator_units = var.mimir_coordinator_units
+  s3_bucket         = var.mimir_bucket
+  s3_endpoint       = var.s3_endpoint
+  s3_password       = var.s3_password
+  s3_user           = var.s3_user
+  anti_affinity     = var.anti_affinity
 }
 
 module "ssc" {
-  count   = var.use_tls ? 1 : 0
-  source  = "git::https://github.com/canonical/self-signed-certificates-operator//terraform"
-  model   = var.model_name
-  channel = var.channel
+  count         = var.use_tls ? 1 : 0
+  source        = "git::https://github.com/canonical/self-signed-certificates-operator//terraform"
+  model         = var.model_name
+  channel       = var.ssc_channel
 }
 
 module "tempo" {
   source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo"
   model_name              = var.model_name
   channel                 = var.channel
-  compactor_units         = var.tempo_compactor_units
-  distributor_units       = var.tempo_distributor_units
-  ingester_units          = var.tempo_ingester_units
-  metrics_generator_units = var.tempo_metrics_generator_units
+  coordinator_units       = var.tempo_coordinator_units
   querier_units           = var.tempo_querier_units
   query_frontend_units    = var.tempo_query_frontend_units
+  ingester_units          = var.tempo_ingester_units
+  distributor_units       = var.tempo_distributor_units
+  compactor_units         = var.tempo_compactor_units
+  metrics_generator_units = var.tempo_metrics_generator_units
   s3_bucket               = var.tempo_bucket
   s3_endpoint             = var.s3_endpoint
   s3_password             = var.s3_password
   s3_user                 = var.s3_user
+  anti_affinity           = var.anti_affinity
 }
 
 module "traefik" {
   source     = "git::https://github.com/canonical/traefik-k8s-operator//terraform"
   app_name   = "traefik"
   model_name = var.model_name
-  channel    = var.channel
+  channel    = var.traefik_channel
+  config     = var.cloud == "aws" ? { "loadbalancer_annotations" = "service.beta.kubernetes.io/aws-load-balancer-scheme=internet-facing" } : {}
 }
 
 module "grafana_agent" {
@@ -83,6 +90,7 @@ module "grafana_agent" {
   model_name = var.model_name
   channel    = var.channel
 }
+
 
 
 # -------------- # Integrations --------------
