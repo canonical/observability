@@ -1,7 +1,7 @@
 # TODO: Replace s3_integrator resource to use its remote terraform module once available
 resource "juju_application" "s3_integrator" {
   name  = var.s3_integrator_name
-  model = var.model_name
+  model = var.model
   trust = true
 
   charm {
@@ -22,7 +22,7 @@ resource "terraform_data" "s3management" {
   input = {
     S3_USER       = var.s3_user
     S3_PASSWORD   = var.s3_password
-    MODEL_NAME    = var.model_name
+    MODEL_NAME    = var.model
     S3_INTEGRATOR = var.s3_integrator_name
   }
 
@@ -37,7 +37,7 @@ resource "terraform_data" "s3management" {
 module "loki_coordinator" {
   source      = "git::https://github.com/canonical/loki-coordinator-k8s-operator//terraform"
   app_name    = "loki"
-  model       = var.model_name
+  model       = var.model
   channel     = var.channel
   units       = var.coordinator_units
   constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=loki,anti-pod.topology-key=kubernetes.io/hostname" : null
@@ -46,7 +46,7 @@ module "loki_coordinator" {
 module "loki_backend" {
   source      = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
   app_name    = var.backend_name
-  model       = var.model_name
+  model       = var.model
   channel     = var.channel
   constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=${var.backend_name},anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
@@ -61,7 +61,7 @@ module "loki_backend" {
 module "loki_read" {
   source      = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
   app_name    = var.read_name
-  model       = var.model_name
+  model       = var.model
   channel     = var.channel
   constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=${var.read_name},anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
@@ -76,7 +76,7 @@ module "loki_read" {
 module "loki_write" {
   source      = "git::https://github.com/canonical/loki-worker-k8s-operator//terraform"
   app_name    = var.write_name
-  model       = var.model_name
+  model       = var.model
   channel     = var.channel
   constraints = var.anti_affinity ? "arch=amd64 tags=anti-pod.app.kubernetes.io/name=${var.write_name},anti-pod.topology-key=kubernetes.io/hostname" : null
   config = {
@@ -91,7 +91,7 @@ module "loki_write" {
 # -------------- # Integrations --------------
 
 resource "juju_integration" "coordinator_to_s3_integrator" {
-  model = var.model_name
+  model = var.model
   application {
     name     = juju_application.s3_integrator.name
     endpoint = "s3-credentials"
@@ -104,7 +104,7 @@ resource "juju_integration" "coordinator_to_s3_integrator" {
 }
 
 resource "juju_integration" "coordinator_to_backend" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.loki_coordinator.app_name
@@ -118,7 +118,7 @@ resource "juju_integration" "coordinator_to_backend" {
 }
 
 resource "juju_integration" "coordinator_to_read" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.loki_coordinator.app_name
@@ -132,7 +132,7 @@ resource "juju_integration" "coordinator_to_read" {
 }
 
 resource "juju_integration" "coordinator_to_write" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.loki_coordinator.app_name

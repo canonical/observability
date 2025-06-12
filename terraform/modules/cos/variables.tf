@@ -9,7 +9,7 @@ variable "channel" {
   default     = "latest/edge"
 }
 
-variable "model_name" {
+variable "model" {
   description = "Model name"
   type        = string
 }

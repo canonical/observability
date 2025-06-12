@@ -10,7 +10,7 @@ variable "anti_affinity" {
   default     = true
 }
 
-variable "model_name" {
+variable "model" {
   description = "Model name"
   type        = string
 }

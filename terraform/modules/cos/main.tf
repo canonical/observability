@@ -3,27 +3,27 @@
 module "alertmanager" {
   source     = "git::https://github.com/canonical/alertmanager-k8s-operator//terraform"
   app_name   = "alertmanager"
-  model      = var.model_name
+  model      = var.model
   channel    = var.channel
 }
 
 module "catalogue" {
   source     = "git::https://github.com/canonical/catalogue-k8s-operator//terraform"
   app_name   = "catalogue"
-  model      = var.model_name
+  model      = var.model
   channel    = var.channel
 }
 
 module "grafana" {
   source     = "git::https://github.com/canonical/grafana-k8s-operator//terraform"
   app_name   = "grafana"
-  model_name = var.model_name
+  model = var.model
   channel    = var.channel
 }
 
 module "loki" {
   source            = "git::https://github.com/canonical/observability//terraform/modules/loki?ref=fix-variable-name-changes"
-  model             = var.model_name
+  model             = var.model
   channel           = var.channel
   backend_units     = var.loki_backend_units
   read_units        = var.loki_read_units
@@ -38,7 +38,7 @@ module "loki" {
 
 module "mimir" {
   source            = "git::https://github.com/canonical/observability//terraform/modules/mimir?ref=fix-variable-name-changes"
-  model             = var.model_name
+  model             = var.model
   channel           = var.channel
   backend_units     = var.mimir_backend_units
   read_units        = var.mimir_read_units
@@ -54,13 +54,13 @@ module "mimir" {
 module "ssc" {
   count         = var.use_tls ? 1 : 0
   source        = "git::https://github.com/canonical/self-signed-certificates-operator//terraform"
-  model         = var.model_name
+  model         = var.model
   channel       = var.ssc_channel
 }
 
 module "tempo" {
   source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo?ref=fix-variable-name-changes"
-  model                   = var.model_name
+  model                   = var.model
   channel                 = var.channel
   coordinator_units       = var.tempo_coordinator_units
   querier_units           = var.tempo_querier_units
@@ -79,7 +79,7 @@ module "tempo" {
 module "traefik" {
   source     = "git::https://github.com/canonical/traefik-k8s-operator//terraform"
   app_name   = "traefik"
-  model_name = var.model_name
+  model = var.model
   channel    = var.traefik_channel
   config     = var.cloud == "aws" ? { "loadbalancer_annotations" = "service.beta.kubernetes.io/aws-load-balancer-scheme=internet-facing" } : {}
 }
@@ -87,7 +87,7 @@ module "traefik" {
 module "grafana_agent" {
   source     = "git::https://github.com/canonical/grafana-agent-k8s-operator//terraform"
   app_name   = "grafana-agent"
-  model      = var.model_name
+  model      = var.model
   channel    = var.channel
 }
 
@@ -98,7 +98,7 @@ module "grafana_agent" {
 # Provided by Alertmanager
 
 resource "juju_integration" "alertmanager_grafana_dashboards" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.alertmanager.app_name
@@ -112,7 +112,7 @@ resource "juju_integration" "alertmanager_grafana_dashboards" {
 }
 
 resource "juju_integration" "mimir_alertmanager" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.mimir.app_names.mimir_coordinator
@@ -126,7 +126,7 @@ resource "juju_integration" "mimir_alertmanager" {
 }
 
 resource "juju_integration" "loki_alertmanager" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.loki.app_names.loki_coordinator
@@ -140,7 +140,7 @@ resource "juju_integration" "loki_alertmanager" {
 }
 
 resource "juju_integration" "agent_alertmanager_metrics" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.alertmanager.app_name
@@ -154,7 +154,7 @@ resource "juju_integration" "agent_alertmanager_metrics" {
 }
 
 resource "juju_integration" "grafana_source_alertmanager" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.alertmanager.app_name
@@ -170,7 +170,7 @@ resource "juju_integration" "grafana_source_alertmanager" {
 # Provided by Mimir
 
 resource "juju_integration" "mimir_grafana_dashboards_provider" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.mimir.app_names.mimir_coordinator
@@ -184,7 +184,7 @@ resource "juju_integration" "mimir_grafana_dashboards_provider" {
 }
 
 resource "juju_integration" "mimir_grafana_source" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.mimir.app_names.mimir_coordinator
@@ -198,7 +198,7 @@ resource "juju_integration" "mimir_grafana_source" {
 }
 
 resource "juju_integration" "mimir_tracing_grafana_agent_traicing_provider" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.mimir.app_names.mimir_coordinator
@@ -213,7 +213,7 @@ resource "juju_integration" "mimir_tracing_grafana_agent_traicing_provider" {
 
 
 resource "juju_integration" "mimir_self_metrics_endpoint_grafana_agent_metrics_endpoint" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.mimir.app_names.mimir_coordinator
@@ -230,7 +230,7 @@ resource "juju_integration" "mimir_self_metrics_endpoint_grafana_agent_metrics_e
 # Provided by Loki
 
 resource "juju_integration" "loki_grafana_dashboards_provider" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.loki.app_names.loki_coordinator
@@ -244,7 +244,7 @@ resource "juju_integration" "loki_grafana_dashboards_provider" {
 }
 
 resource "juju_integration" "loki_grafana_source" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.loki.app_names.loki_coordinator
@@ -258,7 +258,7 @@ resource "juju_integration" "loki_grafana_source" {
 }
 
 resource "juju_integration" "loki_logging_consumer_grafana_agent_logging_provider" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.loki.app_names.loki_coordinator
@@ -272,7 +272,7 @@ resource "juju_integration" "loki_logging_consumer_grafana_agent_logging_provide
 }
 
 resource "juju_integration" "loki_logging_grafana_agent_logging_consumer" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.loki.app_names.loki_coordinator
@@ -286,7 +286,7 @@ resource "juju_integration" "loki_logging_grafana_agent_logging_consumer" {
 }
 
 resource "juju_integration" "loki_tracing_grafana_agent_traicing_provider" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.loki.app_names.loki_coordinator
@@ -301,7 +301,7 @@ resource "juju_integration" "loki_tracing_grafana_agent_traicing_provider" {
 
 # Provided by Tempo
 resource "juju_integration" "tempo_grafana_source" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.tempo.app_names.tempo_coordinator
@@ -316,7 +316,7 @@ resource "juju_integration" "tempo_grafana_source" {
 
 
 resource "juju_integration" "tempo_tracing_grafana_agent_tracing" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.tempo.app_names.tempo_coordinator
@@ -330,7 +330,7 @@ resource "juju_integration" "tempo_tracing_grafana_agent_tracing" {
 }
 
 resource "juju_integration" "tempo_metrics_endpoint_grafana_agent_metrics_endpoint" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.tempo.app_names.tempo_coordinator
@@ -344,7 +344,7 @@ resource "juju_integration" "tempo_metrics_endpoint_grafana_agent_metrics_endpoi
 }
 
 resource "juju_integration" "tempo_logging_grafana_agent_logging_provider" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.tempo.app_names.tempo_coordinator
@@ -358,7 +358,7 @@ resource "juju_integration" "tempo_logging_grafana_agent_logging_provider" {
 }
 
 resource "juju_integration" "tempo_send_remote_write_mimir_receive_remote_write" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.tempo.app_names.tempo_coordinator
@@ -374,7 +374,7 @@ resource "juju_integration" "tempo_send_remote_write_mimir_receive_remote_write"
 # Provided by Catalogue
 
 resource "juju_integration" "alertmanager_catalogue" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.catalogue.app_name
@@ -388,7 +388,7 @@ resource "juju_integration" "alertmanager_catalogue" {
 }
 
 resource "juju_integration" "grafana_catalogue" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.catalogue.app_name
@@ -402,7 +402,7 @@ resource "juju_integration" "grafana_catalogue" {
 }
 
 resource "juju_integration" "tempo_catalogue" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.catalogue.app_name
@@ -416,7 +416,7 @@ resource "juju_integration" "tempo_catalogue" {
 }
 
 resource "juju_integration" "mimir_catalogue" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.catalogue.app_name
@@ -432,7 +432,7 @@ resource "juju_integration" "mimir_catalogue" {
 # Provided by Traefik
 
 resource "juju_integration" "alertmanager_ingress" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.traefik.app_name
@@ -447,7 +447,7 @@ resource "juju_integration" "alertmanager_ingress" {
 
 
 resource "juju_integration" "catalogue_ingress" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.traefik.app_name
@@ -461,7 +461,7 @@ resource "juju_integration" "catalogue_ingress" {
 }
 
 resource "juju_integration" "grafana_ingress" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.traefik.app_name
@@ -475,7 +475,7 @@ resource "juju_integration" "grafana_ingress" {
 }
 
 resource "juju_integration" "mimir_ingress" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.traefik.app_name
@@ -489,7 +489,7 @@ resource "juju_integration" "mimir_ingress" {
 }
 
 resource "juju_integration" "loki_ingress" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.traefik.app_name
@@ -503,7 +503,7 @@ resource "juju_integration" "loki_ingress" {
 }
 
 resource "juju_integration" "tempo_ingress" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.traefik.app_name
@@ -519,7 +519,7 @@ resource "juju_integration" "tempo_ingress" {
 # Grafana agent
 
 resource "juju_integration" "agent_loki_metrics" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.loki.app_names.loki_coordinator
@@ -533,7 +533,7 @@ resource "juju_integration" "agent_loki_metrics" {
 }
 
 resource "juju_integration" "agent_mimir_metrics" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.mimir.app_names.mimir_coordinator
@@ -549,7 +549,7 @@ resource "juju_integration" "agent_mimir_metrics" {
 # Provided by Grafana
 
 resource "juju_integration" "grafana_tracing_grafana_agent_traicing_provider" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.grafana.app_name
