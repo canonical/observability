@@ -17,7 +17,7 @@ module "catalogue" {
 module "grafana" {
   source     = "git::https://github.com/canonical/grafana-k8s-operator//terraform"
   app_name   = "grafana"
-  model = var.model
+  model_name = var.model
   channel    = var.channel
 }
 
@@ -79,7 +79,7 @@ module "tempo" {
 module "traefik" {
   source     = "git::https://github.com/canonical/traefik-k8s-operator//terraform"
   app_name   = "traefik"
-  model = var.model
+  model_name = var.model
   channel    = var.traefik_channel
   config     = var.cloud == "aws" ? { "loadbalancer_annotations" = "service.beta.kubernetes.io/aws-load-balancer-scheme=internet-facing" } : {}
 }
