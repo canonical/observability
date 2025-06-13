@@ -28,8 +28,8 @@ resource "juju_application" "s3_integrator" {
     revision = var.s3_integrator_revision
   }
   config = {
-    endpoint = var.s3_endpoint
-    bucket   = var.s3_bucket
+    endpoint    = var.s3_endpoint
+    bucket      = var.s3_bucket
     credentials = "secret:${juju_secret.loki_s3_credentials_secret.secret_id}"
   }
   units = 1

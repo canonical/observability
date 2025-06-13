@@ -1,7 +1,7 @@
 # -------------- # Integration offers -------------- #
 
 output "offers" {
-  value       = {
+  value = {
     alertmanager_karma_dashboard = juju_offer.alertmanager-karma-dashboard
     grafana_dashboards           = juju_offer.grafana-dashboards
     loki_logging                 = juju_offer.loki-logging
@@ -12,7 +12,7 @@ output "offers" {
 # -------------- # Sub-modules -------------- #
 
 output "components" {
-  value       = {
+  value = {
     alertmanager  = module.alertmanager
     catalogue     = module.catalogue
     grafana       = module.grafana
