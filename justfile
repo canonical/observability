@@ -7,6 +7,14 @@ terraform := `which terraform || which tofu || echo ""` # require 'terraform' or
 default:
   just --list
 
+# Lint everything
+[group("Lint")]
+lint: lint-terraform lint-workflows
+
+# Format everything 
+[group("Format")]
+fmt: format-terraform
+
 # Lint the Terraform modules
 [group("Lint")]
 lint-terraform:
@@ -18,9 +26,8 @@ lint-terraform:
 lint-workflows:
   uvx --from=actionlint-py actionlint
 
-# Lint everything
-[group("Lint")]
-lint: lint-terraform lint-workflows
-
-
-
+# Format the Terraform modules
+[group("Format")]
+format-terraform:
+  if [ -z "${terraform}" ]; then echo "ERROR: please install terraform or opentofu"; exit 1; fi
+  $terraform fmt -recursive -diff

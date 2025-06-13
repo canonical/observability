@@ -1,7 +1,57 @@
-variable "channel" {
-  description = "Charms channel"
+variable "model" {
+  description = "Reference to an existing model resource or data source for the model to deploy to"
   type        = string
-  default     = "latest/edge"
+}
+
+variable "channel" {
+  description = "Channel that the charms are deployed from"
+  type        = string
+}
+
+variable "s3_integrator_channel" {
+  description = "Channel that the s3-integrator charm is deployed from"
+  type        = string
+  default     = "2/edge"
+}
+
+variable "coordinator_revision" {
+  description = "Revision number of the coordinator charm"
+  type        = number
+  default     = null
+}
+
+variable "worker_revision" {
+  description = "Revision number of the worker charm"
+  type        = number
+  default     = null
+}
+
+variable "s3_integrator_revision" {
+  description = "Revision number of the s3-integrator charm"
+  type        = number
+  default     = 157 # FIXME: https://github.com/canonical/observability/issues/342
+}
+
+variable "s3_bucket" {
+  description = "Bucket name"
+  type        = string
+  default     = "tempo"
+}
+
+variable "s3_access_key" {
+  description = "S3 access-key credential"
+  type        = string
+}
+
+variable "s3_secret_key" {
+  description = "S3 secret-key credential"
+  type        = string
+  sensitive   = true
+}
+
+variable "s3_endpoint" {
+  description = "S3 endpoint"
+  type        = string
 }
 
 variable "anti_affinity" {
@@ -9,6 +59,52 @@ variable "anti_affinity" {
   type        = bool
   default     = true
 }
+
+# -------------- # App Names --------------
+
+variable "querier_name" {
+  description = "Name of the Tempo querier app"
+  type        = string
+  default     = "tempo-querier"
+}
+
+variable "query_frontend_name" {
+  description = "Name of the Tempo query-frontend app"
+  type        = string
+  default     = "tempo-query-frontend"
+}
+
+variable "ingester_name" {
+  description = "Name of the Tempo ingester app"
+  type        = string
+  default     = "tempo-ingester"
+}
+
+variable "distributor_name" {
+  description = "Name of the Tempo distributor app"
+  type        = string
+  default     = "tempo-distributor"
+}
+
+variable "compactor_name" {
+  description = "Name of the Tempo compactor app"
+  type        = string
+  default     = "tempo-compactor"
+}
+
+variable "metrics_generator_name" {
+  description = "Name of the Tempo metrics-generator app"
+  type        = string
+  default     = "tempo-metrics-generator"
+}
+
+variable "s3_integrator_name" {
+  description = "Name of the s3-integrator app"
+  type        = string
+  default     = "tempo-s3-integrator"
+}
+
+# -------------- # Units Per App --------------
 
 variable "compactor_units" {
   description = "Number of Tempo worker units with compactor role"
@@ -60,12 +156,6 @@ variable "coordinator_units" {
   }
 }
 
-
-variable "model_name" {
-  description = "Model name"
-  type        = string
-}
-
 variable "querier_units" {
   description = "Number of Tempo worker units with querier role"
   type        = number
@@ -83,31 +173,4 @@ variable "query_frontend_units" {
     condition     = var.query_frontend_units >= 1
     error_message = "The number of units must be greater than or equal to 1."
   }
-}
-
-variable "s3_integrator_name" {
-  description = "Name of the Loki app with the write role"
-  type        = string
-  default     = "tempo-s3-integrator"
-}
-
-variable "s3_bucket" {
-  description = "Bucket name"
-  type        = string
-  default     = "tempo"
-}
-
-variable "s3_user" {
-  description = "S3 user"
-  type        = string
-}
-
-variable "s3_password" {
-  description = "S3 password"
-  type        = string
-}
-
-variable "s3_endpoint" {
-  description = "S3 endpoint"
-  type        = string
 }

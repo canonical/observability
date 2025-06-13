@@ -1,4 +1,4 @@
-Terraform module for Tempo solution
+# Terraform module for Tempo solution
 
 This is a Terraform module facilitating the deployment of Tempo solution, using the [Terraform juju provider](https://github.com/juju/terraform-provider-juju/). For more information, refer to the provider [documentation](https://registry.terraform.io/providers/juju/juju/latest/docs).
 
@@ -22,33 +22,31 @@ This module requires a `juju` model to be available. Refer to the [usage section
 ### Inputs
 The module offers the following configurable inputs:
 
-| Name | Type | Description | Required |
+| Name | Type | Description | Default |
 | - | - | - | - |
-| `channel`| string | Channel that the charms are deployed from | latest/edge |
+| `channel`| string | Channel that the charms are deployed from |  |
 | `compactor_units`| number | Number of Tempo worker units with compactor role | 1 |
 | `distributor_units`| number | Number of Tempo worker units with distributor role | 1 |
 | `ingester_units`| number | Number of Tempo worker units with ingester role | 1 |
 | `metrics_generator_units`| number | Number of Tempo worker units with metrics-generator role | 1 |
-| `model_name`| string | Name of the model that the charm is deployed on |  |
+| `model`| string | Name of the model that the charm is deployed on |  |
 | `querier_units`| number | Number of Tempo worker units with querier role | 1 |
 | `query_frontend_units`| number | Number of Tempo worker units with query-frontend role | 1 |
 | `coordinator_units`| number | Number of Tempo coordinator units | 1 |
 | `s3_integrator_name` | string | Name of the s3-integrator app | 1 |
 | `s3_bucket` | string | Name of the bucke in which Tempo stores traces | 1 |
-| `s3_user` | string | User to connect to the S3 provider | 1 |
-| `s3_password` | string | Password to connect to the S3 provider | 1 |
+| `s3_access_key` | string | Access key credential to connect to the S3 provider | 1 |
+| `s3_secret_key` | string | Secret key credential to connect to the S3 provider | 1 |
 | `s3_endpoint` | string | Endpoint of the S3 provider | 1 |
 
 
-
 ### Outputs
-Upon applied, the module exports the following outputs:
+Upon application, the module exports the following outputs:
 
-| Name | Description |
-| - | - |
-| `app_name`|  Application name |
-| `provides`| Map of `provides` endpoints |
-| `requires`|  Map of `requires` endpoints |
+| Name | Type | Description |
+| - | - | - |
+| `app_names`| map(string) | Names of the deployed applications |
+| `endpoints`| map(string) | Map of all `provides` and `requires` endpoints |
 
 ## Usage
 

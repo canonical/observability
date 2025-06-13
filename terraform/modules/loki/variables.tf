@@ -1,18 +1,35 @@
+variable "model" {
+  description = "Reference to an existing model resource or data source for the model to deploy to"
+  type        = string
+}
+
 variable "channel" {
-  description = "Charms channel"
+  description = "Channel that the charms are deployed from"
   type        = string
-  default     = "latest/edge"
 }
 
-variable "anti_affinity" {
-  description = "Enable anti-affinity constraints."
-  type        = bool
-  default     = true
+variable "s3_integrator_channel" {
+  description = "Channel that the s3-integrator charm is deployed from"
+  type        = string
+  default     = "2/edge"
 }
 
-variable "model_name" {
-  description = "Model name"
-  type        = string
+variable "coordinator_revision" {
+  description = "Revision number of the coordinator charm"
+  type        = number
+  default     = null
+}
+
+variable "worker_revision" {
+  description = "Revision number of the worker charm"
+  type        = number
+  default     = null
+}
+
+variable "s3_integrator_revision" {
+  description = "Revision number of the s3-integrator charm"
+  type        = number
+  default     = 157 # FIXME: https://github.com/canonical/observability/issues/342
 }
 
 variable "s3_bucket" {
@@ -21,19 +38,26 @@ variable "s3_bucket" {
   default     = "loki"
 }
 
-variable "s3_user" {
-  description = "S3 user"
+variable "s3_access_key" {
+  description = "S3 access-key credential"
   type        = string
 }
 
-variable "s3_password" {
-  description = "S3 password"
+variable "s3_secret_key" {
+  description = "S3 secret-key credential"
   type        = string
+  sensitive   = true
 }
 
 variable "s3_endpoint" {
   description = "S3 endpoint"
   type        = string
+}
+
+variable "anti_affinity" {
+  description = "Enable anti-affinity constraints."
+  type        = bool
+  default     = true
 }
 
 # -------------- # App Names --------------
@@ -57,7 +81,7 @@ variable "write_name" {
 }
 
 variable "s3_integrator_name" {
-  description = "Name of the Loki app with the write role"
+  description = "Name of the s3-integrator app"
   type        = string
   default     = "loki-s3-integrator"
 }

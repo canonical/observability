@@ -1,26 +1,26 @@
-output "app_names" {
-  value = merge(
-    {
-      catalogue = module.catalogue.app_name,
-      grafana   = module.grafana.app_name,
-      loki      = module.loki.app_names,
-      mimir     = module.mimir.app_names,
-      traefik   = module.traefik.app_name,
-    }
-  )
+# -------------- # Integration offers -------------- #
+
+output "offers" {
+  value = {
+    alertmanager_karma_dashboard = juju_offer.alertmanager-karma-dashboard
+    grafana_dashboards           = juju_offer.grafana-dashboards
+    loki_logging                 = juju_offer.loki-logging
+    mimir_receive_remote_write   = juju_offer.mimir-receive-remote-write
+  }
 }
 
-output "tempo" {
-  description = "Outputs from the Tempo module"
-  value       = module.tempo
-}
+# -------------- # Sub-modules -------------- #
 
-output "mimir" {
-  description = "Outputs from the Mimir module"
-  value       = module.mimir
-}
-
-output "loki" {
-  description = "Outputs from the Loki module"
-  value       = module.loki
+output "components" {
+  value = {
+    alertmanager  = module.alertmanager
+    catalogue     = module.catalogue
+    grafana       = module.grafana
+    grafana_agent = module.grafana_agent
+    loki          = module.loki
+    mimir         = module.mimir
+    ssc           = module.ssc
+    tempo         = module.tempo
+    traefik       = module.traefik
+  }
 }
