@@ -3,49 +3,49 @@
 module "ssc" {
   count   = var.use_tls ? 1 : 0
   source  = "git::https://github.com/canonical/self-signed-certificates-operator//terraform"
-  model   = var.model_name
+  model   = var.model
   channel = var.channel
 }
 
 module "alertmanager" {
   source     = "git::https://github.com/canonical/alertmanager-k8s-operator//terraform"
   app_name   = "alertmanager"
-  model_name = var.model_name
+  model = var.model
   channel    = var.channel
 }
 
 module "catalogue" {
   source     = "git::https://github.com/canonical/catalogue-k8s-operator//terraform"
   app_name   = "catalogue"
-  model_name = var.model_name
+  model = var.model
   channel    = var.channel
 }
 
 module "prometheus" {
   source     = "git::https://github.com/canonical/prometheus-k8s-operator//terraform"
   app_name   = "prometheus"
-  model_name = var.model_name
+  model_name = var.model
   channel    = var.channel
 }
 
 module "loki" {
   source     = "git::https://github.com/canonical/loki-k8s-operator//terraform"
   app_name   = "loki"
-  model_name = var.model_name
+  model_name = var.model
   channel    = var.channel
 }
 
 module "grafana" {
   source     = "git::https://github.com/canonical/grafana-k8s-operator//terraform"
   app_name   = "grafana"
-  model_name = var.model_name
+  model = var.model
   channel    = var.channel
 }
 
 module "traefik" {
   source     = "git::https://github.com/canonical/traefik-k8s-operator//terraform"
   app_name   = "traefik"
-  model_name = var.model_name
+  model = var.model
   channel    = var.channel
 }
 
@@ -56,7 +56,7 @@ module "traefik" {
 # Provided by Alertmanager
 
 resource "juju_integration" "alertmanager_grafana_dashboards" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.alertmanager.app_name
@@ -70,7 +70,7 @@ resource "juju_integration" "alertmanager_grafana_dashboards" {
 }
 
 resource "juju_integration" "alertmanager_prometheus" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.prometheus.app_name
@@ -84,7 +84,7 @@ resource "juju_integration" "alertmanager_prometheus" {
 }
 
 resource "juju_integration" "alertmanager_self_monitoring_prometheus" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.prometheus.app_name
@@ -98,7 +98,7 @@ resource "juju_integration" "alertmanager_self_monitoring_prometheus" {
 }
 
 resource "juju_integration" "alertmanager_loki" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.loki.app_name
@@ -113,7 +113,7 @@ resource "juju_integration" "alertmanager_loki" {
 
 
 resource "juju_integration" "grafana_source_alertmanager" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.alertmanager.app_name
@@ -129,7 +129,7 @@ resource "juju_integration" "grafana_source_alertmanager" {
 # Provided by Grafana
 
 resource "juju_integration" "grafana_self_monitoring_prometheus" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.prometheus.app_name
@@ -146,7 +146,7 @@ resource "juju_integration" "grafana_self_monitoring_prometheus" {
 # Provided by Prometheus
 
 resource "juju_integration" "prometheus_grafana_dashboards_provider" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.prometheus.app_name
@@ -160,7 +160,7 @@ resource "juju_integration" "prometheus_grafana_dashboards_provider" {
 }
 
 resource "juju_integration" "prometheus_grafana_source" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.prometheus.app_name
@@ -179,7 +179,7 @@ resource "juju_integration" "prometheus_grafana_source" {
 # Provided by Loki
 
 resource "juju_integration" "loki_grafana_dashboards_provider" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.loki.app_name
@@ -193,7 +193,7 @@ resource "juju_integration" "loki_grafana_dashboards_provider" {
 }
 
 resource "juju_integration" "loki_grafana_source" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.loki.app_name
@@ -207,7 +207,7 @@ resource "juju_integration" "loki_grafana_source" {
 }
 
 resource "juju_integration" "loki_self_monitoring_prometheus" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.prometheus.app_name
@@ -224,7 +224,7 @@ resource "juju_integration" "loki_self_monitoring_prometheus" {
 # Provided by Catalogue
 
 resource "juju_integration" "catalogue_alertmanager" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.catalogue.app_name
@@ -238,7 +238,7 @@ resource "juju_integration" "catalogue_alertmanager" {
 }
 
 resource "juju_integration" "catalogue_grafana" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.catalogue.app_name
@@ -252,7 +252,7 @@ resource "juju_integration" "catalogue_grafana" {
 }
 
 resource "juju_integration" "catalogue_prometheus" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.catalogue.app_name
@@ -269,7 +269,7 @@ resource "juju_integration" "catalogue_prometheus" {
 # Provided by Traefik
 
 resource "juju_integration" "alertmanager_ingress" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.traefik.app_name
@@ -284,7 +284,7 @@ resource "juju_integration" "alertmanager_ingress" {
 
 
 resource "juju_integration" "catalogue_ingress" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.traefik.app_name
@@ -298,7 +298,7 @@ resource "juju_integration" "catalogue_ingress" {
 }
 
 resource "juju_integration" "grafana_ingress" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.traefik.app_name
@@ -312,7 +312,7 @@ resource "juju_integration" "grafana_ingress" {
 }
 
 resource "juju_integration" "prometheus_ingress" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.traefik.app_name
@@ -326,7 +326,7 @@ resource "juju_integration" "prometheus_ingress" {
 }
 
 resource "juju_integration" "loki_ingress" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.traefik.app_name
@@ -340,7 +340,7 @@ resource "juju_integration" "loki_ingress" {
 }
 
 resource "juju_integration" "traefik_self_monitoring_prometheus" {
-  model = var.model_name
+  model = var.model
 
   application {
     name     = module.prometheus.app_name
@@ -357,28 +357,28 @@ resource "juju_integration" "traefik_self_monitoring_prometheus" {
 
 resource "juju_offer" "alertmanager-karma-dashboard" {
   name             = "alertmanager-karma-dashboard"
-  model            = var.model_name
+  model            = var.model
   application_name = module.alertmanager.app_name
   endpoint         = "karma-dashboard"
 }
 
 resource "juju_offer" "grafana-dashboards" {
   name             = "grafana-dashboards"
-  model            = var.model_name
+  model            = var.model
   application_name = module.grafana.app_name
   endpoint         = "grafana-dashboard"
 }
 
 resource "juju_offer" "loki-logging" {
   name             = "loki-logging"
-  model            = var.model_name
+  model            = var.model
   application_name = module.loki.app_name
   endpoint         = "logging"
 }
 
 resource "juju_offer" "prometheus-receive-remote-write" {
   name             = "prometheus-receive-remote-write"
-  model            = var.model_name
+  model            = var.model
   application_name = module.prometheus.app_name
   endpoint         = "receive-remote-write"
 }
