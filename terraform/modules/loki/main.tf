@@ -28,23 +28,11 @@ resource "juju_application" "s3_integrator" {
     revision = var.s3_integrator_revision
   }
   config = {
-    endpoint    = var.s3_endpoint
-    bucket      = var.s3_bucket
-    # credentials = "secret:${juju_secret.loki_s3_credentials_secret.secret_id}"
+    endpoint = var.s3_endpoint
+    bucket   = var.s3_bucket
+    credentials = "secret:${juju_secret.loki_s3_credentials_secret.secret_id}"
   }
   units = 1
-}
-
-resource "null_resource" "s3_integrator_config" {
-  depends_on = [
-    juju_secret.loki_s3_credentials_secret,
-    juju_application.s3_integrator,
-    juju_access_secret.loki_s3_secret_access
-  ]
-
-  provisioner "local-exec" {
-    command = "juju config ${juju_application.s3_integrator.name} credentials=secret:${juju_secret.loki_s3_credentials_secret.secret_id}"
-  }
 }
 
 module "loki_coordinator" {

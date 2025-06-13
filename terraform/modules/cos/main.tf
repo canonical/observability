@@ -17,7 +17,7 @@ module "catalogue" {
 }
 
 module "grafana" {
-  source   = "git::https://github.com/canonical/grafana-k8s-operator//terraform?ref=fix/tf-housekeeping"
+  source   = "git::https://github.com/canonical/grafana-k8s-operator//terraform"
   app_name = "grafana"
   model    = var.model
   channel  = var.channel
@@ -33,7 +33,7 @@ module "grafana_agent" {
 }
 
 module "loki" {
-  source                 = "git::https://github.com/canonical/observability//terraform/modules/loki?ref=fix/tf-housekeeping"
+  source                 = "git::https://github.com/canonical/observability//terraform/modules/loki"
   model                  = var.model
   channel                = var.channel
   s3_integrator_channel  = var.s3_integrator_channel
@@ -52,7 +52,7 @@ module "loki" {
 }
 
 module "mimir" {
-  source                 = "git::https://github.com/canonical/observability//terraform/modules/mimir?ref=fix/tf-housekeeping"
+  source                 = "git::https://github.com/canonical/observability//terraform/modules/mimir"
   model                  = var.model
   channel                = var.channel
   s3_integrator_channel  = var.s3_integrator_channel
@@ -79,7 +79,7 @@ module "ssc" {
 }
 
 module "tempo" {
-  source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo?ref=fix/tf-housekeeping"
+  source                  = "git::https://github.com/canonical/observability//terraform/modules/tempo"
   model                   = var.model
   channel                 = var.channel
   s3_integrator_channel   = var.s3_integrator_channel
@@ -97,7 +97,7 @@ module "tempo" {
   s3_endpoint             = var.s3_endpoint
   s3_access_key           = var.s3_access_key
   s3_secret_key           = var.s3_secret_key
-  anti_affinity          = var.anti_affinity
+  anti_affinity           = var.anti_affinity
 }
 
 module "traefik" {
