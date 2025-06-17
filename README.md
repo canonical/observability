@@ -136,6 +136,10 @@ Issues are synced by the [gh-jira-sync-bot](https://github.com/canonical/gh-jira
 The bot configuration lives in [.github/.jira_sync_config.yaml](https://github.com/canonical/observability/blob/main/.github/.jira_sync_config.yaml); *carefully* read the README to configure it. This 
 takes care of most things, except the Jira labels, which are added by the *Jira automation*.
 
+## Terraform
+
+The COS product Terraform modules exist in [observability-stack/terraform](https://github.com/canonical/observability-stack/tree/main/terraform/), where you can find references to all the other Observability charm Terraform modules.
+
 ## Scripts
 
 This repository contains a `scripts` directory for helper scripts of various nature as `pip-installables`.
