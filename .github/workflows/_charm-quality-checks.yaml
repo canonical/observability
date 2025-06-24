@@ -137,18 +137,6 @@ jobs:
             echo "Terraform directory ($CHARM_PATH/terraform) does not exist. Skipping validation."
           fi
 
-  validate-terraform:
-    name: Validate Terraform module(s)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install Terraform and validate modules
-        env:
-          CHARM_PATH: "${{ inputs.charm-path }}"
-        run: |      
-          
-
   static-analysis:
     name: Static analysis
     runs-on: ubuntu-latest
