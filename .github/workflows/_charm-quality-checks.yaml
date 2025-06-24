@@ -118,12 +118,12 @@ jobs:
           fi
 
   linting-terraform:
-    name: Lint Terraform files
+    name: Validate Terraform files
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install Terraform and lint modules
+      - name: Install Terraform and validate modules
         env:
           CHARM_PATH: "${{ inputs.charm-path }}"
         run: |
