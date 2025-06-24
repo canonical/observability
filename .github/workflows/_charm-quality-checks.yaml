@@ -130,6 +130,12 @@ jobs:
           sudo snap install opentofu --classic
           cd "$CHARM_PATH"
           tofu fmt -check -recursive -diff
+          if [ -d "$CHARM_PATH/terraform" ]; then
+            cd "$CHARM_PATH/terraform"
+            tofu validate
+          else
+            echo "Terraform directory ($CHARM_PATH/terraform) does not exist. Skipping validation."
+          fi
 
   validate-terraform:
     name: Validate Terraform module(s)
@@ -141,13 +147,7 @@ jobs:
         env:
           CHARM_PATH: "${{ inputs.charm-path }}"
         run: |      
-          if [ -d "$CHARM_PATH/terraform" ]; then
-            sudo snap install opentofu --classic
-            cd "$CHARM_PATH/terraform"
-            tofu validate
-          else
-            echo "Terraform directory does not exist. Skipping validation."
-          fi
+          
 
   static-analysis:
     name: Static analysis
