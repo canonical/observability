@@ -118,18 +118,24 @@ jobs:
           fi
 
   linting-terraform:
-    name: Lint Terraform files
+    name: Validate Terraform files
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install Terraform and lint modules
+      - name: Install Terraform and validate modules
         env:
           CHARM_PATH: "${{ inputs.charm-path }}"
         run: |
           sudo snap install opentofu --classic
           cd "$CHARM_PATH"
           tofu fmt -check -recursive -diff
+          if [ -d "$CHARM_PATH/terraform" ]; then
+            cd "$CHARM_PATH/terraform"
+            tofu validate
+          else
+            echo "Terraform directory ($CHARM_PATH/terraform) does not exist. Skipping validation."
+          fi
 
   static-analysis:
     name: Static analysis
