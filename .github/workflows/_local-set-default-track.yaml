@@ -1,0 +1,40 @@
+name: Set charm default track
+
+on:
+  workflow_call:
+    inputs:
+      charm-name:
+        description: "Path to the charm we want to promote. Defaults to the current working directory."
+        type: string
+        required: true
+      target-track:
+        description: "Track name to set as 'default track'."
+        type: string
+        required: true
+    secrets:
+      CHARMHUB_TOKEN:
+        required: true
+
+jobs:
+  set-track:
+    name: Set default track
+    runs-on: ubuntu-24.04
+    env:
+      CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
+      CHARM_NAME: ${{ inputs.charm-name }}
+      TARGET_TRACK: ${{ inputs.target-track }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install http
+          sudo snap install yq
+      - name: Send the HTTP request
+        run: |
+          # Prepare the authentication header
+          CHARMHUB_MACAROON_HEADER="Authorization: Macaroon $(echo "$CHARMHUB_TOKEN" | base64 -d | jq -r .v)"
+          export "CHARMHUB_MACAROON_HEADER=$CHARMHUB_MACAROON_HEADER" >> "$GITHUB_ENV"
+          # Send the request to change the default track
+          https PATCH "api.charmhub.io/v1/charm/${CHARM_NAME}" $CHARMHUB_MACAROON_HEADER default-track="1"
+          
