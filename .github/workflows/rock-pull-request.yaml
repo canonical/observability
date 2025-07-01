@@ -8,11 +8,6 @@ on:
         default: 'rockcraft,just,kubectl'
         required: false
         type: string
-      rock-path:
-        description: "Path to the home directory of the rock we want to test"
-        default: "."
-        required: false
-        type: string
 
 
 jobs:
@@ -63,12 +58,16 @@ jobs:
           EXTRA_SNAPS: ${{ inputs.extra-snaps }}
       - name: Pack and test the rocks
         run: |
-          cd "${{ inputs.rock-path }}"
           for version in ${{ needs.changes.outputs.versions }}; do
             version_leaf_directory="${version##*/}"
+
+            cd "${version%/$version_leaf_directory}"
+
             just pack "$version_leaf_directory"
             just test "$version_leaf_directory"
             just clean "$version_leaf_directory"
+
+            cd -
           done
       - name: Open SSH session on failure
         if: ${{ failure() && (runner.debug == '1') }}
