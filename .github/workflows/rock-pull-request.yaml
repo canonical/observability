@@ -8,6 +8,11 @@ on:
         default: 'rockcraft,just,kubectl'
         required: false
         type: string
+      rock-path:
+        description: "Path to the home directory of the rock we want to test"
+        default: "."
+        required: false
+        type: string
 
 
 jobs:
@@ -58,6 +63,7 @@ jobs:
           EXTRA_SNAPS: ${{ inputs.extra-snaps }}
       - name: Pack and test the rocks
         run: |
+          cd "${{ inputs.rock-path }}"
           for version in ${{ needs.changes.outputs.versions }}; do
             version_leaf_directory="${version##*/}"
             just pack "$version_leaf_directory"
