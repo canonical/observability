@@ -11,6 +11,11 @@ on:
         description: "Name of the application for which to build the rock"
         required: true
         type: string
+      risk-track:
+        description: "Risk track on which to release the rock"
+        required: false
+        default: "stable"
+        type: string
     secrets:
       OBSERVABILITY_NOCTUA_TOKEN:
         required: true
@@ -61,7 +66,9 @@ jobs:
           ROCK_NAME: ${{ inputs.rock-name }}
           # CHANGED_FILES is a space-separated list
           CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_and_modified_files }}
+          RISK_TRACK: ${{ inputs.risk-track }}
         run: |
+          TRACK=${RISK_TRACK:-stable}
           cd rock
           # Export current time to create a unique branch name for the fork
           echo "now_epoch=$(date -d now +%s)" >> "$GITHUB_OUTPUT"
@@ -75,6 +82,7 @@ jobs:
             "${{ github.repository }}" \
             --commit="$sha" \
             --base=24.04 \
+            --risk="$TRACK" \
             $versions_flags \
             > "$GITHUB_WORKSPACE/oci-factory/oci/$ROCK_NAME/image.yaml"
       - name: Commit to the fork
