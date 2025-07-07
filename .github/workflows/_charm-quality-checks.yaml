@@ -295,8 +295,8 @@ jobs:
 
       - name: Show juju debug-log
         run: | 
-          if test -d ./.pytest_jubilant_jdl; then
-            for filename in ./.pytest_jubilant_jdl/*.txt; do
+          if test -d ./.logs; then
+            for filename in ./.logs/*.txt; do
                 for ((i=0; i<=3; i++)); do
                       echo "::group::{{ $filename }}"
                       cat "$filename"
@@ -304,12 +304,12 @@ jobs:
                 done
             done
           else
-            echo "./.pytest_jubilant_jdl not found; ensure you're flying with pytest-jubilant > 0.7"
+            echo "./.logs not found; ensure you're flying with pytest-jubilant > 0.7"
           fi
 
       - name: Upload juju debug-log
         uses: actions/upload-artifact@v4
         with:
           name: juju-logs
-          path: ./.pytest_jubilant_jdl
+          path: ./.logs
           # defaults to 'warn' on failure
