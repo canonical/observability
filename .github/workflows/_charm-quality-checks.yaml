@@ -293,7 +293,7 @@ jobs:
           timeout-minutes: 30
           limit-access-to-actor: true
 
-      - name: Show juju debug-log
+      - name: Show logs
         run: | 
           if test -d ./.logs; then
             for filename in ./.logs/*.txt; do
@@ -307,7 +307,7 @@ jobs:
             echo "./.logs not found; ensure you're flying with pytest-jubilant > 0.7"
           fi
 
-      - name: Upload juju debug-log
+      - name: Upload logs
         uses: actions/upload-artifact@v4
         with:
           name: juju-logs
