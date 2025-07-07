@@ -292,3 +292,24 @@ jobs:
         with:
           timeout-minutes: 30
           limit-access-to-actor: true
+
+      - name: Show juju debug-log
+        run: | 
+          if test -d ./.pytest_jubilant_jdl; then
+            for filename in ./.pytest_jubilant_jdl/*.txt; do
+                for ((i=0; i<=3; i++)); do
+                      echo "::group::{{ $filename }}"
+                      cat {{ $filename }}
+                      echo "::endgroup::"
+                done
+            done
+          else
+            echo "./.pytest_jubilant_jdl not found; ensure you're flying with `pytest-jubilant > 0.7`"
+          fi
+
+      - name: Upload juju debug-log
+        uses: actions/upload-artifact@v4
+        with:
+          name: juju-logs
+          path: ./.pytest_jubilant_jdl
+          # defaults to 'warn' on failure
