@@ -132,6 +132,7 @@ jobs:
           tofu fmt -check -recursive -diff
           if [ -d "$CHARM_PATH/terraform" ]; then
             cd "$CHARM_PATH/terraform"
+            tofu init
             tofu validate
           else
             echo "Terraform directory ($CHARM_PATH/terraform) does not exist. Skipping validation."
