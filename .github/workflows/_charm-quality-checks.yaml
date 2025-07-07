@@ -296,10 +296,10 @@ jobs:
       - name: Show juju debug-log
         run: | 
           if test -d ./.pytest_jubilant_jdl; then
-            for filename in "./.pytest_jubilant_jdl/*.txt"; do
+            for filename in ./.pytest_jubilant_jdl/*.txt; do
                 for ((i=0; i<=3; i++)); do
                       echo "::group::{{ $filename }}"
-                      cat $filename
+                      cat "$filename"
                       echo "::endgroup::"
                 done
             done
