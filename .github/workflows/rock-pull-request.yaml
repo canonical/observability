@@ -2,6 +2,12 @@ name: Pull Request
 
 on:
   workflow_call:
+    inputs:
+      extra-snaps:
+        description: "Extra snaps to be installed into concierge env where tests will be run"
+        default: 'rockcraft,just,kubectl'
+        required: false
+        type: string
 
 
 jobs:
@@ -40,7 +46,7 @@ jobs:
         run: |
           sudo snap install concierge --classic
           # We need the kubectl (classic) snap because `kgoss` needs access to the /tmp directory
-          sudo concierge prepare -p microk8s --extra-snaps rockcraft,just,kubectl
+          sudo concierge prepare -p microk8s --extra-snaps "$EXTRA_SNAPS"
           sudo microk8s enable registry
           # FIXME: install via the goss snap when available
           goss_base_url="https://github.com/goss-org/goss/releases/latest/download"
@@ -48,12 +54,20 @@ jobs:
           chmod +rx /usr/local/bin/goss
           curl -L ${goss_base_url}/kgoss -o /usr/local/bin/kgoss
           chmod +rx /usr/local/bin/kgoss
+        env:
+          EXTRA_SNAPS: ${{ inputs.extra-snaps }}
       - name: Pack and test the rocks
         run: |
           for version in ${{ needs.changes.outputs.versions }}; do
-            just pack "$version"
-            just test "$version"
-            just clean "$version"
+            version_leaf_directory="${version##*/}"
+
+            cd "${version%/"$version_leaf_directory"}"
+
+            just pack "$version_leaf_directory"
+            just test "$version_leaf_directory"
+            just clean "$version_leaf_directory"
+
+            cd -
           done
       - name: Open SSH session on failure
         if: ${{ failure() && (runner.debug == '1') }}
