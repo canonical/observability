@@ -295,7 +295,7 @@ jobs:
 
       - name: Show logs
         run: | 
-          echo pwd
+          echo "$(pwd)"
           cd ${{ inputs.charm-path }}
           if test -d ./.logs; then
             for filename in ./.logs/*.txt; do
