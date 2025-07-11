@@ -295,21 +295,20 @@ jobs:
 
       - name: Show logs
         run: | 
+          cd ${{ inputs.charm-path }}
           if test -d ./.logs; then
             for filename in ./.logs/*.txt; do
-                for ((i=0; i<=3; i++)); do
-                      echo "::group::{{ $filename }}"
-                      cat "$filename"
-                      echo "::endgroup::"
-                done
+                echo "::group::{{ $filename }}"
+                cat "$filename"
+                echo "::endgroup::"
             done
           else
-            echo "./.logs not found; ensure you're flying with pytest-jubilant > 0.7"
+            echo "${{ inputs.charm-path }}/.logs not found"
           fi
 
       - name: Upload logs
         uses: actions/upload-artifact@v4
         with:
           name: juju-logs
-          path: ./.logs
+          path: ${{ inputs.charm-path }}/.logs
           # defaults to 'warn' on failure
