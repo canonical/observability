@@ -292,3 +292,24 @@ jobs:
         with:
           timeout-minutes: 30
           limit-access-to-actor: true
+
+      - name: Show logs
+        run: | 
+          echo "$(pwd)"
+          cd ${{ inputs.charm-path }}
+          if test -d ./.logs; then
+            for filename in ./.logs/*.txt; do
+                echo "::group::{{ $filename }}"
+                cat "$filename"
+                echo "::endgroup::"
+            done
+          else
+            echo "${{ inputs.charm-path }}/.logs not found"
+          fi
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: juju-logs
+          path: ${{ inputs.charm-path }}/.logs
+          # defaults to 'warn' on failure
