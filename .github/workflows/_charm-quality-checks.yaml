@@ -295,13 +295,15 @@ jobs:
 
       - name: Show logs
         run: | 
-          echo "$(pwd)"
           cd ${{ inputs.charm-path }}
           if test -d ./.logs; then
             for filename in ./.logs/*.txt; do
-                echo "::group::{{ $filename }}"
+                # begin collapsible log group for each file found in the folder; 
+                # this is github CI markup
+                # cfr: https://github.com/go-task/task/issues/647
+                printf "\n::group::{{ $filename }}\n"
                 cat "$filename"
-                echo "::endgroup::"
+                printf "\n::endgroup::\n"
             done
           else
             echo "${{ inputs.charm-path }}/.logs not found"
@@ -311,5 +313,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: juju-logs
-          path: ${{ inputs.charm-path }}/.logs
+          path: ${{ inputs.charm-path }}/.logs/
           # defaults to 'warn' on failure
