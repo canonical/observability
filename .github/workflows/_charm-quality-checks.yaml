@@ -316,6 +316,6 @@ jobs:
         with:
           name: logs
           path: |
-            {{ inputs.charm-path }}/.logs/
-            {{ inputs.charm-path }}/.logs/logfile.txt
+            ${{ inputs.charm-path }}/.logs/
+            ${{ inputs.charm-path }}/.logs/logfile.txt
           # FIXME:remove this
