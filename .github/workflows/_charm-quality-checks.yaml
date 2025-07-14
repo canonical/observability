@@ -315,7 +315,4 @@ jobs:
         # defaults to 'warn' on failure
         with:
           name: logs
-          path: |
-            .logs/
-            ${{ inputs.charm-path }}/.logs/
-          # FIXME:remove this
+          path: .logs/
