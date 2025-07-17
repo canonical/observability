@@ -129,5 +129,5 @@ jobs:
     needs:
       - ci-ignore
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-terraform.yaml@latest # FIXME: use a tag when available
+    uses: canonical/observability/.github/workflows/_charm-terraform.yaml@feat/tf-ci # FIXME: use a tag when available
     secrets: inherit
