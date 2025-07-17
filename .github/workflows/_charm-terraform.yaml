@@ -1,0 +1,47 @@
+name: Terraform
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**/*.tf'
+
+jobs:
+  lint-terraform:
+    name: Terraform lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install terraform --classic
+          sudo snap install just --classic
+      - name: Lint the Terraform modules
+        run: just lint-terraform
+  lint-terraform-docs:
+    name: Lint terraform docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install terraform --classic
+          sudo snap install terraform-docs
+          sudo snap install just --classic
+      - name: Lint the Terraform docs
+        run: just lint-terraform-docs
+  validate-terraform:
+    name: Terraform validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install terraform --classic
+          sudo snap install just --classic
+      - name: Validate the Terraform modules
+        run: just validate-terraform
