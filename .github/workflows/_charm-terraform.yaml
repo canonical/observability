@@ -10,7 +10,7 @@ on:
 
 jobs:
   lint-terraform:
-    name: Terraform lint
+    name: Lint Terraform format
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,7 +22,7 @@ jobs:
       - name: Lint the Terraform modules
         run: just lint-terraform
   lint-terraform-docs:
-    name: Lint terraform docs
+    name: Lint Terraform docs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -46,3 +46,15 @@ jobs:
           sudo snap install just --classic
       - name: Validate the Terraform modules
         run: just validate-terraform
+  lint-terraform-endpoints:
+    name: Lint Terraform outputs.tf endpoints
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install terraform --classic
+          sudo snap install just --classic
+      - name: Lint the Terraform outputs.tf endpoints
+        run: just lint-terraform-endpoints
