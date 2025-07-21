@@ -11,8 +11,11 @@ on:
       log-path:
         type: string
         description: |
-          Path to a directory where the logs for an integration testing run will be stored.
-          Is always interpreted relative to the charm root.
+          Path to a directory where the .txt logfiles for an integration testing run will be stored.
+          Relative and absolute file paths are both allowed. 
+          Relative paths are rooted against the charm repository root. 
+          Paths that begin with a wildcard character should be quoted to avoid being 
+          interpreted as YAML aliases.
         required: false
         default: .logs
       provider:

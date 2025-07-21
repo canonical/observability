@@ -10,8 +10,11 @@ on:
       log-path:
         type: string
         description: |
-          Path to a directory where the logs for an integration testing run will be stored.
-          Is always interpreted relative to the charm root.
+          Path to a directory where the .txt logfiles for an integration testing run will be stored.
+          Relative and absolute file paths are both allowed. 
+          Relative paths are rooted against the charm repository root. 
+          Paths that begin with a wildcard character should be quoted to avoid being 
+          interpreted as YAML aliases.
         required: false
         default: .logs
       provider:
@@ -299,11 +302,16 @@ jobs:
         with:
           timeout-minutes: 30
           limit-access-to-actor: true
+      - name: Determine log files location
+        id: log_path_det
+        run: |
+          # if the user gave us a relative path, interpret it from the charm-path root.
+          log_path=[[ "${{ inputs.log-path }}" =~ ^/ ]] && "${{ inputs.log-path }}" || "${{ inputs.charm-path }}/${{ inputs.log-path }}"
+          echo "log_path=$log_path" >> "$GITHUB_OUTPUT"
       - name: Show logs
         run: | 
-          cd ${{ inputs.charm-path }}
-          if test -d ./${{ inputs.log-path }}; then
-            for filename in ./${{ inputs.log-path }}/*.txt; do
+          if test -d ${{ steps.log_path_det.outputs.log_path }}; then
+            for filename in ${{ steps.log_path_det.outputs.log_path }}/*.txt; do
                 # begin collapsible log group for each file found in the folder; 
                 # this is github CI markup
                 # cfr: https://github.com/go-task/task/issues/647
@@ -312,7 +320,7 @@ jobs:
                 printf "\n::endgroup::\n"
             done
           else
-            echo "${{ inputs.charm-path }}/${{ inputs.log-path }} not found"
+            echo "${{ steps.log_path_det.outputs.log_path }} not found"
           fi
       - name: Upload logs
         uses: actions/upload-artifact@v4
@@ -320,4 +328,4 @@ jobs:
         with:
           name: charm-logs${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           include-hidden-files: true
-          path: ${{ inputs.log-path }}
+          path: ${{ steps.log_path_det.outputs.log_path }}
