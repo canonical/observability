@@ -8,6 +8,13 @@ on:
         default: '.'
         required: false
         type: string
+      log-path:
+        type: string
+        description: |
+          Path to a directory where the logs for an integration testing run will be stored.
+          Is always interpreted relative to the charm root.
+        required: false
+        default: .logs
       provider:
         description: "The provider to choose for either machine or k8s tests ('machine' or 'microk8s')"
         default: 'microk8s'
@@ -118,6 +125,7 @@ jobs:
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}
+      log-path: ${{ inputs.log-path }}
       provider: ${{ inputs.provider }}
       charmcraft-channel: ${{ inputs.charmcraft-channel }}
       juju-channel: ${{ inputs.juju-channel }}

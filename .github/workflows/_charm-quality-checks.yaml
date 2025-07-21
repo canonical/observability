@@ -7,6 +7,13 @@ on:
         type: string
         required: false
         default: .
+      log-path:
+        type: string
+        description: |
+          Path to a directory where the logs for an integration testing run will be stored.
+          Is always interpreted relative to the charm root.
+        required: false
+        default: .logs
       provider:
         type: string
         description: "The provider to choose for integration tests ('machine' or 'microk8s')"
@@ -292,12 +299,11 @@ jobs:
         with:
           timeout-minutes: 30
           limit-access-to-actor: true
-
       - name: Show logs
         run: | 
           cd ${{ inputs.charm-path }}
-          if test -d ./.logs; then
-            for filename in ./.logs/*.txt; do
+          if test -d ./${{ inputs.log-path }}; then
+            for filename in ./${{ inputs.log-path }}/*.txt; do
                 # begin collapsible log group for each file found in the folder; 
                 # this is github CI markup
                 # cfr: https://github.com/go-task/task/issues/647
@@ -306,14 +312,12 @@ jobs:
                 printf "\n::endgroup::\n"
             done
           else
-            echo "${{ inputs.charm-path }}/.logs not found"
+            echo "${{ inputs.charm-path }}/${{ inputs.log-path }} not found"
           fi
-
       - name: Upload logs
         uses: actions/upload-artifact@v4
-
         # defaults to 'warn' on failure
         with:
-          name: logs
+          name: charm-logs${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           include-hidden-files: true
-          path: .logs/
+          path: ${{ inputs.log-path }}
