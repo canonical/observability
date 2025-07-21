@@ -315,4 +315,5 @@ jobs:
         # defaults to 'warn' on failure
         with:
           name: logs
+          include-hidden-files: true
           path: .logs/
