@@ -15,7 +15,7 @@ on:
 jobs:
   scan:
     name: Scan and upload
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, amd64, tiobe, jammy]
     timeout-minutes: 60
     steps:
       - name: Checkout the project
@@ -27,7 +27,6 @@ jobs:
         run: |
           sudo snap install charmcraft --classic
           sudo apt update && sudo apt install -y pipx
-          pipx install coverage
           pipx install "coverage[toml]"
           pipx install tox
           sudo snap install astral-uv --classic
