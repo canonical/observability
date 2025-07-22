@@ -306,7 +306,7 @@ jobs:
         id: log_path_det
         run: |
           # if the user gave us a relative path, interpret it from the charm-path root.
-          log_path=[[ "${{ inputs.log-path }}" =~ ^/ ]] && "${{ inputs.log-path }}" || "${{ inputs.charm-path }}/${{ inputs.log-path }}"
+          log_path=[[ "${{ inputs.log-path }}" =~ ^/ ]] && echo "${{ inputs.log-path }}" || echo "${{ inputs.charm-path }}/${{ inputs.log-path }}"
           echo "log_path=$log_path" >> "$GITHUB_OUTPUT"
       - name: Show logs
         run: | 
