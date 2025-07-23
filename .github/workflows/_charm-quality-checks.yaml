@@ -307,7 +307,7 @@ jobs:
         run: |
           # if the user gave us a relative path, interpret it from the charm-path root.
           # if path starts with / it's absolute, else it's relative, and we prepend the (absolute) charm-path to it
-          log_path=[[ "${{ inputs.log-path }}" =~ ^/ ]] && echo "${{ inputs.log-path }}" || echo "${{ inputs.charm-path }}/${{ inputs.log-path }}"
+          log_path="$([[ "${{ inputs.log-path }}" = /* ]] && echo "${{ inputs.log-path }}" || echo "${{ inputs.charm-path }}/${{ inputs.log-path }}")"
           echo "log path is: $log_path"
           echo "log_path=$log_path" >> "$GITHUB_OUTPUT"
       - name: Show logs
