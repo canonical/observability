@@ -303,15 +303,17 @@ jobs:
           timeout-minutes: 30
           limit-access-to-actor: true
       - name: Determine log files location
-        id: log_path_det
+        id: get_log_path
         run: |
           # if the user gave us a relative path, interpret it from the charm-path root.
+          # if path starts with / it's absolute, else it's relative, and we prepend the (absolute) charm-path to it
           log_path=[[ "${{ inputs.log-path }}" =~ ^/ ]] && echo "${{ inputs.log-path }}" || echo "${{ inputs.charm-path }}/${{ inputs.log-path }}"
+          echo "log path is: $log_path"
           echo "log_path=$log_path" >> "$GITHUB_OUTPUT"
       - name: Show logs
         run: | 
-          if test -d ${{ steps.log_path_det.outputs.log_path }}; then
-            for filename in ${{ steps.log_path_det.outputs.log_path }}/*.txt; do
+          if test -d "${{ steps.get_log_path.outputs.log_path }}"; then
+            for filename in ${{ steps.get_log_path.outputs.log_path }}/*.txt; do
                 # begin collapsible log group for each file found in the folder; 
                 # this is github CI markup
                 # cfr: https://github.com/go-task/task/issues/647
@@ -320,7 +322,7 @@ jobs:
                 printf "\n::endgroup::\n"
             done
           else
-            echo "${{ steps.log_path_det.outputs.log_path }} not found"
+            echo "${{ steps.get_log_path.outputs.log_path }} not found"
           fi
       - name: Upload logs
         uses: actions/upload-artifact@v4
@@ -328,4 +330,4 @@ jobs:
         with:
           name: charm-logs${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           include-hidden-files: true
-          path: ${{ steps.log_path_det.outputs.log_path }}
+          path: ${{ steps.get_log_path.outputs.log_path }}
