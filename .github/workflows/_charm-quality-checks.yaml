@@ -328,6 +328,7 @@ jobs:
         uses: actions/upload-artifact@v4
         # defaults to 'warn' on failure
         with:
-          name: charm-logs${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          name: charm-logs${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}-${{ matrix.suite }}
           include-hidden-files: true
+          # we assume that log_path is never going to be an empty string; but it may well be a non-existing directory.
           path: ${{ steps.get_log_path.outputs.log_path }}
