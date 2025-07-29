@@ -9,6 +9,9 @@ on:
       python-version:
         type: string
         default: "3.8"
+        required: false
+        description: |
+          The Python version to use for linting.
 
 jobs:
   lint:

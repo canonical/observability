@@ -9,6 +9,8 @@ on:
       python-version:
         type: string
         default: "3.8"
+        description: |
+          The Python version to use for scenario tests.
 
 jobs:
   unit-tests:
