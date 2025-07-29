@@ -6,6 +6,9 @@ on:
       charm-path:
         type: string
         required: false
+      python-version:
+        type: string
+        default: "3.8"
 
 jobs:
   lint:
@@ -19,7 +22,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: ${{ inputs.python-version }}
       - name: Install dependencies
         run: |
           python3 -m pip install tox
