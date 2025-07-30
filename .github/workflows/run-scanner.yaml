@@ -1,0 +1,86 @@
+name: SBOM and secscan
+
+on:
+    workflow_call:
+      inputs:
+        manifests-pattern:
+          description: |
+            A string representing where to find the sbomber manifest yamls. 
+            Can include wildcard characters (anything that the `ls` command can parse).
+            For example: "./.sbomber-*.yaml"
+          required: true
+          type: string
+        self-hosted-runner:
+          description: |
+            Identifier for the self-hosted runner to use in the job.
+          required: false
+          default: self-hosted-linux-amd64-jammy-private-endpoint-medium
+          type: string
+      secrets:
+        OBSERVABILITY_NOCTUA_TOKEN:
+          required: true
+
+permissions: {}
+
+jobs:
+    generate-matrix:
+      name: Define the matrix
+      runs-on: ubuntu-latest
+      outputs:
+        manifests: ${{ steps.manifests.outputs.manifests }}
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+        - name: Generate manifest list
+          id: manifests
+          run: |
+            list="$(find ./ -name '${{ inputs.manifests-pattern }}' -printf '%f\n' | jq -r -ncR '[inputs]')"
+            echo "manifests=$list"
+            echo "manifests=$list" >> "$GITHUB_OUTPUT"
+
+    scan:
+      name: SBOM&Secscan generation
+      runs-on: [self-hosted, "${{ inputs.self-hosted-runner }}"]
+      needs:
+        - generate-matrix
+      strategy:
+        fail-fast: false
+        matrix:
+          manifest: ${{ fromJSON(needs.generate-matrix.outputs.manifests) }}
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+          with:
+            persist-credentials: false
+        - name: Checkout security scanner
+          uses: actions/checkout@v4
+          with:
+            repository: canonical/sbomber
+            path: scanner
+            token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
+        - name: Install uv
+          uses: astral-sh/setup-uv@f0ec1fc3b38f5e7cd731bb6ce540c5af426746bb  # v6.1.0
+        - name: Install secscan cli
+          run: |
+            sudo snap install canonical-secscan-client
+            sudo snap connect canonical-secscan-client:home system:home
+        - name: Prepare the artifacts
+          run: |
+            cd scanner
+            ./sbomber prepare ../${{ matrix.manifest }}
+        - name: Submit the artifacts
+          run: |
+            cd scanner
+            ./sbomber submit
+        - name: Wait for the scans to finish
+          run: |
+            cd scanner
+            ./sbomber poll --wait --timeout 30
+        - name: Download the reports
+          run: |
+            cd scanner && ./sbomber download
+        - name: Upload reports
+          uses: actions/upload-artifact@v4
+          with:
+            name: secscan-report-upload-${{ matrix.manifest }}
+            path: ./scanner/reports/*.json
