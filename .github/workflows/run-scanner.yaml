@@ -17,7 +17,7 @@ on:
           default: self-hosted-linux-amd64-jammy-private-endpoint-medium
           type: string
       secrets:
-        OBSERVABILITY_NOCTUA_TOKEN:
+        GITHUB_TOKEN:
           required: true
 
 permissions: {}
