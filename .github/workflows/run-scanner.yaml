@@ -50,8 +50,6 @@ jobs:
       steps:
         - name: Checkout repository
           uses: actions/checkout@v4
-          with:
-            persist-credentials: false
         - name: Checkout security scanner
           uses: actions/checkout@v4
           with:
