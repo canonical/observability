@@ -18,7 +18,7 @@ on:
           Example: ["ubuntu-latest","Ubuntu_ARM64_4C_16G_03"]
         type: string
         required: false
-        default: "ubuntu-latest"
+        default: '["ubuntu-latest"]'
       charmcraft-channel:
         type: string
         required: true
