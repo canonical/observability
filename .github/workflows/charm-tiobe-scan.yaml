@@ -33,7 +33,12 @@ jobs:
 
       - name: Run tox tests to create coverage.xml
         run: |
-          tox -e unit && coverage xml -o cover/cobertura.xml
+          if [[ "${{ inputs.charm-path }}" == "" ]]; then
+            toxinidir = "./tox.ini"
+          else
+            toxinidir = "./${{ inputs.charm-path }}/tox.ini"
+          fi
+          tox -c "$toxinidir" -e unit  && coverage xml -o cover/cobertura.xml
 
       - name: Activate and prepare Python virtual environment
         env:
