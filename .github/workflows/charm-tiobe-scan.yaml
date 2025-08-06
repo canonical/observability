@@ -35,10 +35,12 @@ jobs:
         run: |
           if [[ "${{ inputs.charm-path }}" == "" ]]; then
             toxinidir="./tox.ini"
+            covdatafile="./.coverage"
           else
             toxinidir="./${{ inputs.charm-path }}/tox.ini"
+            covdatafile="./${{ inputs.charm-path }}/.coverage"
           fi
-          tox -c "$toxinidir" -e unit  && coverage xml -o cover/cobertura.xml
+          tox -c "$toxinidir" -e unit  && coverage xml --data-file="$covdatafile" -o cover/cobertura.xml
 
       - name: Activate and prepare Python virtual environment
         env:
