@@ -11,6 +11,11 @@ on:
         default: '.'
         required: false
         type: string
+      tiobe-project-name:
+        description: "Name under which this project is registered in Tiobe. Defaults to repository name."
+        default: ""
+        required: false
+        type: string
 
 jobs:
   scan:
@@ -57,7 +62,7 @@ jobs:
         uses: tiobe/tics-github-action@v3
         with:
           mode: qserver
-          project: ${{ github.event.repository.name }}
+          project: ${{ inputs.tiobe-project-name || github.event.repository.name }}
           viewerUrl: https://canonical.tiobe.com/tiobeweb/TICS/api/cfg?name=default
           ticsAuthToken: ${{ secrets.TICSAUTHTOKEN }}
           installTics: true
