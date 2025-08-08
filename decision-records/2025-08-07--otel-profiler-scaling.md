@@ -26,7 +26,7 @@ As a requisite to operation, it will attempt to acquire a machine-level lock and
 ## Alternatives considered
 
 ### Have it be a subordinate charm
-### Disadvantages
+#### Disadvantages
 
 - weird because usually principal charms represent workloads (exception: k8s worker nodes, the ubuntu charm), and 
   if you want to profile two workloads that happen to run on the same machine, you'd have two system-wide profiler 
