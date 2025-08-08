@@ -11,6 +11,11 @@ on:
         default: '.'
         required: false
         type: string
+      coverage-omit:
+        description: "Comma-separated glob pattern(s) for coverage.py --omit"
+        default: ''
+        required: false
+        type: string
 
 jobs:
   scan:
@@ -33,7 +38,12 @@ jobs:
 
       - name: Run tox tests to create coverage.xml
         run: |
-          tox -e unit && coverage xml -o cover/cobertura.xml
+          tox -e unit
+          OMIT_ARG=""
+          if [ -n "${{ inputs.coverage-omit }}" ]; then
+            OMIT_ARG="--omit=${{ inputs.coverage-omit }}"
+          fi
+          coverage xml -o cover/cobertura.xml $OMIT_ARG
 
       - name: Activate and prepare Python virtual environment
         env:
