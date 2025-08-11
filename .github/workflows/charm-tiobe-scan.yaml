@@ -38,14 +38,9 @@ jobs:
 
       - name: Run tox tests to create coverage.xml
         run: |
-          if [[ "${{ inputs.charm-path }}" == "" ]]; then
-            toxinidir="./tox.ini"
-            covdatafile="./.coverage"
-          else
-            toxinidir="./${{ inputs.charm-path }}/tox.ini"
-            covdatafile="./${{ inputs.charm-path }}/.coverage"
-          fi
-          tox -c "$toxinidir" -e unit  && coverage xml --data-file="$covdatafile" -o cover/cobertura.xml
+          base_wd="$(pwd)"
+          cd "${{ inputs.charm-path }}"
+          tox -e unit && coverage xml -o "${base_wd}/cover/cobertura.xml"
 
       - name: Activate and prepare Python virtual environment
         env:
