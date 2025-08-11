@@ -37,9 +37,11 @@ jobs:
           sudo snap install astral-uv --classic
 
       - name: Run tox tests to create coverage.xml
+        env:
+          CHARM_PATH: ${{ inputs.charm-path }}
         run: |
           base_wd="$(pwd)"
-          cd "${{ inputs.charm-path }}"
+          cd "${CHARM_PATH}"
           tox -e unit && coverage xml -o "${base_wd}/cover/cobertura.xml"
 
       - name: Activate and prepare Python virtual environment
