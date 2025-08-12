@@ -1,4 +1,4 @@
-name: SBOM generation - charms
+name: SSDLC scanning
 
 on:
     workflow_dispatch:
@@ -16,5 +16,6 @@ jobs:
         name: SSDLC scanning - {{ matrix.type }} - {{ matrix.artifact }} artifacts
         uses: canonical/sbomber/.github/workflows/run.yaml@feat/reusable-workflow
         with:
-          manifests-pattern: ../ssdlc-manifests/{{ matrix.artifact }}-{{ matrix.type }}-manifest.yaml
+          manifests-dir: '../ssdlc-manifests/'
+          manifests-pattern: {{ matrix.artifact }}-{{ matrix.type }}-manifest.yaml
           self-hosted-runner: self-hosted-linux-amd64-jammy-private-endpoint-medium
