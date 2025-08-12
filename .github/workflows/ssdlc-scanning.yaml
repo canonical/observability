@@ -8,14 +8,14 @@ on:
 
 jobs:
     scan:
+        runs-on: [self-hosted, linux, amd64, tiobe, jammy]
         strategy:
           fail-fast: false
           matrix:
             type: [sbom, secscan]
             artifact: [rock, charm]
         name: SSDLC scanning - {{ matrix.type }} - {{ matrix.artifact }} artifacts
-        uses: canonical/sbomber/.github/workflows/run.yaml@feat/reusable-workflow
-        with:
-          manifests-dir: "ssdlc-manifests/"
-          manifests-pattern: "{{ matrix.artifact }}-{{ matrix.type }}-manifest.yaml"
-          self-hosted-runner: self-hosted-linux-amd64-jammy-private-endpoint-medium
+        steps:
+          - uses: canonical/sbomber/.github/actions/run@feat/reusable-workflow
+            with:
+              manifest: "${{ github.workspace }}/ssdlc-manifests/{{ matrix.artifact }}-{{ matrix.type }}-manifest.yaml"
