@@ -16,6 +16,6 @@ jobs:
         name: SSDLC scanning - {{ matrix.type }} - {{ matrix.artifact }} artifacts
         uses: canonical/sbomber/.github/workflows/run.yaml@feat/reusable-workflow
         with:
-          manifests-dir: "../ssdlc-manifests/"
+          manifests-dir: "ssdlc-manifests/"
           manifests-pattern: "{{ matrix.artifact }}-{{ matrix.type }}-manifest.yaml"
           self-hosted-runner: self-hosted-linux-amd64-jammy-private-endpoint-medium
