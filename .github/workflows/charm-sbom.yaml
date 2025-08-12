@@ -8,44 +8,15 @@ on:
 
 jobs:
     scan:
-        name: SBOM generation - charms
+        strategy:
+          fail-fast: false
+          matrix:
+            manifest: [sbom, secscan]
+        name: SSDLC artifact scanning - charms
         runs-on: [self-hosted, self-hosted-linux-amd64-jammy-private-endpoint-medium]
         steps:
-          - name: Checkout repository
-            uses: actions/checkout@v4
-          - name: Checkout security scanner
-            uses: actions/checkout@v4
+          - name: Run sbomber
+            uses: canonical/sbomber/.github/workflows/run-scanner.yaml@feat/reusable-workflow
             with:
-              repository: canonical/sbomber
-              path: scanner
-              token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
-          - name: Install juju
-            run: | 
-              sudo snap install juju --classic
-          - name: Install secscan cli
-            run: |
-              sudo snap install canonical-secscan-client
-              sudo snap connect canonical-secscan-client:home system:home
-          - name: Install uv
-            run: |
-              sudo snap install astral-uv --classic
-          - name: Prepare the artifacts
-            run: |
-              cd scanner
-              ./sbomber prepare ../ssdlc-manifests/charm-sbom.yaml
-          - name: Submit the artifacts
-            run: |
-              cd scanner
-              ./sbomber submit
-          - name: Wait for the scans to finish
-            run: |
-              cd scanner
-              ./sbomber poll --wait --timeout 30
-          - name: Download the reports
-            run: |
-              cd scanner && ./sbomber download
-          - name: Upload reports
-            uses: actions/upload-artifact@v4
-            with:
-              name: secscan-report-upload
-              path: ./scanner/reports/*.json
+              manifests-pattern: ../ssdlc-manifests/charm-sbom.yaml
+              self-hosted-runner: self-hosted-linux-amd64-jammy-private-endpoint-medium
