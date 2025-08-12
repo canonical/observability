@@ -2,7 +2,7 @@ name: SBOM generation - charms
 
 on:
     workflow_dispatch:
-#    pull_request:
+    pull_request:  # fixme: do not merge this, for testing only
     schedule:
       - cron: "0 1 * * 1"  # Runs at 1am UTC every Monday
 
