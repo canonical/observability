@@ -11,12 +11,13 @@ jobs:
         strategy:
           fail-fast: false
           matrix:
-            manifest: [sbom, secscan]
-        name: SSDLC artifact scanning - charms
+            type: [sbom, secscan]
+            artifact: [rock, charm]
+        name: SSDLC scanning - {{ matrix.type }} - {{ matrix.artifact }} artifacts
         runs-on: [self-hosted, self-hosted-linux-amd64-jammy-private-endpoint-medium]
         steps:
           - name: Run sbomber
             uses: canonical/sbomber/.github/workflows/run-scanner.yaml@feat/reusable-workflow
             with:
-              manifests-pattern: ../ssdlc-manifests/charm-sbom.yaml
+              manifests-pattern: ../ssdlc-manifests/{{ matrix.artifact }}-{{ matrix.type }}-manifest.yaml
               self-hosted-runner: self-hosted-linux-amd64-jammy-private-endpoint-medium
