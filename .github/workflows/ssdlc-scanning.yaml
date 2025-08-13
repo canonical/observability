@@ -14,9 +14,9 @@ jobs:
           matrix:
             type: [sbom, secscan]
             artifact: [rock, charm]
-        name: SSDLC scanning - {{ matrix.type }} - {{ matrix.artifact }} artifacts
+        name: SSDLC scanning - ${{ matrix.type }} - ${{ matrix.artifact }} artifacts
         steps:
           - name: Run sbomber action
             uses: canonical/sbomber/.github/actions/run@feat/reusable-workflow
             with:
-              manifest: "${{ github.workspace }}/ssdlc-manifests/{{ matrix.artifact }}-{{ matrix.type }}-manifest.yaml"
+              manifest: "${{ github.workspace }}/ssdlc-manifests/${{ matrix.artifact }}-${{ matrix.type }}-manifest.yaml"
