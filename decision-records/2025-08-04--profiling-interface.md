@@ -25,8 +25,11 @@ Example:
   - otlp-grpc
   - otlp-http
 
+We'll also include an `insecure` field that would inform the requirer that the advertised endpoints are running with TLS or not.
+
 So the databag model is going to be:
   - `otlp_grpc_endpoint_url:str`
+  - `insecure:bool`
   - `otlp_http_endpoint_url:Optional[str]`
 
 We omit `pyroscope_http` for now, as we don't know of any requirer who might be interested in using it.
