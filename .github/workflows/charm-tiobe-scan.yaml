@@ -36,7 +36,7 @@ jobs:
           pipx install tox
           sudo snap install astral-uv --classic
 
-      - name: Run tox tests to create coverage.xml
+      - name: Generate unittest coverage report
         env:
           CHARM_PATH: ${{ inputs.charm-path }}
         run: |
