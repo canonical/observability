@@ -126,3 +126,10 @@ jobs:
       parallelize-integration: ${{ inputs.parallelize-integration }}
       automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
 
+  terraform-checks:
+    name: Terraform Quality Checks
+    needs:
+      - ci-ignore
+    if: needs.ci-ignore.outputs.any_modified == 'true'
+    uses: canonical/observability/.github/workflows/_charm-terraform.yaml@feat/tf-ci # FIXME: use a tag when available
+    secrets: inherit
