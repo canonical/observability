@@ -8,7 +8,7 @@ artifacts:
   - name: parca-k8s
     channel: 2/edge
     type: charm
-#
+
 #  - name: tempo-coordinator-k8s
 #    channel: 2/edge
 #    base: ubuntu@22.04
