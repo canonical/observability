@@ -23,4 +23,4 @@ jobs:
             uses: canonical/sbomber/.github/actions/run@feat/reusable-workflow
             with:
               manifest: "${{ github.workspace }}/ssdlc-manifests/${{ matrix.artifact }}-${{ matrix.type }}-manifest.yaml"
-              artifact-name: ${{ matrix.artifact }}-${{ matrix.type }}-report
+              artifact-name: ${{ matrix.artifact }}-${{ matrix.type }}
