@@ -16,6 +16,11 @@ on:
         default: ""
         required: false
         type: string
+      coverage-folder:
+        description: "Folder under which the coverage xml report exists."
+        default: "cover"
+        required: false
+        type: string
 
 jobs:
   scan:
@@ -39,10 +44,11 @@ jobs:
       - name: Generate unittest coverage report
         env:
           CHARM_PATH: ${{ inputs.charm-path }}
+          COVERAGE_FOLDER: ${{ inputs.coverage-folder }}
         run: |
           base_wd="$(pwd)"
           cd "${CHARM_PATH}"
-          tox -e unit && coverage xml -o "${base_wd}/cover/cobertura.xml"
+          tox -e unit && coverage xml -o "${base_wd}/${COVERAGE_FOLDER}/cobertura.xml"
 
       - name: Activate and prepare Python virtual environment
         env:
