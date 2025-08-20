@@ -1,0 +1,83 @@
+# type:
+#   artifact-name:
+#     repo: <repo>
+
+charms:
+    # CORE
+    alertmanager-k8s-operator:
+      repo: canonical/alertmanager-k8s-operator
+    avalanche-k8s-operator:
+      repo: canonical/avalanche-k8s-operator
+    blackbox-exporter-k8s-operator:
+      repo: canonical/blackbox-exporter-k8s-operator
+    catalogue-k8s-operator:
+      repo: canonical/catalogue-k8s-operator
+    cos-configuration-k8s-operator:
+      repo: canonical/cos-configuration-k8s-operator
+    cos-proxy-operator:
+      repo: canonical/cos-proxy-operator
+    grafana-agent-k8s-operator:
+      repo: canonical/grafana-agent-k8s-operator
+    grafana-agent-operator:
+      repo: canonical/grafana-agent-operator
+    grafana-cloud-integrator:
+      repo: canonical/grafana-cloud-integrator
+    grafana-k8s-operator:
+      repo: canonical/grafana-k8s-operator
+    karma-alertmanager-proxy-k8s-operator:
+      repo: canonical/karma-alertmanager-proxy-k8s-operator
+    karma-k8s-operator:
+      repo: canonical/karma-k8s-operator
+    loki-coordinator-k8s-operator:
+      repo: canonical/loki-coordinator-k8s-operator
+    loki-k8s-operator:
+      repo: canonical/loki-k8s-operator
+    loki-worker-k8s-operator:
+      repo: canonical/loki-worker-k8s-operator
+    mimir-coordinator-k8s-operator:
+      repo: canonical/mimir-coordinator-k8s-operator
+    mimir-worker-k8s-operator:
+      repo: canonical/mimir-worker-k8s-operator
+    prometheus-k8s-operator:
+      repo: canonical/prometheus-k8s-operator
+    prometheus-pushgateway-k8s-operator:
+      repo: canonical/prometheus-pushgateway-k8s-operator
+    prometheus-scrape-config-k8s-operator:
+      repo: canonical/prometheus-scrape-config-k8s-operator
+    prometheus-scrape-target-k8s-operator:
+      repo: canonical/prometheus-scrape-target-k8s-operator
+    traefik-k8s-operator:
+      repo: canonical/traefik-k8s-operator
+
+    # MESH
+    istio-beacon-k8s-operator:
+      repo: canonical/istio-beacon-k8s-operator
+    istio-ingress-k8s-operator:
+      repo: canonical/istio-ingress-k8s-operator
+    istio-k8s-operator:
+      repo: canonical/istio-k8s-operator
+
+
+    # TRACING
+    parca-k8s-operator:
+      repo: canonical/parca-k8s-operator
+    parca-agent-operator:
+      repo: canonical/parca-agent-operator
+    parca-scrape-target-operator:
+      repo: canonical/parca-scrape-target-operator
+
+    # monorepo charms
+    tempo-coordinator-k8s-operator:
+      repo: canonical/tempo-operators
+      charm-path: coordinator
+    tempo-worker-k8s-operator:
+      repo: canonical/tempo-operators
+      charm-path: coordinator
+
+    pyroscope-coordinator-k8s-operator:
+      repo: canonical/pyroscope-operators
+      charm-path: coordinator
+    pyroscope-worker-k8s-operator:
+      repo: canonical/pyroscope-operators
+      charm-path: coordinator
+

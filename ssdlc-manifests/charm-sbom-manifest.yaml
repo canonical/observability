@@ -4,7 +4,7 @@
 clients:
   sbom:
     department: charm_engineering
-    email: mateusz.kulewicz@canonical.com
+    email: luca.bello@canonical.com  # tradition
     team: observability
 
 artifacts:
