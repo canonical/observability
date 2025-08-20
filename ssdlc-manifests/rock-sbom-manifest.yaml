@@ -6,7 +6,6 @@ clients:
     department: charm_engineering
     email: luca.bello@canonical.com  # tradition
     team: observability
-    service_url: https://sbom-request-test.canonical.com
 
 artifacts:
   - name: tempo-rock
