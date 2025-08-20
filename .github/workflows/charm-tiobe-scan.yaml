@@ -55,8 +55,14 @@ jobs:
           CHARM_PATH: ${{ inputs.charm-path }}
         run: |
           pushd "${CHARM_PATH}"
-          uv sync --extra=dev
-          source .venv/bin/activate
+          if [[ -f uv.lock ]]; then
+            uv sync --extra=dev
+            source .venv/bin/activate
+          else 
+             python -m venv .venv
+             source .venv/bin/activate
+             uv pip install -r requirements.txt
+          fi
           uv pip install pylint flake8
           echo "PATH=$PATH" >> "$GITHUB_ENV"
           popd
