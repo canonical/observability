@@ -3,13 +3,13 @@ name: SSDLC scanning
 on:
     workflow_dispatch:
     schedule:
-      - cron: "0 0 22 7 *"
-        #      │ │ │ │ │
-        #      │ │ │ │ └─ any day of the week.
-        #      │ │ │ └─── 7th month (July).
-        #      │ │ └───── 22nd day of the month.
-        #      │ └─────── 0th hour of the day.
-        #      └───────── Start of the hour (minutes = 0).
+      - cron: "0 0 10 4,10 *"
+#              │ │ │  │    │
+#              │ │ │  │    └─ any day of the week.
+#              │ │ │  └────── 4th and 10th month (April & October).
+#              │ │ └───────── 10th day of the month.
+#              │ └─────────── 0th hour of the day.
+#              └───────────── Start of the hour (minutes = 0).
 
 jobs:
     scan:
