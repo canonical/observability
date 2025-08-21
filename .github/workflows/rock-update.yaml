@@ -119,8 +119,8 @@ jobs:
             echo "No new upstream release found"
           fi
 
-      - name: Checkout application source for the Go version check
-        if: inputs.check-go && steps.check.outputs.release != ''
+      - name: Checkout application source
+        if: (inputs.check-go || inputs.update-script != '') && steps.check.outputs.release != ''
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.source-repo }}
