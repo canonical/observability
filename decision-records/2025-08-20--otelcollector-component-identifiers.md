@@ -2,14 +2,14 @@
 **Author:** Michael Thamm (@michaelthamm)  
 
 ## Context and Problem Statement
-The flexibility of otelcol pipeline component identifiers means we have design flexibility, but also room for bugs. Bugs can include:
+Otelcol pipeline component identifiers provides design flexibility, but also room for bugs. Bugs can include:
 1. Overwriting existing component
 2. Assigning component to the wrong pipeline
 3. Unintentional processing in a pipeline
 
-We have 2 categories of config components: otelcol's private components (e.g. prometheus self-monitoring) and components from relations. Especially with the ability to [define custom processors](https://charmhub.io/opentelemetry-collector-k8s/configurations?channel=2/edge#processors), we should make these "private" to avoid collisions described in [this issue](https://github.com/canonical/opentelemetry-collector-k8s-operator/issues/117).
+We have 2 categories of config components: otelcol's private components (e.g. prometheus self-monitoring) and components from relations. 
 
-Looking at the extremes of the pipeline configurations with a config like:
+*For context only*, when looking at the extremes of the pipeline configurations with a config like:
 ```mermaid
 flowchart LR
 flog-1 --> otel
@@ -19,27 +19,28 @@ otel --> loki-1
 otel --> loki-2
 ```
 
-### 1. Only 1 pipeline
+### 1. Extreme - only 1 pipeline
 ```yaml
 service:
   pipelines:
-    logs/collect-all:
+    logs:
       exporters:
         - lokiexporter/1
         - lokiexporter/2
       processors:
-        - my-special-processor
+        - processor-a
+        - processor-b
       receivers:
         - lokireceiver/1
         - lokireceiver/2
 ```
-To define a pipeline component we:
+To define a pipeline component in source code:
 ```python
 self.config.add_component(
 	Component.exporter,
 	f"loki/{rel.id}",
 	{"CONFIG"},
-	pipelines=["logs/collect-all"],
+	pipelines=["logs"],
 )
 ```
 
@@ -48,7 +49,7 @@ Pros:
 Cons:
 - Whatever processor is configured affects the entire pipeline, i.e. all receivers and exporters
 
-### 2. One pipeline per relation pair
+### 2. Extreme - one pipeline per relation pair
 ```yaml
 service:
   pipelines:
@@ -70,16 +71,19 @@ service:
 To define a pipeline component we:
 ```python
 self.config.add_component(
-	pipelines=[f"logs/{meaningful_name()}"],
+	pipelines=[f"logs/{get_identifier()}"],
 ```
 Pros:
 - Processors are well-scoped
 Cons:
-- `meaningful_name()` would need to:
+- This breaks our design principle of "all sources to all sinks"
+- `get_identifier()` would need to:
     - return a unique name
     - map to a specific receiver and exporter
 
-The problem with coupling the adding the `pipeline` arg to the `add_component` method means that a pipeline is tied to a receiver or exporter rather than it being determined later, once all receivers and exporters are defined.
+---
+
+Coupling the `pipelines` arg to the `add_component` method means that a pipeline is tied to a receiver or exporter rather than it being determined later, once all receivers and exporters are defined. This highlights the difficulties with the `2. Extreme - one pipeline per relation pair` example. Conversely, in `1. Extreme - only 1 pipeline` we can dump everything related to `logs`.
 
 ## Suggestions
 1. Make otelcol's own components private with an underscore like `prometheus/_self`
@@ -89,7 +93,7 @@ The problem with coupling the adding the `pipeline` arg to the `add_component` m
 5. Do not use identifiers in pipeline names, e.g. `metrics`, `logs`, `traces`, etc. but NOT `metrics/identifier`
 
 ## Explanations
-1. Likely (user error if not) protects against overwriting a pipeline component from dynamic relations. Also protects against custom processors config.
+1. Likely protects against (user error if not) overwriting a pipeline component from dynamic relations. Also protects against custom processors config. The ability to [define custom processors](https://charmhub.io/opentelemetry-collector-k8s/configurations?channel=2/edge#processors) is a relevant example (as well as [this issue](https://github.com/canonical/opentelemetry-collector-k8s-operator/issues/117)) for identifying otelcol's private processors with `/_self`.
 2. The `COMPONENT/ENDPOINT-REL_ID` format gives enough context about the source and provides namespace safety
 3. Same as `2.`
 4. This is only useful if someone is handed a config file without any context, e.g. the file name `/etc/otelcol/config.d/otelcol_0.yaml`, or using `jssh otelcol/0` provides unit context. You could also infer from relation ids.
