@@ -86,9 +86,9 @@ Cons:
 Coupling the `pipelines` arg to the `add_component` method means that a pipeline is tied to a receiver or exporter rather than it being determined later, once all receivers and exporters are defined. This highlights the difficulties with the `2. Extreme - one pipeline per relation pair` example. Conversely, in `1. Extreme - only 1 pipeline` we can dump everything related to `logs`.
 
 ## Suggestions
-1. Make otelcol's own components private with an underscore like `prometheus/_self`
-2. Receivers should have its identifier include the source relation, e.g. `loki/send-loki-logs-11`
-3. Exporters should have its identifier include the sink relation, e.g. `prometheusremotewrite/send-remote-write-5`
+1. Make otelcol's own components private with an underscore, e.g. `prometheus/_self`
+2. Receivers should have its identifier include the source relation, e.g. `loki/receive-loki-logs-11`
+3. Exporters should have its identifier include the sink relation, e.g. `loki/send-loki-logs-5`
 4. Do not add `self.unit.name` to identifiers
 5. Do not use identifiers in pipeline names, e.g. `metrics`, `logs`, `traces`, etc. but NOT `metrics/identifier`
 
@@ -96,5 +96,5 @@ Coupling the `pipelines` arg to the `add_component` method means that a pipeline
 1. Likely protects against (user error if not) overwriting a pipeline component from dynamic relations. Also protects against custom processors config. The ability to [define custom processors](https://charmhub.io/opentelemetry-collector-k8s/configurations?channel=2/edge#processors) is a relevant example (as well as [this issue](https://github.com/canonical/opentelemetry-collector-k8s-operator/issues/117)) for identifying otelcol's private processors with `/_self`.
 2. The `COMPONENT/ENDPOINT-REL_ID` format gives enough context about the source and provides namespace safety
 3. Same as `2.`
-4. This is only useful if someone is handed a config file without any context, e.g. the file name `/etc/otelcol/config.d/otelcol_0.yaml`, or using `jssh otelcol/0` provides unit context. You could also infer from relation ids.
+4. This is only useful if someone is handed a config file without any context, e.g. the file name `/etc/otelcol/config.d/otelcol_0.yaml`, or using `jssh otelcol/0` provides unit context. You could also infer from relation ids. It adds config file clutter for little gain.
 5. This limits the ability for a single otelcol to do everything that the upstream otelcol can do, e.g. having multiple pipelines per telemetry (`metrics`, `logs`, etc.) type. However, we support [tiering or chaining otelcol](https://documentation.ubuntu.com/observability/how-to/tiered-otelcols/) which scopes each otelcol to a specific function rather than having a monolith. This also eleviates the problem defined in `2. One pipeline per relation pair` where we need to define a pipeline WHEN we define a pipeline component due to the `add_component` method's coupling to pipelines. IFF we say that ALL `metrics`-category components are added to the `metrics` pipeline, then there is no mapping of component to pipelines.
