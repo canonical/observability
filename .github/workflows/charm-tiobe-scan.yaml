@@ -16,6 +16,11 @@ on:
         default: ""
         required: false
         type: string
+      coverage-folder:
+        description: "Folder under which the coverage xml report exists."
+        default: "cover"
+        required: false
+        type: string
 
 jobs:
   scan:
@@ -39,18 +44,25 @@ jobs:
       - name: Generate unittest coverage report
         env:
           CHARM_PATH: ${{ inputs.charm-path }}
+          COVERAGE_FOLDER: ${{ inputs.coverage-folder }}
         run: |
           base_wd="$(pwd)"
           cd "${CHARM_PATH}"
-          tox -e unit && coverage xml -o "${base_wd}/cover/cobertura.xml"
+          tox -e unit && coverage xml -o "${base_wd}/${COVERAGE_FOLDER}/cobertura.xml"
 
       - name: Activate and prepare Python virtual environment
         env:
           CHARM_PATH: ${{ inputs.charm-path }}
         run: |
           pushd "${CHARM_PATH}"
-          uv sync --extra=dev
-          source .venv/bin/activate
+          if [[ -f uv.lock ]]; then
+            uv sync --extra=dev
+            source .venv/bin/activate
+          else 
+             python -m venv .venv
+             source .venv/bin/activate
+             uv pip install -r requirements.txt
+          fi
           uv pip install pylint flake8
           echo "PATH=$PATH" >> "$GITHUB_ENV"
           popd

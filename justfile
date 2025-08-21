@@ -1,6 +1,8 @@
 set quiet  # Recipes are silent by default
 set export  # Just variables are exported to the environment
 
+mod utils
+
 terraform := `which terraform || which tofu || echo ""` # require 'terraform' or 'opentofu'
 
 [private]
