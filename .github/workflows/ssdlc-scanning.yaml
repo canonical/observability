@@ -25,7 +25,7 @@ jobs:
           - name: Checkout
             uses: actions/checkout@v4
           - name: Run sbomber action
-            uses: canonical/sbomber/.github/actions/run@feat/reusable-workflow
+            uses: canonical/sbomber/.github/actions/run
             with:
               manifest: "${{ github.workspace }}/ssdlc-manifests/${{ matrix.artifact }}-${{ matrix.type }}-manifest.yaml"
               artifact-name: ${{ matrix.artifact }}-${{ matrix.type }}
