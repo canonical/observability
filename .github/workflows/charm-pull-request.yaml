@@ -49,8 +49,10 @@ on:
         required: false
         type: boolean
     secrets:
-       CHARMHUB_TOKEN:
-         required: false
+      CHARMHUB_TOKEN:
+        required: false
+      OBSERVABILITY_NOCTUA_TOKEN:
+        required: true
 
 concurrency:
   group: ${{ github.ref }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
@@ -106,7 +108,7 @@ jobs:
         run: sudo snap install charmcraft --classic --channel="$CHARMCRAFT_CHANNEL"
       - name: Check charm libraries
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.number }}
         run: |
