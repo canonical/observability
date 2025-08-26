@@ -38,6 +38,12 @@ on:
         default: true
         required: false
         type: boolean
+      strict-interface-tests:
+        description: |
+          Whether failing interface tests should error out the pipeline.
+        required: false
+        default: false  # opt-in FOR NOW
+        type: boolean
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -125,4 +131,5 @@ jobs:
       juju-channel: ${{ inputs.juju-channel }}
       parallelize-integration: ${{ inputs.parallelize-integration }}
       automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
+      strict-interface-tests: ${{ inputs.strict-interface-tests }}
 
