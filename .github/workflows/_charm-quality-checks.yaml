@@ -33,6 +33,13 @@ on:
           Sets the `automatically-retry-hooks` in the model-defaults config.
         required: true
         type: boolean
+      strict-interface-tests:
+        description: |
+          Whether failing interface tests should error out the pipeline.
+        required: false
+        default: false  # opt-in FOR NOW
+        type: boolean
+
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -161,6 +168,19 @@ jobs:
           sudo snap install astral-uv --classic
           cd "${{ inputs.charm-path }}"
           uvx tox -e unit
+
+  interface-test:
+    name: Interface tests
+    runs-on: ubuntu-latest
+    continue-on-error: "${{ inputs.strict-interface-tests }}"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Interface tests
+        run: |
+          sudo snap install astral-uv --classic
+          cd "${{ inputs.charm-path }}"
+          uvx tox -e interface
 
   pack-charm:
     name: Pack the charm
