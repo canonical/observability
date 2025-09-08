@@ -102,7 +102,7 @@ jobs:
           runners="$( \
             yq -o json '.platforms | to_entries | map(.key)' charmcraft.yaml | \
             sed 's/".*amd64.*"/"ubuntu-latest"/' | \
-            sed 's/".*arm64.*"/"Ubuntu_ARM64_4C_16G_03"/' | \
+            sed 's/".*arm64.*"/"self-hosted-linux-arm64-noble-medium"/' | \
             jq -rc 'unique' \
           )"
           echo "runners=$runners"
