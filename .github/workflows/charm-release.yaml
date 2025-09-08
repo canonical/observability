@@ -145,6 +145,7 @@ jobs:
       juju-channel: ${{ inputs.juju-channel }}
       parallelize-integration: ${{ inputs.parallelize-integration }}
       automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
+      integration-tests-runners: "${{ needs.define-matrix.outputs.runners }}"
     
   release-charm:
     name: Release the charm
