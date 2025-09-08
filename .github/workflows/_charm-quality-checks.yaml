@@ -231,7 +231,7 @@ jobs:
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
-          name: charms-tests${{ runner.arch }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          name: charms-tests-${{ runner.arch }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           path: ${{ inputs.charm-path }}
       - name: Run integration tests
         run: |
@@ -285,7 +285,7 @@ jobs:
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
-          name: charms-tests${{ runner.arch }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          name: charms-tests-${{ runner.arch }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           path: ${{ inputs.charm-path }}
       - name: Run integration tests
         run: |
