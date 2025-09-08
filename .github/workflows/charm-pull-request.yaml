@@ -143,7 +143,8 @@ jobs:
       - ci-ignore
       - define-matrix
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v1
+    # FIXME: point at v1
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@OPENG-3328
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}

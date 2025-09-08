@@ -135,7 +135,8 @@ jobs:
 
   quality-checks:
     name: Quality Checks
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v1
+    # FIXME: point at v1
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@OPENG-3328
     needs: [define-matrix]
     secrets: inherit
     with:
