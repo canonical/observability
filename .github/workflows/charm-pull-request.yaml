@@ -86,7 +86,9 @@ jobs:
     name: Check libraries  # Check if the charm libraries are updated and add the relevant label to the PR
     runs-on: ubuntu-latest
     needs: [ci-ignore]
-    if: ${{ github.event_name == 'pull_request' && needs.ci-ignore.outputs.any_modified == 'true' && secrets.OBSERVABILITY_NOCTUA_TOKEN != ''}}
+    # NOTE: This job doesn't run on forks, as they wouldn't have the necessary secret to 
+    # update the PR labels.
+    if: ${{ github.event_name == 'pull_request' && needs.ci-ignore.outputs.any_modified == 'true' && github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
