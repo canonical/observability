@@ -195,7 +195,8 @@ jobs:
         id: sanitize
         run: |
           if [[ -n "${{ inputs.charm-path }}" && "${{ inputs.charm-path }}" != "." ]]; then
-            sanitized="${{ inputs.charm-path }//\//-}"
+            charm_path="${{ inputs.charm-path }}"
+            sanitized="${charm_path//\//-}"
             echo "suffix=-${sanitized}" >> $GITHUB_OUTPUT
           else
             echo "suffix=" >> $GITHUB_OUTPUT
