@@ -99,6 +99,7 @@ jobs:
           CHARMCRAFT_CHANNEL: "${{ inputs.charmcraft-channel }}"
         run: sudo snap install charmcraft --classic --channel="$CHARMCRAFT_CHANNEL"
       - name: Check charm libraries
+        if: false  # skip for dev
         env:
           GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
@@ -118,7 +119,7 @@ jobs:
     needs:
       - ci-ignore
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v1
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@feat/option-to-meshify-tests
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}

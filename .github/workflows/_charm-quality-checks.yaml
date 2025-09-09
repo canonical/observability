@@ -191,10 +191,19 @@ jobs:
         run: |
           cd "${{ inputs.charm-path }}"
           charmcraft pack -v
+      - name: Sanitize charm artifact name
+        id: sanitize
+        run: |
+          if [[ -n "${{ inputs.charm-path }}" && "${{ inputs.charm-path }}" != "." ]]; then
+            sanitized="${{ inputs.charm-path }//\//-}"
+            echo "suffix=-${sanitized}" >> $GITHUB_OUTPUT
+          else
+            echo "suffix=" >> $GITHUB_OUTPUT
+          fi
       - name: Upload charm artifact
         uses: actions/upload-artifact@v4
         with:
-          name: charms-tests${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          name: charms-tests${{ steps.sanitize.outputs.suffix }}
           path: ${{ inputs.charm-path }}/*.charm
 
   integration-mono:
