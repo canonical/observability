@@ -150,6 +150,23 @@ jobs:
           cd "${{ inputs.charm-path }}"
           uvx tox -e static
 
+  sanitize-charm-path:
+    name: Sanitize charm path for artifact naming
+    runs-on: ubuntu-latest
+    outputs:
+      sanitized-name: ${{ steps.sanitize.outputs.name }}
+    steps:
+      - name: Sanitize
+        id: sanitize
+        run: |
+          if [[ -n "${{ inputs.charm-path }}" && "${{ inputs.charm-path }}" != "." ]]; then
+            charm_path="${{ inputs.charm-path }}"
+            sanitized="${charm_path//\//-}"
+            echo "name=-${sanitized}" >> $GITHUB_OUTPUT
+          else
+            echo "name=" >> $GITHUB_OUTPUT
+          fi
+
   unit-test:
     name: Unit tests
     runs-on: ubuntu-latest
@@ -169,6 +186,7 @@ jobs:
       - linting
       - linting-rules
       - static-analysis
+      - sanitize-charm-path
       - unit-test
     steps:
       - name: Checkout
@@ -191,27 +209,17 @@ jobs:
         run: |
           cd "${{ inputs.charm-path }}"
           charmcraft pack -v
-      - name: Sanitize charm artifact name
-        id: sanitize
-        run: |
-          if [[ -n "${{ inputs.charm-path }}" && "${{ inputs.charm-path }}" != "." ]]; then
-            charm_path="${{ inputs.charm-path }}"
-            sanitized="${charm_path//\//-}"
-            echo "suffix=-${sanitized}" >> $GITHUB_OUTPUT
-          else
-            echo "suffix=" >> $GITHUB_OUTPUT
-          fi
       - name: Upload charm artifact
         uses: actions/upload-artifact@v4
         with:
-          name: charms-tests${{ steps.sanitize.outputs.suffix }}
+          name: charms-tests${{ needs.sanitize-charm-path.outputs.sanitized-name }}
           path: ${{ inputs.charm-path }}/*.charm
 
   integration-mono:
     name: Integration Tests (sequential)
     if: ${{ ! inputs.parallelize-integration }}
     runs-on: ubuntu-latest
-    needs: [snap-channels, pack-charm]
+    needs: [snap-channels, pack-charm, sanitize-charm-path]
     env:
       CONCIERGE_JUJU_CHANNEL: ${{ needs.snap-channels.outputs.juju-channel }}
       CONCIERGE_MICROK8S_CHANNEL: 1.32-strict/stable
@@ -228,7 +236,7 @@ jobs:
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
-          name: charms-tests${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          name: charms-tests${{ needs.sanitize-charm-path.outputs.sanitized-name }}
           path: ${{ inputs.charm-path }}
       - name: Run integration tests
         run: |
@@ -260,7 +268,7 @@ jobs:
     name: Integration Tests (parallel)
     if: ${{ inputs.parallelize-integration }}
     runs-on: ubuntu-latest
-    needs: [snap-channels, pack-charm, integration-matrix]
+    needs: [snap-channels, pack-charm, integration-matrix, sanitize-charm-path]
     strategy:
       fail-fast: false
       matrix:
@@ -281,7 +289,7 @@ jobs:
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
-          name: charms-tests${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          name: charms-tests${{ needs.sanitize-charm-path.outputs.sanitized-name }}
           path: ${{ inputs.charm-path }}
       - name: Run integration tests
         run: |
