@@ -42,7 +42,7 @@ on:
       CHARMHUB_TOKEN:
         required: false
       OBSERVABILITY_NOCTUA_TOKEN:
-        required: true
+        required: false
 
 concurrency:
   group: ${{ github.ref }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
@@ -86,7 +86,7 @@ jobs:
     name: Check libraries  # Check if the charm libraries are updated and add the relevant label to the PR
     runs-on: ubuntu-latest
     needs: [ci-ignore]
-    if: ${{ github.event_name == 'pull_request' && needs.ci-ignore.outputs.any_modified == 'true' }}
+    if: ${{ github.event_name == 'pull_request' && needs.ci-ignore.outputs.any_modified == 'true' && secrets.OBSERVABILITY_NOCTUA_TOKEN != ''}}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
