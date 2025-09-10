@@ -114,7 +114,7 @@ jobs:
           runners="$( \
             yq -o json '.platforms | to_entries | map(.key)' charmcraft.yaml | \
             sed 's/".*amd64.*"/"ubuntu-latest"/' | \
-            sed 's/".*arm64.*"/"Ubuntu_ARM64_4C_16G_03"/' | \
+            sed 's/".*arm64.*"/"self-hosted-linux-arm64-noble-medium"/' | \
             jq -rc 'unique' \
           )"
           echo "runners=$runners"
@@ -135,7 +135,8 @@ jobs:
 
   quality-checks:
     name: Quality Checks
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v1
+    # FIXME: point at v1
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@OPENG-3328
     needs: [define-matrix]
     secrets: inherit
     with:
@@ -145,6 +146,7 @@ jobs:
       juju-channel: ${{ inputs.juju-channel }}
       parallelize-integration: ${{ inputs.parallelize-integration }}
       automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
+      integration-tests-runners: "${{ needs.define-matrix.outputs.runners }}"
     
   release-charm:
     name: Release the charm
