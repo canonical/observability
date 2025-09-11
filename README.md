@@ -60,6 +60,8 @@ block-beta
     qualitychecksslow["<b>Quality Checks (integration)</b>"]
     pack["Pack the charm"]
     integration["Integration tests"]
+    displaylogs["Display logs"]
+    uploadlogs["Upload logs zipfile"]
   end
 
 
