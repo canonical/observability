@@ -3,3 +3,4 @@ self-hosted-runner:
     - tiobe
     - amd64
     - jammy
+    - self-hosted-linux-amd64-jammy-private-endpoint-medium
