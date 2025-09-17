@@ -48,7 +48,7 @@ jobs:
         run: |
           base_wd="$(pwd)"
           cd "${CHARM_PATH}"
-          tox -e unit && coverage xml -o "${base_wd}/${COVERAGE_FOLDER}/cobertura.xml"
+          tox -e unit && coverage xml -o "${base_wd}/${CHARM_PATH}/${COVERAGE_FOLDER}/cobertura.xml"
 
       - name: Activate and prepare Python virtual environment
         env:
