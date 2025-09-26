@@ -135,7 +135,7 @@ jobs:
 
   quality-checks:
     name: Quality Checks
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v1
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@chore/pin-juju-3.6.9
     needs: [define-matrix]
     secrets: inherit
     with:

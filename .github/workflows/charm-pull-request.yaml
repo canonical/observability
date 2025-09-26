@@ -118,7 +118,7 @@ jobs:
     needs:
       - ci-ignore
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v1
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@chore/pin-juju-3.6.9
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}
