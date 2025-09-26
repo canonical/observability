@@ -268,7 +268,8 @@ jobs:
           sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv
           sudo snap install kubectl --classic
           juju model-defaults automatically-retry-hooks="${{ inputs.automatically-retry-hooks }}"
-          juju bootstrap microk8s microk8s-with-juju-369 --agent-version=3.6.9
+          microk8s config | juju add-k8s myk8s --client
+          juju bootstrap myk8s microk8s-with-juju-369 --agent-version=3.6.9
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
