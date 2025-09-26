@@ -223,7 +223,7 @@ jobs:
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
-          charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | tail -n1)"
+          charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | sort | tail -n1)"
           CHARM_PATH="$(realpath "$charm_relative_path")"
           export CHARM_PATH
           uvx tox -e integration
@@ -276,7 +276,7 @@ jobs:
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
-          charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | tail -n1)"
+          charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | sort | tail -n1)"
           CHARM_PATH="$(realpath "$charm_relative_path")"
           export CHARM_PATH
           if [[ "${{ runner.debug }}" == "1" ]]; then
