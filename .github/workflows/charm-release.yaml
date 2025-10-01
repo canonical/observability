@@ -151,7 +151,7 @@ jobs:
     needs:
       - define-matrix
       - quality-checks
-    uses: canonical/observability/.github/workflows/_charm-release.yaml@v1
+    uses: canonical/observability/.github/workflows/_charm-release.yaml@pin-juju-3.6.9
     permissions:
       contents: write
     secrets: inherit
