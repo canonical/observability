@@ -38,6 +38,13 @@ on:
         default: true
         required: false
         type: boolean
+      run-terraform-tests:
+        description: |
+          Whether to run Terraform integration tests.
+          Running TF tests requires a separate integration tests suite and the `terraform` environment defined in the tox.ini.
+        required: false
+        default: false
+        type: boolean
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -127,4 +134,4 @@ jobs:
       juju-channel: ${{ inputs.juju-channel }}
       parallelize-integration: ${{ inputs.parallelize-integration }}
       automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
-
+      run-terraform-tests: ${{ inputs.run-terraform-tests }}
