@@ -5,6 +5,7 @@
     ":disableRateLimiting",
     ":automergeMinor",
     ":automergePr",
+    ":disableDependencyDashboard",
   ],
   "schedule": ["* 8-11 * * 1"],  // Monday 08:00-11:00 UTC
   "timezone": "Etc/UTC",
