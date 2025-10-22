@@ -212,7 +212,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo snap install concierge --classic
-          sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv
+          sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv,terraform
           sudo snap install kubectl --classic
           juju model-defaults automatically-retry-hooks="${{ inputs.automatically-retry-hooks }}"
       - name: Download charm artifact
@@ -265,7 +265,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo snap install concierge --classic
-          sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv
+          sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv,terraform
           sudo snap install kubectl --classic
           juju model-defaults automatically-retry-hooks="${{ inputs.automatically-retry-hooks }}"
       - name: Download charm artifact
