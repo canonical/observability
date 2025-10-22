@@ -1,0 +1,34 @@
+name: Terraform module tests
+
+on:
+  workflow_call:
+    inputs:
+      tox-ini-path:
+        description: "Path in which relevant tox.ini file is"
+        default: '.'
+        required: false
+        type: string
+      provider:
+        description: |
+          The substrate to set up prior to running the test 
+          (a concierge preset, e.g. 'machine' or 'microk8s').
+        default: 'microk8s'
+        required: false
+        type: string
+
+jobs:
+  tf-tests:
+    runs-on: [self-hosted, amd64]
+    name: Terraform tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install concierge --classic
+          sudo concierge prepare -p ${{ inputs.provider }} --extra-snaps terraform,astral-uv
+      - name: Run tests
+        run: |
+          cd "${{ inputs.tox-ini-path }}"
+          export CHARM_CHANNEL=${{ inputs.charm-channel }}
+          uvx tox -e terraform
