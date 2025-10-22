@@ -1,0 +1,38 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":disableRateLimiting",
+    ":automergeMinor",
+    ":automergePr",
+  ],
+  "schedule": ["* 8-11 * * 1"],  // Monday 08:00-11:00 UTC
+  "timezone": "Etc/UTC",
+  "labels": [],
+  "enabledManagers": ["custom.regex"],
+  "packageRules": [
+    // Enable automerge for minor and patch docker updates
+    {
+      "matchManagers": ["custom:regex"],
+      "matchDatasources": ["docker"],
+      "automerge": true
+    },
+    {
+      "matchManagers": ["custom:regex"],
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+  ],
+  "customManagers": [
+    // Update OCI images in charmcraft.yaml
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/(^|/)charmcraft\\.yaml$/"],
+      "matchStrings": [
+        "upstream-source: (?<depName>.*?)@(?<currentDigest>sha256:[0-9a-f]+) +# renovate: oci-image tag: (?<currentValue>.*?)\n"
+      ],
+      "datasourceTemplate": "docker",
+    }
+  ]
+}
