@@ -204,7 +204,7 @@ jobs:
           charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
           echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
       - name: Release to Charmhub (PR track, best-effort)
-        if: ${{ secrets.CHARMHUB_TOKEN != '' && github.event.pull_request != null }}
+        if: ${{ github.event.pull_request != null }}
         # This step must not fail the job if charmhub is unavailable or upload fails,
         # because downstream integration jobs depend on the artifact uploaded above.
         continue-on-error: true
