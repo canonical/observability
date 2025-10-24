@@ -196,6 +196,32 @@ jobs:
         with:
           name: charms-tests${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           path: ${{ inputs.charm-path }}/*.charm
+      - name: Get charm name
+        id: get-charm-name
+        run: |
+          # Read charm name from metadata.yaml or charmcraft.yaml
+          cd "${{ inputs.charm-path }}"
+          charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
+          echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
+      - name: Release to Charmhub (PR track, best-effort)
+        if: ${{ secrets.CHARMHUB_TOKEN != '' && github.event.pull_request != null }}
+        # This step must not fail the job if charmhub is unavailable or upload fails,
+        # because downstream integration jobs depend on the artifact uploaded above.
+        continue-on-error: true
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+          CHARM_NAME: ${{ steps.get-charm-name.outputs.charm_name }}
+        run: |
+          set -x
+          cd "${{ inputs.charm-path }}"
+          file_paths="$(find . -name '*.charm' -printf '%f ')"
+          # For all the charms built on this architecture: release them
+          for path in ${file_paths}; do
+            uvx --quiet --from git+https://github.com/lucabello/noctua noctua charm release \
+              "$CHARM_NAME" \
+              --path "$path" \
+              --channel "pr/edge/${{ github.event.pull_request.number }}"
+          done
 
   integration-mono:
     name: Integration Tests (sequential)
