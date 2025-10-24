@@ -35,7 +35,7 @@ on:
         type: string
       extra-snaps:
         description: |
-          A space-separated list of snaps to be installed by the Concierge.
+          A comma-separated list of snaps to be installed by the Concierge, e.g. "snap_a,snap_b,snap_c"
         default: ""
         required: false
         type: string
@@ -51,7 +51,7 @@ jobs:
         if: ${{ inputs.prepare-host-env }}
         run: |
           sudo snap install concierge --classic
-          sudo concierge prepare -p ${{ inputs.provider }} --extra-snaps astral-uv ${{ inputs.extra-snaps }}
+          sudo concierge prepare -p ${{ inputs.provider }} --extra-snaps astral-uv,${{ inputs.extra-snaps }}
       - name: Run tox environment
         run: |
           cd "${{ inputs.tox-ini-path }}"
