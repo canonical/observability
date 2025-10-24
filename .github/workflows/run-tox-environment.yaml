@@ -1,0 +1,58 @@
+name: Run tox environment
+
+on:
+  workflow_call:
+    inputs:
+      tox-env-name:
+        description: "Name of the tox environment to run"
+        required: true
+        type: string
+      tox-ini-path:
+        description: "Path in which relevant tox.ini file is"
+        default: '.'
+        required: false
+        type: string
+      run-on:
+        description: |
+          Set of GitHub runner labels, e.g. "[self-hosted, amd64]"
+          Defaults to "ubuntu-latest".
+        default: "ubuntu-latest"
+        required: false
+        type: string
+      prepare-host-env:
+        description: |
+          Host environment preparation is done by the Concierge.
+          If set to true, a configured Concierge preset will be applied on the host.
+        default: false
+        required: false
+        type: boolean
+      provider:
+        description: |
+          The substrate to set up prior to running the test 
+          (a concierge preset, e.g. 'machine' or 'microk8s').
+        default: "microk8s"
+        required: false
+        type: string
+      extra-snaps:
+        description: |
+          A space-separated list of snaps to be installed by the Concierge.
+        default: ""
+        required: false
+        type: string
+
+jobs:
+  run-tox:
+    runs-on: ${{ inputs.run-on }}
+    name: Run tox ${{ inputs.tox-env-name }} environment
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Prepare host env
+        if: ${{ inputs.prepare-host-env }}
+        run: |
+          sudo snap install concierge --classic
+          sudo concierge prepare -p ${{ inputs.provider }} --extra-snaps astral-uv ${{ inputs.extra-snaps }}
+      - name: Run tox environment
+        run: |
+          cd "${{ inputs.tox-ini-path }}"
+          uvx tox -e ${{ inputs.tox-env-name }}
