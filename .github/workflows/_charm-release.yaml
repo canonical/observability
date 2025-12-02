@@ -164,7 +164,7 @@ jobs:
             git push origin --tags
             # Create a GitHub release 
             release_title="Revision $revision"
-            echo "Peparing GitHub release: $release_title"
+            echo "Preparing GitHub release: $release_title"
             ## Add the charm information to the release body
             body_charm="$(printf "\`\`\`json\n%s\n\`\`\`" "$pretty_uploaded_charm")"
             current_date="$(date -u +"%B %e, %Y at %H:%M UTC")"
@@ -258,7 +258,7 @@ jobs:
             git push origin --tags
             # Create a GitHub release 
             release_title="Revision $revision"
-            echo "Peparing GitHub release: $release_title"
+            echo "Preparing GitHub release: $release_title"
             ## Add the charm information to the release body
             body_charm="$(printf "\`\`\`json\n%s\n\`\`\`" "$pretty_uploaded_charm")"
             current_date="$(date -u +"%B %e, %Y at %H:%M UTC")"
