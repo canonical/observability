@@ -82,7 +82,7 @@ jobs:
       - name: Store charm(s)
         uses: actions/upload-artifact@v4
         with:
-          name: charms${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          name: charms-${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           path: ${{ inputs.charm-path }}/*.charm
       - name: Release charm to Charmhub and GitHub
         id: upload
