@@ -75,6 +75,10 @@ jobs:
           cd "${{ inputs.charm-path }}"
           # Use charmcraft remote-build for all platforms
           charmcraft remote-build --launchpad-accept-public-upload
+          # Set output with list of built charms
+          charms="$(basename -a ./*.charm | jq -R -s -c 'split("\n")[:-1]')"
+          echo "charms=$charms"
+          echo "charms=$charms" >> "$GITHUB_OUTPUT"
       - name: Store charm(s)
         uses: actions/upload-artifact@v4
         with:
