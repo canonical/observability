@@ -12,13 +12,6 @@ on:
         type: string
         required: false
         default: .
-      runners:
-        description: |
-          Json matrix of the runners to use to build and release the charm.
-          Example: ["ubuntu-latest","Ubuntu_ARM64_4C_16G_03"]
-        type: string
-        required: false
-        default: '["ubuntu-latest"]'
       charmcraft-channel:
         type: string
         required: true
@@ -31,42 +24,16 @@ on:
     secrets:
       CHARMHUB_TOKEN:
         required: true
+      LAUNCHPAD_TOKEN:
+        required: true
 
 permissions:
   contents: write
 
 jobs:
-  check-platforms:
-    name: Check for s390x/ppc64el platforms
-    runs-on: ubuntu-latest
-    outputs:
-      has-remote-platforms: ${{ steps.check.outputs.has-remote-platforms }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Check platforms
-        id: check
-        run: |
-          cd "${{ inputs.charm-path }}"
-          # Check if charmcraft.yaml has platforms other than amd64/arm64
-          if [ -f charmcraft.yaml ]; then
-            # Check for s390x or ppc64el in the platforms section
-            if grep -qE '^\s+ubuntu@[0-9]+\.[0-9]+:(s390x|ppc64el):' charmcraft.yaml; then
-              echo "has-remote-platforms=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "has-remote-platforms=false" >> "$GITHUB_OUTPUT"
-            fi
-          else
-            echo "has-remote-platforms=false" >> "$GITHUB_OUTPUT"
-          fi
-
   build:
     name: Release the charm
-    needs: check-platforms
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      matrix:
-        runner: ${{ fromJSON(inputs.runners) }}
+    runs-on: ubuntu-latest
     outputs:
       charms: ${{ steps.pack.outputs.charms }}
     steps:
@@ -99,28 +66,19 @@ jobs:
           cd "${{ inputs.charm-path }}"
           charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
           echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
-      - name: Cache wheels
-        uses: actions/cache@v4
-        with:
-          path: /home/runner/snap/charmcraft/common/cache/charmcraft
-          key: ${{ runner.os }}-wheel-cache-${{ hashFiles('./uv.lock') }}
-          # If the above cache key doesn't match, it's because the uv.lock has changed.
-          # Even so, pre-existing caches may still contain useful cached builds for some
-          # portion of the dependencies, and restore-keys can partially match a cache.
-          restore-keys: |
-            ${{ runner.os }}-wheel-cache-
-      - name: Pack charm(s)
+      - name: Pack charm(s) with remote-build
         id: pack
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+          LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
         run: |
           cd "${{ inputs.charm-path }}"
-          charmcraft pack -v
-          charms="$(basename -a ./*.charm | jq -R -s -c 'split("\n")[:-1]')"
-          echo "charms=$charms"
-          echo "charms=$charms" >> "$GITHUB_OUTPUT"
+          # Use charmcraft remote-build for all platforms
+          charmcraft remote-build --launchpad-accept-public-upload
       - name: Store charm(s)
         uses: actions/upload-artifact@v4
         with:
-          name: charms-${{ runner.arch }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          name: charms${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           path: ${{ inputs.charm-path }}/*.charm
       - name: Release charm to Charmhub and GitHub
         id: upload
@@ -136,100 +94,6 @@ jobs:
           # {"name": "o11y-tester", "revision": 12, "resources": [
           #   {"name": "httpbin-image", "revision": 1, "upstream_source": "kennethreitz/httpbin"}
           # ]}
-          set -x
-          cd "${{ inputs.charm-path }}"
-          file_paths="$(find . -name '*.charm' -printf '%f ')"
-          # For all the charms built on this architecture: release them
-          for path in ${file_paths}; do
-            uvx --quiet --from git+https://github.com/lucabello/noctua noctua charm release \
-              "$CHARM_NAME" \
-              --path "$path" \
-              --channel "$RELEASE_CHANNEL" \
-              --json > .upload_results
-            uploaded_charm="$(jq -rc . .upload_results)"
-            pretty_uploaded_charm="$(jq -r . .upload_results)"
-            rm -f .upload_results
-            ubuntu_base="$(find . -name '*.charm' | sed -E 's/.*ubuntu@([0-9]{2}\.[0-9]{2})-(.+)\.charm/ubuntu@\1 (\2)/')"
-            echo "${CHARM_NAME} has been released to ${RELEASE_CHANNEL}:"
-            echo "$pretty_uploaded_charm"
-            # Create a git tag and push it
-            ## Configure git
-            git config --global user.email "github-actions[bot]@users.noreply.github.com"
-            git config --global user.name "github-actions[bot]"
-            ## Use the latest commit message as the tag message
-            git log -1 --pretty=%B > tag-message
-            revision="$(echo "$uploaded_charm" | jq -rc .revision)"
-            git tag --annotate "${TAG_PREFIX}rev${revision}" --file=tag-message
-            rm -f tag-message
-            git push origin --tags
-            # Create a GitHub release 
-            release_title="Revision $revision"
-            echo "Preparing GitHub release: $release_title"
-            ## Add the charm information to the release body
-            body_charm="$(printf "\`\`\`json\n%s\n\`\`\`" "$pretty_uploaded_charm")"
-            current_date="$(date -u +"%B %e, %Y at %H:%M UTC")"
-            body_meta_base="$(printf "This revision is for *%s*" "$ubuntu_base")"
-            body_meta="$(printf "Released to *%s* on %s" "$RELEASE_CHANNEL" "$current_date")"
-            body="$(printf "%s\n\n%s\n%s" "$body_charm" "$body_meta_base" "$body_meta")"
-            ## Create the GitHub release from the previously-created tag
-            gh release create "${TAG_PREFIX}rev${revision}" \
-              --title="$release_title" \
-              --notes="$body" \
-              --generate-notes
-          done
-
-  remote-build:
-    name: Remote build for s390x/ppc64el
-    needs: [check-platforms, build]
-    if: needs.check-platforms.outputs.has-remote-platforms == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install dependencies
-        env:
-          CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
-        run: |
-          # Install LXD
-          sudo snap install lxd
-          sudo lxd waitready
-          sudo lxd init --minimal
-          sudo lxc network set lxdbr0 ipv6.address none
-          # Enable non-root user control
-          sudo chmod a+wr /var/snap/lxd/common/lxd/unix.socket
-          lxd_user="$USER"
-          sudo usermod -a -G lxd "$lxd_user"
-          # Ensure that LXD containers can talk to the internet
-          sudo iptables -F FORWARD
-          sudo iptables -P FORWARD ACCEPT
-          # Install other snaps
-          sudo snap install charmcraft --classic --channel="$CHARMCRAFT_CHANNEL"
-          sudo snap install astral-uv --classic
-      - name: Get charm name
-        id: get-charm-name
-        run: |
-          # Read charm name from metadata.yaml or charmcraft.yaml
-          cd "${{ inputs.charm-path }}"
-          charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
-          echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
-      - name: Pack charm(s) with remote-build
-        id: pack
-        env:
-          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
-        run: |
-          cd "${{ inputs.charm-path }}"
-          # Use charmcraft remote-build for s390x and ppc64el
-          charmcraft remote-build --launchpad-accept-public-upload
-      - name: Release charm to Charmhub and GitHub
-        id: upload
-        env:
-          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
-          CHARM_NAME: ${{ steps.get-charm-name.outputs.charm_name }}
-          GH_TOKEN: ${{ github.token }}
-          TAG_PREFIX: ${{ inputs.git-tag-prefix }}
-          RELEASE_CHANNEL: ${{ inputs.release-channel }}
-        run: |
-          # Upload charm to CharmHub and release it
           set -x
           cd "${{ inputs.charm-path }}"
           file_paths="$(find . -name '*.charm' -printf '%f ')"
