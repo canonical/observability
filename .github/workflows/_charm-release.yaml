@@ -73,6 +73,9 @@ jobs:
           LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
         run: |
           cd "${{ inputs.charm-path }}"
+          # Set up Launchpad credentials for remote-build
+          mkdir -p ~/.local/share/charmcraft
+          echo -e "${LAUNCHPAD_TOKEN}" > ~/.local/share/charmcraft/launchpad-credentials
           # Use charmcraft remote-build for all platforms
           charmcraft remote-build --launchpad-accept-public-upload
           # Set output with list of built charms
