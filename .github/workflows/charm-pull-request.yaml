@@ -86,7 +86,7 @@ jobs:
     name: Check libraries  # Check if the charm libraries are updated and add the relevant label to the PR
     runs-on: ubuntu-latest
     needs: [ci-ignore]
-    # NOTE: This job doesn't run on forks, as they wouldn't have the necessary secret to 
+    # NOTE: This job doesn't run on forks, as they wouldn't have the necessary secret to
     # update the PR labels.
     if: ${{ github.event_name == 'pull_request' && needs.ci-ignore.outputs.any_modified == 'true' && github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name }}
     steps:
@@ -118,7 +118,7 @@ jobs:
     needs:
       - ci-ignore
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@chore/quality-check-space-compress
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v1
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}
