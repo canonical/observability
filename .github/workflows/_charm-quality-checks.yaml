@@ -268,6 +268,24 @@ jobs:
           sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv,terraform
           sudo snap install kubectl --classic
           juju model-defaults automatically-retry-hooks="${{ inputs.automatically-retry-hooks }}"
+      - name: Clean worker caches
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          # Remove Swift toolchain
+          sudo rm -rf /usr/share/swift
+          # Remove Java (JDKs)
+          sudo rm -rf /usr/lib/jvm
+          # Remove Chromium (optional if not using for browser tests)
+          sudo rm -rf /usr/local/share/chromium
+          # Remove Microsoft/Edge and Google Chrome builds
+          sudo rm -rf /opt/microsoft /opt/google
+          # Remove Azure CLI
+          sudo rm -rf /opt/az
+          # Remove Haskell (GHC)
+          sudo rm -rf /usr/local/.ghcup
+          # Docker clean up
+          sudo docker image prune --all --force
+          sudo docker builder prune -a
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
