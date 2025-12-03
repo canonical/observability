@@ -118,7 +118,7 @@ jobs:
     needs:
       - ci-ignore
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v1
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@chore/quality-check-space-compress
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}
