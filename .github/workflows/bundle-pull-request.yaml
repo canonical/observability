@@ -20,6 +20,12 @@ on:
           It can be either a subnet(IP/mask) or a range (<IP1>-<IP2>)
         required: false
         default: null
+      python-version:
+        type: string
+        default: "3.8"
+        required: false
+        description: |
+          The Python version to use for linting.
     secrets:
        CHARMHUB_TOKEN:
          required: false
@@ -74,6 +80,7 @@ jobs:
     uses: canonical/observability/.github/workflows/_charm-linting.yaml@v0
     with:
       charm-path: "${{ inputs.bundle-path }}"
+      python-version: ${{ inputs.python-version }}
 
   integration-test:
     name: Integration Tests

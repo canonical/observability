@@ -29,6 +29,12 @@ on:
         required: false
         description: |
           The snap channel from which to install Juju.
+      python-version:
+        type: string
+        default: "3.8"
+        required: false
+        description: |
+          The Python version to use for quality checks.
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -73,21 +79,25 @@ jobs:
     uses: canonical/observability/.github/workflows/_charm-static-analysis.yaml@v0
     with:
       charm-path: "${{ inputs.charm-path }}"
+      python-version: ${{ inputs.python-version }}
   linting:
     name: Linting
     uses: canonical/observability/.github/workflows/_charm-linting.yaml@v0
     with:
       charm-path: "${{ inputs.charm-path }}"
+      python-version: ${{ inputs.python-version }}
   unit-test:
     name: Unit Tests
     uses: canonical/observability/.github/workflows/_charm-tests-unit.yaml@v0
     with:
       charm-path: "${{ inputs.charm-path }}"
+      python-version: ${{ inputs.python-version }}
   scenario-test:
     name: Scenario Tests
     uses: canonical/observability/.github/workflows/_charm-tests-scenario.yaml@v0
     with:
       charm-path: "${{ inputs.charm-path }}"
+      python-version: ${{ inputs.python-version }}
   integration-test:
     name: Integration Tests
     needs:
