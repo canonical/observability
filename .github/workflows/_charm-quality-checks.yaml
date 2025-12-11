@@ -33,6 +33,13 @@ on:
           Sets the `automatically-retry-hooks` in the model-defaults config.
         required: true
         type: boolean
+      integration-tests-runners:
+          description: |
+            Json matrix of the runners to use to run the integration tests for the charm.
+            Example: ["ubuntu-latest","Ubuntu_ARM64_4C_16G_03"]
+          type: string
+          required: false
+          default: '["ubuntu-latest"]'
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -164,7 +171,10 @@ jobs:
 
   pack-charm:
     name: Pack the charm
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner: ${{ fromJSON(inputs.integration-tests-runners) }}
     needs:
       - linting
       - linting-rules
@@ -194,13 +204,16 @@ jobs:
       - name: Upload charm artifact
         uses: actions/upload-artifact@v4
         with:
-          name: charms-tests${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          name: charms-tests-${{ runner.arch }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           path: ${{ inputs.charm-path }}/*.charm
 
   integration-mono:
     name: Integration Tests (sequential)
     if: ${{ ! inputs.parallelize-integration }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner: ${{ fromJSON(inputs.integration-tests-runners) }}
     needs: [snap-channels, pack-charm]
     env:
       CONCIERGE_JUJU_CHANNEL: ${{ needs.snap-channels.outputs.juju-channel }}
@@ -218,7 +231,7 @@ jobs:
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
-          name: charms-tests${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          name: charms-tests-${{ runner.arch }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           path: ${{ inputs.charm-path }}
       - name: Run integration tests
         run: |
@@ -249,12 +262,13 @@ jobs:
   integration-test:
     name: Integration Tests (parallel)
     if: ${{ inputs.parallelize-integration }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     needs: [snap-channels, pack-charm, integration-matrix]
     strategy:
       fail-fast: false
       matrix:
         suite: ${{ fromJSON(needs.integration-matrix.outputs.suites) }}
+        runner: ${{ fromJSON(inputs.integration-tests-runners) }}
     env:
       CONCIERGE_JUJU_CHANNEL: ${{ needs.snap-channels.outputs.juju-channel }}
       CONCIERGE_MICROK8S_CHANNEL: 1.32-strict/stable
@@ -290,7 +304,7 @@ jobs:
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
-          name: charms-tests${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          name: charms-tests-${{ runner.arch }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           path: ${{ inputs.charm-path }}
       - name: Run integration tests
         run: |
