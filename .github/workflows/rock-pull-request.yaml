@@ -49,6 +49,7 @@ jobs:
           chmod +rx /usr/local/bin/goss
           curl -L ${goss_base_url}/kgoss -o /usr/local/bin/kgoss
           chmod +rx /usr/local/bin/kgoss
+          sudo apt install containerd
       - name: Pack and test the rocks
         run: |
           for version in ${{ needs.changes.outputs.versions }}; do
