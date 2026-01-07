@@ -41,6 +41,8 @@ jobs:
           - loki-worker-k8s-operator
           - mimir-coordinator-k8s-operator
           - mimir-worker-k8s-operator
+          - opentelemetry-collector-operator
+          - opentelemetry-collector-k8s-operator
           - parca-k8s-operator
           - parca-agent-operator
           - parca-scrape-target-operator
