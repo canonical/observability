@@ -151,14 +151,13 @@ jobs:
     needs:
       - define-matrix
       - quality-checks
-    uses: canonical/observability/.github/workflows/_charm-release.yaml@v1
+    uses: canonical/observability/.github/workflows/_charm-release.yaml@copilot/use-charmcraft-remote-build
     permissions:
       contents: write
     secrets: inherit
     with:
       release-channel: "${{ needs.define-matrix.outputs.release-channel }}"
       charm-path: "${{ inputs.charm-path }}"
-      runners: "${{ needs.define-matrix.outputs.runners }}"
       charmcraft-channel: "${{ inputs.charmcraft-channel }}"
       git-tag-prefix: "${{ inputs.git-tag-prefix }}"
       

@@ -12,13 +12,6 @@ on:
         type: string
         required: false
         default: .
-      runners:
-        description: |
-          Json matrix of the runners to use to build and release the charm.
-          Example: ["ubuntu-latest","Ubuntu_ARM64_4C_16G_03"]
-        type: string
-        required: false
-        default: '["ubuntu-latest"]'
       charmcraft-channel:
         type: string
         required: true
@@ -31,6 +24,8 @@ on:
     secrets:
       CHARMHUB_TOKEN:
         required: true
+      LAUNCHPAD_TOKEN:
+        required: true
 
 permissions:
   contents: write
@@ -38,15 +33,14 @@ permissions:
 jobs:
   build:
     name: Release the charm
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      matrix:
-        runner: ${{ fromJSON(inputs.runners) }}
+    runs-on: ubuntu-latest
     outputs:
       charms: ${{ steps.pack.outputs.charms }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install dependencies
         env:
           CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
@@ -74,28 +68,27 @@ jobs:
           cd "${{ inputs.charm-path }}"
           charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
           echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
-      - name: Cache wheels
-        uses: actions/cache@v4
-        with:
-          path: /home/runner/snap/charmcraft/common/cache/charmcraft
-          key: ${{ runner.os }}-wheel-cache-${{ hashFiles('./uv.lock') }}
-          # If the above cache key doesn't match, it's because the uv.lock has changed.
-          # Even so, pre-existing caches may still contain useful cached builds for some
-          # portion of the dependencies, and restore-keys can partially match a cache.
-          restore-keys: |
-            ${{ runner.os }}-wheel-cache-
-      - name: Pack charm(s)
+      - name: Pack charm(s) with remote-build
         id: pack
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+          LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
         run: |
           cd "${{ inputs.charm-path }}"
-          charmcraft pack -v
+          # Set up Launchpad credentials for remote-build
+          mkdir -p ~/.local/share/charmcraft
+          printf '%s\n' "${LAUNCHPAD_TOKEN}" > ~/.local/share/charmcraft/launchpad-credentials
+          chmod 600 ~/.local/share/charmcraft/launchpad-credentials
+          # Use charmcraft remote-build for all platforms
+          charmcraft remote-build --launchpad-accept-public-upload
+          # Set output with list of built charms
           charms="$(basename -a ./*.charm | jq -R -s -c 'split("\n")[:-1]')"
           echo "charms=$charms"
           echo "charms=$charms" >> "$GITHUB_OUTPUT"
       - name: Store charm(s)
         uses: actions/upload-artifact@v4
         with:
-          name: charms-${{ runner.arch }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          name: charms-${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           path: ${{ inputs.charm-path }}/*.charm
       - name: Release charm to Charmhub and GitHub
         id: upload
@@ -139,7 +132,7 @@ jobs:
             git push origin --tags
             # Create a GitHub release 
             release_title="Revision $revision"
-            echo "Peparing GitHub release: $release_title"
+            echo "Preparing GitHub release: $release_title"
             ## Add the charm information to the release body
             body_charm="$(printf "\`\`\`json\n%s\n\`\`\`" "$pretty_uploaded_charm")"
             current_date="$(date -u +"%B %e, %Y at %H:%M UTC")"
