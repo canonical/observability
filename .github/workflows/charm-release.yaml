@@ -125,7 +125,8 @@ jobs:
           GIT_BRANCH: ${{ github.ref_name }}  # branch name as shown in GitHub
           DEFAULT_TRACK: ${{ inputs.default-track }}
         run: |
-          if [[ "$GIT_BRANCH" == "main" ]]; then
+          # TODO, remove the test release branch from the if statement once PR 31 on o11y-tester-repo is closed.
+          if [[ "$GIT_BRANCH" == "main" || "$GIT_BRANCH" == "test-release" ]]; then
             release_channel="${DEFAULT_TRACK}/edge"
           elif [[ "${GIT_BRANCH%/*}" == "track" ]]; then
             release_channel="${GIT_BRANCH#track/}/edge"
