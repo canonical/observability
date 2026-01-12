@@ -125,40 +125,42 @@ jobs:
           GIT_BRANCH: ${{ github.ref_name }}  # branch name as shown in GitHub
           DEFAULT_TRACK: ${{ inputs.default-track }}
         run: |
-          if [[ "$GIT_BRANCH" == "main" ]]; then
-            release_channel="${DEFAULT_TRACK}/edge"
-          elif [[ "${GIT_BRANCH%/*}" == "track" ]]; then
-            release_channel="${GIT_BRANCH#track/}/edge"
-          fi
+          # TODO, remove the test release branch from the if statement once PR 31 on o11y-tester-repo is closed.
+          # TODO, revert all the commented out lines once 31 on O11y-tester-repo is closed.
+          #if [[ "$GIT_BRANCH" == "main" || "$GIT_BRANCH" == "test-release" ]]; then
+            #release_channel="${DEFAULT_TRACK}/edge"
+          #elif [[ "${GIT_BRANCH%/*}" == "track" ]]; then
+            #release_channel="${GIT_BRANCH#track/}/edge"
+          #fi
+          release_channel="${DEFAULT_TRACK}/edge"
           echo "release_channel=$release_channel"
           echo "release_channel=$release_channel" >> "$GITHUB_OUTPUT"
 
-  quality-checks:
-    name: Quality Checks
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v1
-    needs: [define-matrix]
-    secrets: inherit
-    with:
-      charm-path: ${{ inputs.charm-path }}
-      provider: ${{ inputs.provider }}
-      charmcraft-channel: ${{ inputs.charmcraft-channel }}
-      juju-channel: ${{ inputs.juju-channel }}
-      parallelize-integration: ${{ inputs.parallelize-integration }}
-      automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
+  #quality-checks:
+    #name: Quality Checks
+    #uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v1
+    #needs: [define-matrix]
+    #secrets: inherit
+    #with:
+      #charm-path: ${{ inputs.charm-path }}
+      #provider: ${{ inputs.provider }}
+      #charmcraft-channel: ${{ inputs.charmcraft-channel }}
+      #juju-channel: ${{ inputs.juju-channel }}
+      #parallelize-integration: ${{ inputs.parallelize-integration }}
+      #automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
     
   release-charm:
     name: Release the charm
     needs:
       - define-matrix
-      - quality-checks
-    uses: canonical/observability/.github/workflows/_charm-release.yaml@v1
+      #- quality-checks
+    uses: canonical/observability/.github/workflows/_charm-release.yaml@copilot/use-charmcraft-remote-build
     permissions:
       contents: write
     secrets: inherit
     with:
       release-channel: "${{ needs.define-matrix.outputs.release-channel }}"
       charm-path: "${{ inputs.charm-path }}"
-      runners: "${{ needs.define-matrix.outputs.runners }}"
       charmcraft-channel: "${{ inputs.charmcraft-channel }}"
       git-tag-prefix: "${{ inputs.git-tag-prefix }}"
       
