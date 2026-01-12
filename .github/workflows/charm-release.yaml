@@ -126,11 +126,13 @@ jobs:
           DEFAULT_TRACK: ${{ inputs.default-track }}
         run: |
           # TODO, remove the test release branch from the if statement once PR 31 on o11y-tester-repo is closed.
-          if [[ "$GIT_BRANCH" == "main" || "$GIT_BRANCH" == "test-release" ]]; then
-            release_channel="${DEFAULT_TRACK}/edge"
-          elif [[ "${GIT_BRANCH%/*}" == "track" ]]; then
-            release_channel="${GIT_BRANCH#track/}/edge"
-          fi
+          # TODO, revert all the commented out lines once 31 on O11y-tester-repo is closed.
+          #if [[ "$GIT_BRANCH" == "main" || "$GIT_BRANCH" == "test-release" ]]; then
+            #release_channel="${DEFAULT_TRACK}/edge"
+          #elif [[ "${GIT_BRANCH%/*}" == "track" ]]; then
+            #release_channel="${GIT_BRANCH#track/}/edge"
+          #fi
+          release_channel="${DEFAULT_TRACK}/edge"
           echo "release_channel=$release_channel"
           echo "release_channel=$release_channel" >> "$GITHUB_OUTPUT"
 
