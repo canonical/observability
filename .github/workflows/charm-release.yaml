@@ -61,6 +61,9 @@ on:
     secrets:
       CHARMHUB_TOKEN:
         required: true
+      LAUNCHPAD_TOKEN:
+        required: true
+      
 
 concurrency:
   group: release${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
