@@ -121,12 +121,20 @@ jobs:
         id: build-matrix
         run: |
           cd "${{ inputs.charm-path }}"
-          runners="$( \
-            yq -o json '.platforms | to_entries | map(.key)' charmcraft.yaml | \
-            sed 's/".*amd64.*"/"ubuntu-latest"/' | \
-            sed 's/".*arm64.*"/"Ubuntu_ARM64_4C_16G_03"/' | \
-            jq -rc 'unique' \
-          )"
+
+          if [ "${{ inputs.pack-using-remote-build }}" = "true" ]; then
+            # If using remote build, just use ubuntu-latest
+            runners='["ubuntu-latest"]'
+          else
+            # Normal logic: get runners from charmcraft.yaml
+            runners="$( \
+              yq -o json '.platforms | to_entries | map(.key)' charmcraft.yaml | \
+              sed 's/".*amd64.*"/"ubuntu-latest"/' | \
+              sed 's/".*arm64.*"/"Ubuntu_ARM64_4C_16G_03"/' | \
+              jq -rc 'unique' \
+            )"
+          fi
+
           echo "runners=$runners"
           echo "runners=$runners" >> "$GITHUB_OUTPUT"
       - name: Define release channel
