@@ -162,7 +162,7 @@ jobs:
     needs:
       - define-matrix
       - quality-checks
-    uses: ./.github/workflows/_charm-release.yaml@v1
+    uses: ./.github/workflows/_charm-release.yaml
     permissions:
       contents: write
     secrets: inherit
