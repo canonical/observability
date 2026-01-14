@@ -92,7 +92,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-wheel-cache-
       - name: Pack charm(s) locally
-        if: ${{ inputs.pack-using-remote-build }}
+        if: ${{ !inputs.pack-using-remote-build }}
         run: |
           cd "${{ inputs.charm-path }}"
           charmcraft pack -v
@@ -100,7 +100,7 @@ jobs:
           echo "charms=$charms"
           echo "charms=$charms" >> "$GITHUB_OUTPUT"
       - name: Pach charm(s) using remote-build
-        if: ${{ !inputs.pack-using-remote-build }}
+        if: ${{ inputs.pack-using-remote-build }}
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
           LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}

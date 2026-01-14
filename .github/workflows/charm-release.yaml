@@ -140,6 +140,8 @@ jobs:
           elif [[ "${GIT_BRANCH%/*}" == "track" ]]; then
             release_channel="${GIT_BRANCH#track/}/edge"
           fi
+          # TODO: REMOVE THIS LINE BELOW WHEN TESTING WORKS
+          release_channel="${DEFAULT_TRACK}/edge"
           echo "release_channel=$release_channel"
           echo "release_channel=$release_channel" >> "$GITHUB_OUTPUT"
 
