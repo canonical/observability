@@ -106,7 +106,6 @@ jobs:
           LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
         run: |
           cd "${{ inputs.charm-path }}"
-          charmcraft pack -v
           # Set up Launchpad credentials for remote-build
           mkdir -p ~/.local/share/charmcraft
           printf '%s\n' "${LAUNCHPAD_TOKEN}" > ~/.local/share/charmcraft/launchpad-credentials
