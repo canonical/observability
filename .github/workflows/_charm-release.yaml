@@ -32,6 +32,9 @@ on:
         description: |
           When packing the charm for release, use remote-build.
           Remote-building is useful when you want to pack and release a charm for archs such as S390x or PPC64EL.
+        default: false
+        required: false
+        type: boolean
     secrets:
       CHARMHUB_TOKEN:
         required: true
