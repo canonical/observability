@@ -28,6 +28,10 @@ on:
         description: "Tag prefix to use for the tag of the GitHub release."
         required: false
         type: string
+      pack-using-remote-build:
+        description: |
+          When packing the charm for release, use remote-build.
+          Remote-building is useful when you want to pack and release a charm for archs such as S390x or PPC64EL.
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -84,11 +88,29 @@ jobs:
           # portion of the dependencies, and restore-keys can partially match a cache.
           restore-keys: |
             ${{ runner.os }}-wheel-cache-
-      - name: Pack charm(s)
+      - name: Pack charm(s) locally
         id: pack
         run: |
           cd "${{ inputs.charm-path }}"
           charmcraft pack -v
+          charms="$(basename -a ./*.charm | jq -R -s -c 'split("\n")[:-1]')"
+          echo "charms=$charms"
+          echo "charms=$charms" >> "$GITHUB_OUTPUT"
+      - name: Pach charm(s) using remote-build
+        id: pack
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+          LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
+        run: |
+          cd "${{ inputs.charm-path }}"
+          charmcraft pack -v
+          # Set up Launchpad credentials for remote-build
+          mkdir -p ~/.local/share/charmcraft
+          printf '%s\n' "${LAUNCHPAD_TOKEN}" > ~/.local/share/charmcraft/launchpad-credentials
+          chmod 600 ~/.local/share/charmcraft/launchpad-credentials
+          # Use charmcraft remote-build for all platforms
+          charmcraft remote-build --launchpad-accept-public-upload
+          # Set output with list of built charms
           charms="$(basename -a ./*.charm | jq -R -s -c 'split("\n")[:-1]')"
           echo "charms=$charms"
           echo "charms=$charms" >> "$GITHUB_OUTPUT"
@@ -139,7 +161,7 @@ jobs:
             git push origin --tags
             # Create a GitHub release 
             release_title="Revision $revision"
-            echo "Peparing GitHub release: $release_title"
+            echo "Preparing GitHub release: $release_title"
             ## Add the charm information to the release body
             body_charm="$(printf "\`\`\`json\n%s\n\`\`\`" "$pretty_uploaded_charm")"
             current_date="$(date -u +"%B %e, %Y at %H:%M UTC")"

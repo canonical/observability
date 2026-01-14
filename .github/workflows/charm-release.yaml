@@ -42,7 +42,7 @@ on:
         description: |
           Parallelize integration tests by spinning up one runner per Python file.
         default: true
-        required: false
+        required: falsed
         type: boolean
       automatically-retry-hooks:
         description: |
@@ -51,6 +51,10 @@ on:
         default: true
         required: false
         type: boolean
+      pack-using-remote-build:
+        description: |
+          When packing the charm for release, use remote-build.
+          Remote-building is useful when you want to pack and release a charm for archs such as S390x or PPC64EL.
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -145,13 +149,14 @@ jobs:
       juju-channel: ${{ inputs.juju-channel }}
       parallelize-integration: ${{ inputs.parallelize-integration }}
       automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
+      pack-using-remote-build: ${{ inputs.pack-using-remote-build }}
     
   release-charm:
     name: Release the charm
     needs:
       - define-matrix
       - quality-checks
-    uses: canonical/observability/.github/workflows/_charm-release.yaml@v1
+    uses: ./.github/workflows/_charm-release.yaml@v1
     permissions:
       contents: write
     secrets: inherit
