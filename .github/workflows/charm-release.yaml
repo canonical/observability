@@ -155,7 +155,6 @@ jobs:
       juju-channel: ${{ inputs.juju-channel }}
       parallelize-integration: ${{ inputs.parallelize-integration }}
       automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
-      pack-using-remote-build: ${{ inputs.pack-using-remote-build }}
     
   release-charm:
     name: Release the charm
@@ -172,6 +171,7 @@ jobs:
       runners: "${{ needs.define-matrix.outputs.runners }}"
       charmcraft-channel: "${{ inputs.charmcraft-channel }}"
       git-tag-prefix: "${{ inputs.git-tag-prefix }}"
+      pack-using-remote-build: ${{ inputs.pack-using-remote-build }}
       
   release-libs:
     name: Release any bumped charm library
