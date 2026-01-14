@@ -99,7 +99,7 @@ jobs:
           charms="$(basename -a ./*.charm | jq -R -s -c 'split("\n")[:-1]')"
           echo "charms=$charms"
           echo "charms=$charms" >> "$GITHUB_OUTPUT"
-      - name: Pach charm(s) using remote-build
+      - name: Pack charm(s) using remote-build
         if: ${{ inputs.pack-using-remote-build }}
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
