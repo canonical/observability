@@ -42,7 +42,7 @@ on:
         description: |
           Parallelize integration tests by spinning up one runner per Python file.
         default: true
-        required: falsed
+        required: false
         type: boolean
       automatically-retry-hooks:
         description: |
