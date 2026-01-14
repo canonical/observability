@@ -94,7 +94,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-wheel-cache-
       - name: Pack charm(s) locally
-        id: pack
+        id: pack-local
         run: |
           cd "${{ inputs.charm-path }}"
           charmcraft pack -v
@@ -102,7 +102,7 @@ jobs:
           echo "charms=$charms"
           echo "charms=$charms" >> "$GITHUB_OUTPUT"
       - name: Pach charm(s) using remote-build
-        id: pack
+        id: pack-remote
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
           LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
