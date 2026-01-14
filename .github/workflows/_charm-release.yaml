@@ -38,6 +38,9 @@ on:
     secrets:
       CHARMHUB_TOKEN:
         required: true
+    secrets:
+      LAUNCHPAD_TOKEN:
+        required: true
 
 permissions:
   contents: write
