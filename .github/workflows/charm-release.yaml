@@ -148,31 +148,27 @@ jobs:
           elif [[ "${GIT_BRANCH%/*}" == "track" ]]; then
             release_channel="${GIT_BRANCH#track/}/edge"
           fi
-          # TODO: REMOVE THIS LINE BELOW WHEN TESTING WORKS
-          release_channel="${DEFAULT_TRACK}/edge"
           echo "release_channel=$release_channel"
           echo "release_channel=$release_channel" >> "$GITHUB_OUTPUT"
 
-  # TODO: uncomment the block below. Commeting out to speed up testing
-  #quality-checks:
-    #name: Quality Checks
-    #uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v1
-    #needs: [define-matrix]
-    #secrets: inherit
-    #with:
-      #charm-path: ${{ inputs.charm-path }}
-      #provider: ${{ inputs.provider }}
-      #charmcraft-channel: ${{ inputs.charmcraft-channel }}
-      #juju-channel: ${{ inputs.juju-channel }}
-      #parallelize-integration: ${{ inputs.parallelize-integration }}
-      #automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
+  quality-checks:
+    name: Quality Checks
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v1
+    needs: [define-matrix]
+    secrets: inherit
+    with:
+      charm-path: ${{ inputs.charm-path }}
+      provider: ${{ inputs.provider }}
+      charmcraft-channel: ${{ inputs.charmcraft-channel }}
+      juju-channel: ${{ inputs.juju-channel }}
+      parallelize-integration: ${{ inputs.parallelize-integration }}
+      automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
     
   release-charm:
     name: Release the charm
     needs:
       - define-matrix
-      # TODO: undo when testing passes
-      #- quality-checks
+      - quality-checks
     uses: ./.github/workflows/_charm-release.yaml
     permissions:
       contents: write
@@ -189,9 +185,8 @@ jobs:
       
   release-libs:
     name: Release any bumped charm library
-    # TODO: uncomment when testing passes.
-    #needs:
-      #- release-charm
+    needs:
+      - release-charm
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the source

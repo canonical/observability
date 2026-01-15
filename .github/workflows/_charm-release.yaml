@@ -107,15 +107,6 @@ jobs:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
           LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
         run: |
-          # TODO: remove the echoing of the presence of LP token
-          if [[ -z "${LAUNCHPAD_TOKEN:-}" ]]; then
-            echo "LAUNCHPAD_TOKEN is not set"
-            exit 1
-          else
-            echo "LAUNCHPAD_TOKEN is set"
-          fi
-          # TODO: remove line above
-
           cd "${{ inputs.charm-path }}"
           # Set up Launchpad credentials for remote-build
           mkdir -p ~/.local/share/charmcraft
