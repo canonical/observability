@@ -62,7 +62,7 @@ on:
       CHARMHUB_TOKEN:
         required: true
       LAUNCHPAD_TOKEN:
-        required: true
+        required: false
       
 
 concurrency:
