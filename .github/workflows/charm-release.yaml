@@ -51,9 +51,19 @@ on:
         default: true
         required: false
         type: boolean
+      pack-using-remote-build:
+        description: |
+          When packing the charm for release, use remote-build.
+          Remote-building is useful when you want to pack and release a charm for archs such as S390x or PPC64EL.
+        default: false
+        required: false
+        type: boolean
     secrets:
       CHARMHUB_TOKEN:
         required: true
+      LAUNCHPAD_TOKEN:
+        required: false
+      
 
 concurrency:
   group: release${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
@@ -111,12 +121,20 @@ jobs:
         id: build-matrix
         run: |
           cd "${{ inputs.charm-path }}"
-          runners="$( \
-            yq -o json '.platforms | to_entries | map(.key)' charmcraft.yaml | \
-            sed 's/".*amd64.*"/"ubuntu-latest"/' | \
-            sed 's/".*arm64.*"/"Ubuntu_ARM64_4C_16G_03"/' | \
-            jq -rc 'unique' \
-          )"
+
+          if [ "${{ inputs.pack-using-remote-build }}" = "true" ]; then
+            # If using remote build, just use ubuntu-latest
+            runners='["ubuntu-latest"]'
+          else
+            # Normal logic: get runners from charmcraft.yaml
+            runners="$( \
+              yq -o json '.platforms | to_entries | map(.key)' charmcraft.yaml | \
+              sed 's/".*amd64.*"/"ubuntu-latest"/' | \
+              sed 's/".*arm64.*"/"Ubuntu_ARM64_4C_16G_03"/' | \
+              jq -rc 'unique' \
+            )"
+          fi
+
           echo "runners=$runners"
           echo "runners=$runners" >> "$GITHUB_OUTPUT"
       - name: Define release channel
@@ -151,16 +169,19 @@ jobs:
     needs:
       - define-matrix
       - quality-checks
-    uses: canonical/observability/.github/workflows/_charm-release.yaml@v1
+    uses: ./.github/workflows/_charm-release.yaml
     permissions:
       contents: write
-    secrets: inherit
+    secrets:
+      CHARMHUB_TOKEN: $ {{ secrets.CHARMHUB_TOKEN }}
+      LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
     with:
       release-channel: "${{ needs.define-matrix.outputs.release-channel }}"
       charm-path: "${{ inputs.charm-path }}"
       runners: "${{ needs.define-matrix.outputs.runners }}"
       charmcraft-channel: "${{ inputs.charmcraft-channel }}"
       git-tag-prefix: "${{ inputs.git-tag-prefix }}"
+      pack-using-remote-build: ${{ inputs.pack-using-remote-build }}
       
   release-libs:
     name: Release any bumped charm library
