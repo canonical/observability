@@ -173,7 +173,7 @@ jobs:
     permissions:
       contents: write
     secrets:
-      CHARMHUB_TOKEN: $ {{ secrets.CHARMHUB_TOKEN }}
+      CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
       LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
     with:
       release-channel: "${{ needs.define-matrix.outputs.release-channel }}"
