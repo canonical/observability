@@ -24,6 +24,7 @@ jobs:
           - alertmanager-k8s-operator
           - avalanche-k8s-operator
           - blackbox-exporter-k8s-operator
+          - blackbox-exporter-operator
           - catalogue-k8s-operator
           - cos-configuration-k8s-operator
           - cos-proxy-operator
