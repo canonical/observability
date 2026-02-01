@@ -8,6 +8,16 @@ on:
         default: '.'
         required: false
         type: string
+      log-path:
+        type: string
+        description: |
+          Path to a directory where the .txt logfiles for an integration testing run will be stored.
+          Relative and absolute file paths are both allowed. 
+          Relative paths are rooted against the charm repository root. 
+          Paths that begin with a wildcard character should be quoted to avoid being 
+          interpreted as YAML aliases.
+        required: false
+        default: .logs
       provider:
         description: "The provider to choose for either machine or k8s tests ('machine' or 'microk8s')"
         default: 'microk8s'
@@ -122,6 +132,7 @@ jobs:
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}
+      log-path: ${{ inputs.log-path }}
       provider: ${{ inputs.provider }}
       charmcraft-channel: ${{ inputs.charmcraft-channel }}
       juju-channel: ${{ inputs.juju-channel }}

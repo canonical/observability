@@ -7,6 +7,16 @@ on:
         type: string
         required: false
         default: .
+      log-path:
+        type: string
+        description: |
+          Path to a directory where the .txt logfiles for an integration testing run will be stored.
+          Relative and absolute file paths are both allowed. 
+          Relative paths are rooted against the charm repository root. 
+          Paths that begin with a wildcard character should be quoted to avoid being 
+          interpreted as YAML aliases.
+        required: false
+        default: .logs
       provider:
         type: string
         description: "The provider to choose for integration tests ('machine' or 'microk8s')"
@@ -311,3 +321,33 @@ jobs:
         with:
           timeout-minutes: 30
           limit-access-to-actor: true
+      - name: Determine log files location
+        id: get_log_path
+        run: |
+          # if the user gave us a relative path, interpret it from the charm-path root.
+          # if path starts with / it's absolute, else it's relative, and we prepend the (absolute) charm-path to it
+          log_path="$([[ "${{ inputs.log-path }}" = /* ]] && echo "${{ inputs.log-path }}" || echo "${{ inputs.charm-path }}/${{ inputs.log-path }}")"
+          echo "log path is: $log_path"
+          echo "log_path=$log_path" >> "$GITHUB_OUTPUT"
+      - name: Show logs
+        run: | 
+          if test -d "${{ steps.get_log_path.outputs.log_path }}"; then
+            for filename in ${{ steps.get_log_path.outputs.log_path }}/*.txt; do
+                # begin collapsible log group for each file found in the folder; 
+                # this is github CI markup
+                # cfr: https://github.com/go-task/task/issues/647
+                printf '\n::group:: %s\n' "$filename"
+                cat "$filename"
+                printf "\n::endgroup::\n"
+            done
+          else
+            echo "${{ steps.get_log_path.outputs.log_path }} not found"
+          fi
+      - name: Upload logs
+        uses: actions/upload-artifact@v4
+        # defaults to 'warn' on failure
+        with:
+          name: charm-logs${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}-${{ matrix.suite }}
+          include-hidden-files: true
+          # we assume that log_path is never going to be an empty string; but it may well be a non-existing directory.
+          path: ${{ steps.get_log_path.outputs.log_path }}
