@@ -48,6 +48,8 @@ jobs:
           chmod +rx /usr/local/bin/goss
           curl -L ${goss_base_url}/kgoss -o /usr/local/bin/kgoss
           chmod +rx /usr/local/bin/kgoss
+          curl -L ${goss_base_url}/dgoss -o /usr/local/bin/dgoss
+          chmod +rx /usr/local/bin/dgoss
       - name: Print disk utilization
         if: ${{ (runner.debug == '1') }}
         run: df -h
