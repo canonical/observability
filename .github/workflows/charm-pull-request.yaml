@@ -38,6 +38,12 @@ on:
         default: true
         required: false
         type: boolean
+      enable-integration:
+        description: |
+          Enable running integration tests.
+        type: boolean
+        default: true
+        required: false
     secrets:
       CHARMHUB_TOKEN:
         required: false
