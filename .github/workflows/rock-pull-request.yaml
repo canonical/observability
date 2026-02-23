@@ -63,10 +63,12 @@ jobs:
           if [[ "$full_path" == "" ]]; then
             full_path="."
           fi
-          echo "rock_path=$rock_path" >> "$GITHUB_OUTPUT"
-          echo "base_path=$base_path" >> "$GITHUB_OUTPUT"
-          echo "full_path=$full_path" >> "$GITHUB_OUTPUT"
-          echo "is_monorepo=$is_monorepo" >> "$GITHUB_OUTPUT"
+          {
+            echo "rock_path=$rock_path"
+            echo "base_path=$base_path"
+            echo "full_path=$full_path"
+            echo "is_monorepo=$is_monorepo"
+          } >> "$GITHUB_OUTPUT"
       - name: Find rockcraft.yaml changes
         id: changed-files
         uses: tj-actions/changed-files@v46
@@ -107,7 +109,9 @@ jobs:
           done
           versions="${versions# }"
           echo "versions=$versions"
-          echo "versions=$versions" >> "$GITHUB_OUTPUT"
+          {
+            echo "versions=$versions"
+          } >> "$GITHUB_OUTPUT"
 
   tests:
     name: Tests

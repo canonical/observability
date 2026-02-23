@@ -81,13 +81,15 @@ jobs:
         fi
         version_dir="$rock_dir/$latest_version"
         # Export derived paths and mode for downstream steps.
-        echo "rock_path=$rock_path" >> "$GITHUB_OUTPUT"
-        echo "base_path=$base_path" >> "$GITHUB_OUTPUT"
-        echo "full_path=$full_path" >> "$GITHUB_OUTPUT"
-        echo "rock_dir=$rock_dir" >> "$GITHUB_OUTPUT"
-        echo "latest_version=$latest_version" >> "$GITHUB_OUTPUT"
-        echo "version_dir=$version_dir" >> "$GITHUB_OUTPUT"
-        echo "is_monorepo=$is_monorepo" >> "$GITHUB_OUTPUT"
+        {
+          echo "rock_path=$rock_path"
+          echo "base_path=$base_path"
+          echo "full_path=$full_path"
+          echo "rock_dir=$rock_dir"
+          echo "latest_version=$latest_version"
+          echo "version_dir=$version_dir"
+          echo "is_monorepo=$is_monorepo"
+        } >> "$GITHUB_OUTPUT"
     - name: Build rock
       working-directory: ${{ steps.rock-context.outputs.rock_dir }}
       env:
