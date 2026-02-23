@@ -51,6 +51,12 @@ on:
         default: true
         required: false
         type: boolean
+      enable-integration:
+        description: |
+          Enable running integration tests.
+        type: boolean
+        default: true
+        required: false
       pack-using-remote-build:
         description: |
           When packing the charm for release, use remote-build.
@@ -163,6 +169,7 @@ jobs:
       juju-channel: ${{ inputs.juju-channel }}
       parallelize-integration: ${{ inputs.parallelize-integration }}
       automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
+      enable-integration: ${{ inputs.enable-integration }}
     
   release-charm:
     name: Release the charm
