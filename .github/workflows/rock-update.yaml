@@ -12,6 +12,11 @@ on:
         description: "Name of the application for which to build the rock"
         required: true
         type: string
+      rock-path:
+        description: "Path to the rock root (relative to repository root)"
+        required: false
+        default: "."
+        type: string
       source-repo:
         description: "Repository of the source application in 'org/repo' form"
         required: true
@@ -105,13 +110,20 @@ jobs:
         if: steps.latest-release.outputs.release != ''
         shell: bash
         run: |
+          # Normalize rock path and derive the upstream version.
+          rock_path="${{ inputs.rock-path }}"
+          rock_path="${rock_path%/}"
+          if [[ "$rock_path" == "" ]]; then
+            rock_path="."
+          fi
           source_tag="${{ steps.latest-release.outputs.release }}"
           version="${source_tag#v}"
           # Explicitly filter for specific rocks because we'd rather notice if a new rock has a different release schema
           version="${version#mimir-}"
           # Filter out opentelemetry-collector prefixes
           version=${version#"cmd/builder/v"}
-          if [ ! -f "$GITHUB_WORKSPACE/main/$version/rockcraft.yaml" ]; then
+          # Only continue if this version folder does not already exist.
+          if [ ! -f "$GITHUB_WORKSPACE/main/$rock_path/$version/rockcraft.yaml" ]; then
             echo "version=$version" >> "$GITHUB_OUTPUT"
             echo "release=${{steps.latest-release.outputs.release}}" >> "$GITHUB_OUTPUT"
             echo "New upstream release ${{steps.latest-release.outputs.release}} found"
@@ -133,34 +145,52 @@ jobs:
           SOURCE_TAG: "${{ steps.check.outputs.release }}"
           VERSION: "${{ steps.check.outputs.version }}"
         run: |
-          latest_rockcraft_file="$(find "$GITHUB_WORKSPACE/main/" -name "rockcraft.yaml" | sort -V | tail -n1)"
-          cp -r "$(dirname "$latest_rockcraft_file")" "$GITHUB_WORKSPACE/main/$VERSION"
+          # Copy the latest rockcraft folder and update version/source-tag fields.
+          rock_path="${{ inputs.rock-path }}"
+          rock_path="${rock_path%/}"
+          if [[ "$rock_path" == "" ]]; then
+            rock_path="."
+          fi
+          latest_rockcraft_file="$(find "$GITHUB_WORKSPACE/main/$rock_path" -name "rockcraft.yaml" | sort -V | tail -n1)"
+          cp -r "$(dirname "$latest_rockcraft_file")" "$GITHUB_WORKSPACE/main/$rock_path/$VERSION"
           source_tag="$SOURCE_TAG" version="$VERSION" yq -i \
             '.version = strenv(version) | .parts.${{ inputs.rock-name }}["source-tag"] = strenv(source_tag)' \
-            "$GITHUB_WORKSPACE/main/$VERSION/rockcraft.yaml"
+            "$GITHUB_WORKSPACE/main/$rock_path/$VERSION/rockcraft.yaml"
 
       - name: Update the Go version
         if: inputs.check-go && steps.check.outputs.release != ''
         env:
           VERSION: "${{ steps.check.outputs.version }}"
         run: |
+          # Update the Go build snap to match the application source.
+          rock_path="${{ inputs.rock-path }}"
+          rock_path="${rock_path%/}"
+          if [[ "$rock_path" == "" ]]; then
+            rock_path="."
+          fi
           go_version="$(grep -Po "^go \K(\S+)" "$GITHUB_WORKSPACE/application-src/go.mod")" \
           # Delete the Go dependency and add the updated one
           yq -i 'del(.parts.${{ inputs.rock-name }}.build-snaps.[] | select(. == "go/*"))' \
-            "$GITHUB_WORKSPACE/main/$VERSION/rockcraft.yaml"
+            "$GITHUB_WORKSPACE/main/$rock_path/$VERSION/rockcraft.yaml"
           # Snap channels are named after major.minor only, so cut the go version to that format
           go_major_minor="$(echo "$go_version" | sed -E "s/([0-9]+\.[0-9]+).*/\1/")"
           go_v="$go_major_minor" yq -i \
             '.parts.${{ inputs.rock-name }}.build-snaps += "go/"+strenv(go_v)+"/stable"' \
-            "$GITHUB_WORKSPACE/main/$VERSION/rockcraft.yaml"
+            "$GITHUB_WORKSPACE/main/$rock_path/$VERSION/rockcraft.yaml"
 
       - name: Update other build dependencies
         if: steps.check.outputs.release != '' && inputs.update-script != ''
         env:
           VERSION: "${{ steps.check.outputs.version }}"
         run: |
+          # Expose paths for the custom update script.
+          rock_path="${{ inputs.rock-path }}"
+          rock_path="${rock_path%/}"
+          if [[ "$rock_path" == "" ]]; then
+            rock_path="."
+          fi
           export application_src="$GITHUB_WORKSPACE/application-src"
-          export rockcraft_yaml="$GITHUB_WORKSPACE/main/$VERSION/rockcraft.yaml"
+          export rockcraft_yaml="$GITHUB_WORKSPACE/main/$rock_path/$VERSION/rockcraft.yaml"
           cat > update-script.sh << EOF
             ${{ inputs.update-script }}
           EOF

@@ -11,6 +11,16 @@ on:
         description: "Name of the application for which to build the rock"
         required: true
         type: string
+      rock-path:
+        description: "Path to the rock root (relative to monorepo-path when set)"
+        required: false
+        default: "."
+        type: string
+      monorepo-path:
+        description: "Path to the monorepo root for rocks (relative to repository root)"
+        required: false
+        default: ""
+        type: string
       risk-track:
         description: "Risk track on which to release the rock"
         required: false
@@ -38,8 +48,8 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@v46
         with:
-          path: rock
-          files: '**/rockcraft.yaml'
+          path: rock/${{ inputs.monorepo-path || '.' }}
+          files: '${{ inputs.rock-path }}/**/rockcraft.yaml'
       - name: Sync the OCI Factory fork
         id: fork-sync
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
@@ -64,16 +74,78 @@ jobs:
         shell: bash  # The for-loop parsing is bash-specific
         env:
           ROCK_NAME: ${{ inputs.rock-name }}
+          ROCK_PATH_INPUT: ${{ inputs.rock-path }}
+          MONOREPO_PATH_INPUT: ${{ inputs.monorepo-path }}
           # CHANGED_FILES is a space-separated list
           CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_and_modified_files }}
           RISK_TRACK: ${{ inputs.risk-track }}
         run: |
           TRACK=${RISK_TRACK:-stable}
-          cd rock
+          # Normalize rock path and determine monorepo mode from monorepo-path or layout.
+          rock_path="${ROCK_PATH_INPUT:-.}"
+          rock_path="${rock_path%/}"
+          if [[ "$rock_path" == "" ]]; then
+            rock_path="."
+          fi
+          monorepo_path="${MONOREPO_PATH_INPUT:-}"
+          monorepo_path="${monorepo_path%/}"
+          if [[ -n "$monorepo_path" ]]; then
+            base_path="$monorepo_path"
+            is_monorepo="true"
+          else
+            base_path="."
+            if find "rock/${base_path%/}/${rock_path}" -mindepth 1 -maxdepth 1 -type d -name '[0-9]*' | grep -q .; then
+              is_monorepo="false"
+            else
+              is_monorepo="true"
+            fi
+          fi
+          # Build the full path to the rock root and move into it.
+          if [[ "$rock_path" == "." ]]; then
+            full_path="$base_path"
+          else
+            full_path="$base_path/$rock_path"
+          fi
+          full_path="${full_path#./}"
+          if [[ "$full_path" == "" ]]; then
+            full_path="."
+          fi
+          cd "rock/$full_path"
           # Export current time to create a unique branch name for the fork
           echo "now_epoch=$(date -d now +%s)" >> "$GITHUB_OUTPUT"
           sha="$(git rev-parse HEAD)"
-          versions="${CHANGED_FILES//\/rockcraft.yaml/}"  # space-separated versions
+          versions=""
+          path_prefix=""
+          if [[ "$rock_path" != "." ]]; then
+            path_prefix="$rock_path/"
+          fi
+          # Extract version numbers from changed rockcraft.yaml files.
+          for file in $CHANGED_FILES; do
+            if [[ -n "$path_prefix" && "$file" != "$path_prefix"* ]]; then
+              continue
+            fi
+            relative="$file"
+            if [[ -n "$path_prefix" ]]; then
+              relative="${file#"$path_prefix"}"
+            fi
+            if [[ "$is_monorepo" == "true" ]]; then
+              if [[ "$relative" == "$ROCK_NAME/"* ]]; then
+                remainder="${relative#*/}"
+                version="${remainder%%/*}"
+                versions="$versions $version"
+              fi
+            else
+              version="${relative%%/*}"
+              versions="$versions $version"
+            fi
+          done
+          versions="${versions# }"
+          if [[ -z "$versions" ]]; then
+            echo "No changed rockcraft.yaml files for $ROCK_NAME" >&2
+            echo "has_versions=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "has_versions=true" >> "$GITHUB_OUTPUT"
           # Build the --version flags for noctua
           versions_flags="$(for v in $versions; do echo -n "--version=$v "; done)"
           # Generate the manifest via noctua
@@ -87,7 +159,7 @@ jobs:
             > "$GITHUB_WORKSPACE/oci-factory/oci/$ROCK_NAME/image.yaml"
       - name: Commit to the fork
         id: fork-commit
-        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
+        if: steps.update-releases.outputs.has_versions == 'true'
         uses: EndBug/add-and-commit@v9
         with:
           add: 'oci/${{ inputs.rock-name }}/image.yaml'
@@ -96,7 +168,7 @@ jobs:
           new_branch: 'update-${{ steps.update-releases.outputs.now_epoch }}'
           push: 'origin update-${{ steps.update-releases.outputs.now_epoch }} --force'
       - name: Open a PR from the fork to upstream
-        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
+        if: steps.update-releases.outputs.has_versions == 'true'
         id: upstream-pr
         env:
           GH_TOKEN: "${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"

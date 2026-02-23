@@ -2,6 +2,17 @@ name: Pull Request
 
 on:
   workflow_call:
+    inputs:
+      rock-path:
+        description: "Path to the rock root (relative to monorepo-path when set)"
+        required: false
+        default: "."
+        type: string
+      monorepo-path:
+        description: "Path to the monorepo root for rocks (relative to repository root)"
+        required: false
+        default: ""
+        type: string
 
 
 jobs:
@@ -10,21 +21,91 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       versions: ${{ steps.changed-versions.outputs.versions }}
+      is_monorepo: ${{ steps.detect-layout.outputs.is_monorepo }}
+      rock_path: ${{ steps.detect-layout.outputs.rock_path }}
+      base_path: ${{ steps.detect-layout.outputs.base_path }}
+      full_path: ${{ steps.detect-layout.outputs.full_path }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Detect rock layout
+        id: detect-layout
+        env:
+          ROCK_PATH_INPUT: ${{ inputs.rock-path }}
+          MONOREPO_PATH_INPUT: ${{ inputs.monorepo-path }}
+        run: |
+          # Normalize rock path and infer monorepo mode from monorepo-path or layout.
+          rock_path="${ROCK_PATH_INPUT:-.}"
+          rock_path="${rock_path%/}"
+          if [[ "$rock_path" == "" ]]; then
+            rock_path="."
+          fi
+          monorepo_path="${MONOREPO_PATH_INPUT:-}"
+          monorepo_path="${monorepo_path%/}"
+          if [[ -n "$monorepo_path" ]]; then
+            base_path="$monorepo_path"
+            is_monorepo="true"
+          else
+            base_path="."
+            if find "${base_path%/}/${rock_path}" -mindepth 1 -maxdepth 1 -type d -name '[0-9]*' | grep -q .; then
+              is_monorepo="false"
+            else
+              is_monorepo="true"
+            fi
+          fi
+          # Build the full path to the rock root used by later steps.
+          if [[ "$rock_path" == "." ]]; then
+            full_path="$base_path"
+          else
+            full_path="$base_path/$rock_path"
+          fi
+          full_path="${full_path#./}"
+          if [[ "$full_path" == "" ]]; then
+            full_path="."
+          fi
+          echo "rock_path=$rock_path" >> "$GITHUB_OUTPUT"
+          echo "base_path=$base_path" >> "$GITHUB_OUTPUT"
+          echo "full_path=$full_path" >> "$GITHUB_OUTPUT"
+          echo "is_monorepo=$is_monorepo" >> "$GITHUB_OUTPUT"
       - name: Find rockcraft.yaml changes
         id: changed-files
         uses: tj-actions/changed-files@v46
         with:
-          files: "**/rockcraft.yaml"
+          path: ${{ steps.detect-layout.outputs.base_path }}
+          files: "${{ steps.detect-layout.outputs.rock_path }}/**/rockcraft.yaml"
       - name: Extract the versions
         id: changed-versions
         env:
           # CHANGED_FILES is a space-separated list
           CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+          IS_MONOREPO: ${{ steps.detect-layout.outputs.is_monorepo }}
+          ROCK_PATH: ${{ steps.detect-layout.outputs.rock_path }}
         run: |
-          versions="${CHANGED_FILES//\/rockcraft.yaml/}"  # space-separated versions
+          versions=""
+          path_prefix=""
+          if [[ "$ROCK_PATH" != "." ]]; then
+            path_prefix="$ROCK_PATH/"
+          fi
+          # Convert changed rockcraft.yaml files into version tokens.
+          for file in $CHANGED_FILES; do
+            if [[ -n "$path_prefix" && "$file" != "$path_prefix"* ]]; then
+              continue
+            fi
+            relative="$file"
+            if [[ -n "$path_prefix" ]]; then
+              relative="${file#"$path_prefix"}"
+            fi
+            if [[ "$IS_MONOREPO" == "true" ]]; then
+              rock_name="${relative%%/*}"
+              remainder="${relative#*/}"
+              version="${remainder%%/*}"
+              versions="$versions $rock_name:$version"
+            else
+              version="${relative%%/*}"
+              versions="$versions $version"
+            fi
+          done
+          versions="${versions# }"
           echo "versions=$versions"
           echo "versions=$versions" >> "$GITHUB_OUTPUT"
 
@@ -63,10 +144,24 @@ jobs:
         run: df -h
       - name: Pack and test the rocks
         run: |
-          for version in ${{ needs.changes.outputs.versions }}; do
-            just pack "$version"
-            just test "$version"
-            just clean "$version"
+          rock_path="${{ needs.changes.outputs.full_path }}"
+          is_monorepo="${{ needs.changes.outputs.is_monorepo }}"
+          cd "$rock_path"
+          for target in ${{ needs.changes.outputs.versions }}; do
+            if [[ "$is_monorepo" == "true" ]]; then
+              rock_name="${target%%:*}"
+              version="${target#*:}"
+              # Monorepo: pass rock name and version.
+              just pack "$rock_name" "$version"
+              just test "$rock_name" "$version"
+              just clean "$rock_name" "$version"
+            else
+              # Single rock: pass version only.
+              version="$target"
+              just pack "$version"
+              just test "$version"
+              just clean "$version"
+            fi
           done
       - name: Print disk utilization after packing
         if: ${{ (runner.debug == '1') }}

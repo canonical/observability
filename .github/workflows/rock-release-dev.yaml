@@ -7,6 +7,16 @@ on:
         description: "Name of the application for which to build the rock"
         required: true
         type: string
+      rock-path:
+        description: "Path to the rock root (relative to monorepo-path when set)"
+        required: false
+        default: "."
+        type: string
+      monorepo-path:
+        description: "Path to the monorepo root for rocks (relative to repository root)"
+        required: false
+        default: ""
+        type: string
     secrets:
       OBSERVABILITY_NOCTUA_TOKEN:
         required: true
@@ -24,36 +34,97 @@ jobs:
         # Install Syft
         curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh \
           | sh -s -- -b /usr/local/bin
-    - name: Build rock
+    - name: Resolve rock context
+      id: rock-context
+      env:
+        ROCK_NAME: ${{ inputs.rock-name }}
+        ROCK_PATH_INPUT: ${{ inputs.rock-path }}
+        MONOREPO_PATH_INPUT: ${{ inputs.monorepo-path }}
       run: |
-        latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
-        just pack "$latest_version"
+        # Normalize inputs and decide monorepo mode based on monorepo-path or layout.
+        rock_path="${ROCK_PATH_INPUT:-.}"
+        rock_path="${rock_path%/}"
+        if [[ "$rock_path" == "" ]]; then
+          rock_path="."
+        fi
+        monorepo_path="${MONOREPO_PATH_INPUT:-}"
+        monorepo_path="${monorepo_path%/}"
+        if [[ -n "$monorepo_path" ]]; then
+          base_path="$monorepo_path"
+          is_monorepo="true"
+        else
+          base_path="."
+          if find "${base_path%/}/${rock_path}" -mindepth 1 -maxdepth 1 -type d -name '[0-9]*' | grep -q .; then
+            is_monorepo="false"
+          else
+            is_monorepo="true"
+          fi
+        fi
+        # Build the full path to the rock root and resolve the latest version.
+        if [[ "$rock_path" == "." ]]; then
+          full_path="$base_path"
+        else
+          full_path="$base_path/$rock_path"
+        fi
+        full_path="${full_path#./}"
+        if [[ "$full_path" == "" ]]; then
+          full_path="."
+        fi
+        rock_dir="$full_path"
+        if [[ "$is_monorepo" == "true" ]]; then
+          rock_dir="$full_path/$ROCK_NAME"
+        fi
+        latest_version="$(find "$rock_dir" -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@.*/@@')"
+        if [[ -z "$latest_version" ]]; then
+          echo "No version directories found under $rock_dir" >&2
+          exit 1
+        fi
+        version_dir="$rock_dir/$latest_version"
+        # Export derived paths and mode for downstream steps.
+        echo "rock_path=$rock_path" >> "$GITHUB_OUTPUT"
+        echo "base_path=$base_path" >> "$GITHUB_OUTPUT"
+        echo "full_path=$full_path" >> "$GITHUB_OUTPUT"
+        echo "rock_dir=$rock_dir" >> "$GITHUB_OUTPUT"
+        echo "latest_version=$latest_version" >> "$GITHUB_OUTPUT"
+        echo "version_dir=$version_dir" >> "$GITHUB_OUTPUT"
+        echo "is_monorepo=$is_monorepo" >> "$GITHUB_OUTPUT"
+    - name: Build rock
+      working-directory: ${{ steps.rock-context.outputs.rock_dir }}
+      env:
+        ROCK_NAME: ${{ inputs.rock-name }}
+        IS_MONOREPO: ${{ steps.rock-context.outputs.is_monorepo }}
+        LATEST_VERSION: ${{ steps.rock-context.outputs.latest_version }}
+      run: |
+        # Use rock-name + version for monorepos, otherwise version-only.
+        if [[ "$IS_MONOREPO" == "true" ]]; then
+          just pack "$ROCK_NAME" "$LATEST_VERSION"
+        else
+          just pack "$LATEST_VERSION"
+        fi
     - name: Upload rock to ghcr.io
+      working-directory: ${{ steps.rock-context.outputs.version_dir }}
       env:
         ROCK_NAME: ${{ inputs.rock-name }}
         OBSERVABILITY_NOCTUA_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
       run: |
-        latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
-        cd "$latest_version"
         sudo skopeo --insecure-policy copy \
           "oci-archive:$(realpath ./*.rock)" \
           "docker://ghcr.io/canonical/$ROCK_NAME:dev" \
           --dest-creds "observability-noctua-bot:$OBSERVABILITY_NOCTUA_TOKEN"
     - name: Create SBOM
+      working-directory: ${{ steps.rock-context.outputs.version_dir }}
       env:
         ROCK_NAME: ${{ inputs.rock-name }}
       run: |
-        latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
-        cd "$latest_version"
         # shellcheck disable=SC2086 # glob passed to realpath can't be wrapped
         syft "$(realpath ./${ROCK_NAME}_*.rock)" -o "spdx-json=${ROCK_NAME}.sbom.json"
     - name: Upload SBOM
       uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.rock-name }}-sbom
-        path: "${{ inputs.rock-name}}.sbom.json"
+        path: "${{ steps.rock-context.outputs.version_dir }}/${{ inputs.rock-name}}.sbom.json"
     - name: Upload locally built rock artifact
       uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.rock-name }}-rock
-        path: "${{ inputs.rock-name }}_*.rock"
+        path: "${{ steps.rock-context.outputs.version_dir }}/${{ inputs.rock-name }}_*.rock"
