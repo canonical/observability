@@ -247,8 +247,13 @@ jobs:
       - name: Generate matrix list
         id: suites
         run: |
+          base_dir="$PWD"
           cd ${{ inputs.charm-path }}
           list="$(find tests/integration -name 'test_*.py' -printf '%f\n' | jq -r -ncR '[inputs]')"
+          if [[ "$list" == "[]" ]]; then
+            echo "No integration test files found in tests/integration. Searching in $base_dir/tests/integration."
+            list="$(find "$base_dir"/tests/integration -name 'test_*.py' -printf '%f\n' | jq -r -ncR '[inputs]')"
+          fi
           echo "suites=$list"
           echo "suites=$list" >> "$GITHUB_OUTPUT"
           
