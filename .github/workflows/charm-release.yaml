@@ -101,7 +101,8 @@ jobs:
       - ci-ignore
     if: needs.ci-ignore.outputs.any_modified == 'true'
     uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v0
-    secrets: inherit
+    secrets:
+      CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
     with:
       charm-path: "${{ inputs.charm-path }}"
       provider: "${{ inputs.provider }}"
@@ -114,7 +115,8 @@ jobs:
     needs:
       - quality-checks
     uses: canonical/observability/.github/workflows/_charm-release.yaml@v0
-    secrets: inherit
+    secrets:
+      CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
     with:
       artifact: "${{ inputs.artifact }}"
       charm-path: "${{ inputs.charm-path }}"
