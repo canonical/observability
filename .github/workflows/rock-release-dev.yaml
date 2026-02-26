@@ -8,14 +8,9 @@ on:
         required: true
         type: string
       rock-path:
-        description: "Path to the rock root (relative to monorepo-path when set)"
+        description: "Path to the rock root"
         required: false
         default: "."
-        type: string
-      monorepo-path:
-        description: "Path to the monorepo root for rocks (relative to repository root)"
-        required: false
-        default: ""
         type: string
     secrets:
       OBSERVABILITY_NOCTUA_TOKEN:
@@ -37,43 +32,29 @@ jobs:
     - name: Resolve rock context
       id: rock-context
       env:
-        ROCK_NAME: ${{ inputs.rock-name }}
         ROCK_PATH_INPUT: ${{ inputs.rock-path }}
-        MONOREPO_PATH_INPUT: ${{ inputs.monorepo-path }}
       run: |
-        # Normalize inputs and decide monorepo mode based on monorepo-path or layout.
+        # Normalize the configured rock path.
         rock_path="${ROCK_PATH_INPUT:-.}"
         rock_path="${rock_path%/}"
         if [[ "$rock_path" == "" ]]; then
           rock_path="."
         fi
-        monorepo_path="${MONOREPO_PATH_INPUT:-}"
-        monorepo_path="${monorepo_path%/}"
-        if [[ -n "$monorepo_path" ]]; then
-          base_path="$monorepo_path"
+
+        # Detect mode from the presence of a justfile in the provided rock path.
+        if [[ -f "$rock_path/justfile" ]]; then
+          is_monorepo="false"
+          just_dir="$rock_path"
+          rock_dir="$rock_path"
+          just_rock_name=""
+        else
           is_monorepo="true"
-        else
-          base_path="."
-          if find "${base_path%/}/${rock_path}" -mindepth 1 -maxdepth 1 -type d -name '[0-9]*' | grep -q .; then
-            is_monorepo="false"
-          else
-            is_monorepo="true"
-          fi
+          rock_dir="$rock_path"
+          just_dir="$(dirname "$rock_path")"
+          just_rock_name="$(basename "$rock_path")"
         fi
-        # Build the full path to the rock root and resolve the latest version.
-        if [[ "$rock_path" == "." ]]; then
-          full_path="$base_path"
-        else
-          full_path="$base_path/$rock_path"
-        fi
-        full_path="${full_path#./}"
-        if [[ "$full_path" == "" ]]; then
-          full_path="."
-        fi
-        rock_dir="$full_path"
-        if [[ "$is_monorepo" == "true" ]]; then
-          rock_dir="$full_path/$ROCK_NAME"
-        fi
+
+        # Resolve the latest version directory under the selected rock path.
         latest_version="$(find "$rock_dir" -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@.*/@@')"
         if [[ -z "$latest_version" ]]; then
           echo "No version directories found under $rock_dir" >&2
@@ -83,23 +64,23 @@ jobs:
         # Export derived paths and mode for downstream steps.
         {
           echo "rock_path=$rock_path"
-          echo "base_path=$base_path"
-          echo "full_path=$full_path"
+          echo "just_dir=$just_dir"
+          echo "just_rock_name=$just_rock_name"
           echo "rock_dir=$rock_dir"
           echo "latest_version=$latest_version"
           echo "version_dir=$version_dir"
           echo "is_monorepo=$is_monorepo"
         } >> "$GITHUB_OUTPUT"
     - name: Build rock
-      working-directory: ${{ steps.rock-context.outputs.rock_dir }}
+      working-directory: ${{ steps.rock-context.outputs.just_dir }}
       env:
-        ROCK_NAME: ${{ inputs.rock-name }}
+        JUST_ROCK_NAME: ${{ steps.rock-context.outputs.just_rock_name }}
         IS_MONOREPO: ${{ steps.rock-context.outputs.is_monorepo }}
         LATEST_VERSION: ${{ steps.rock-context.outputs.latest_version }}
       run: |
         # Use rock-name + version for monorepos, otherwise version-only.
         if [[ "$IS_MONOREPO" == "true" ]]; then
-          just pack "$ROCK_NAME" "$LATEST_VERSION"
+          just pack "$JUST_ROCK_NAME" "$LATEST_VERSION"
         else
           just pack "$LATEST_VERSION"
         fi
