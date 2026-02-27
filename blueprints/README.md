@@ -11,7 +11,7 @@ Use a blueprint by copying the files into a new repository, then keep centralize
 
 ## Customization
 
-Blueprints define a centralize set of recipes in `<blueprint>.just`. These recipes can be extended or overridden in the central `justfile`, allowing for project-specific behaviors.
+Blueprints define a centralized set of recipes in `<blueprint>.just`. These recipes can be extended or overridden in the central `justfile`, allowing for project-specific behaviors.
 
 To override or extend a shared recipe, define one with the same name in `justfile`:
 
