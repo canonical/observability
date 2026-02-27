@@ -31,7 +31,7 @@ import? '<blueprint>.just'
 update version:
     echo "New things happen here"
 
-# Recipe from <blueprint.just> to extend
+# Recipe from <blueprint.just> that extends the imported behavior
 update version:
     # Manually invoke the recipe from the centralized justfile
     just --justfile <blueprint>.just update {{version}}
