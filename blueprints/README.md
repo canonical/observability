@@ -27,7 +27,7 @@ import? '<blueprint>.just'
 	echo ""
 	echo "For help with a specific recipe, run: just --usage <recipe>"
 
-# Recipe from <blueprint.just> to override
+# Recipe from <blueprint.just> that overrides the imported behavior
 update version:
     echo "New things happen here"
 
