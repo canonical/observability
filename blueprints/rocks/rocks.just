@@ -52,7 +52,7 @@ test version=latest_version:
   cp spread.yaml "{{version}}/spread.yaml"
   if [ -f goss.yaml ]; then cp goss.yaml "{{version}}/goss.yaml"; fi
   test_exit=0; (cd "{{version}}" && rockcraft test) || test_exit=$?; rm -f "{{version}}/spread.yaml" "{{version}}/goss.yaml"; if [ "$test_exit" -ne 0 ]; then echo "× rockcraft test failed"; fi; exit "$test_exit"
-  echo "✓ 'rockcraft test' passed.
+  echo "✓ rockcraft test passed.
 
 # Generate SBOM for the rock
 [group("security")]
