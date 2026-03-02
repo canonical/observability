@@ -43,6 +43,10 @@ test version=latest_version: (push-to-registry version)
   test_exit=0; (cd "{{version}}" && rockcraft test) || test_exit=$?; rm -f "{{version}}/spread.yaml" "{{version}}/goss.yaml"; if [ "$test_exit" -ne 0 ]; then echo "× rockcraft test failed"; fi; exit "$test_exit"
   echo "✓ 'rockcraft test' passed.
 
+# Generate SBOM for the rock
+sbom version=latest_version:
+  syft {{version}}/*.rock -o "spdx-json=rock.sbom.json"
+
 # Generate a rock for the latest version of the upstream project
 [arg("source_repo", help="Repository of the upstream project in 'org/repo' form")]
 [group("maintenance")]
