@@ -49,10 +49,14 @@ run version=latest_version: (push-to-registry version)
 # Test a rock with `rockcraft test`
 [group("dev")]
 test version=latest_version:
+  #!/usr/bin/env bash
+  set -e
   cp spread.yaml "{{version}}/spread.yaml"
   if [ -f goss.yaml ]; then cp goss.yaml "{{version}}/goss.yaml"; fi
-  test_exit=0; (cd "{{version}}" && rockcraft test) || test_exit=$?; rm -f "{{version}}/spread.yaml" "{{version}}/goss.yaml"; if [ "$test_exit" -ne 0 ]; then echo "× rockcraft test failed"; fi; exit "$test_exit"
-  echo "✓ rockcraft test passed.
+  test_exit=0; (cd "{{version}}" && rockcraft test) || test_exit=$?
+  rm -f "{{version}}/spread.yaml" "{{version}}/goss.yaml"
+  if [ "$test_exit" -ne 0 ]; then echo "× rockcraft test failed"; exit "$test_exit"; fi
+  echo "✓ 'rockcraft test' passed."
 
 # Generate SBOM for the rock
 [group("security")]
