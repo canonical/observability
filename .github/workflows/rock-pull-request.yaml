@@ -6,6 +6,7 @@ on:
       rock-path:
         description: "Optional path to the rock(s) directory to operate in"
         required: false
+        default: "."
         type: string
 
 
@@ -22,13 +23,23 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@v46
         with:
+          path: 
           files: "**/rockcraft.yaml"
       - name: Extract the versions
         id: changed-versions
         env:
+          ROCK_PATH: ${{ inputs.rock-path }}
           # CHANGED_FILES is a space-separated list
           CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
+          # raw_versions="${CHANGED_FILES//\/rockcraft.yaml/}"  # space-separated versions
+          # versions=""
+          # for path in $raw_versions; do
+          #   version="${path#*/$ROCK_PATH/}"  # Remove 'rock_path/' and everything before it
+          #   version="${version%%/*}"  # Remove everything after the first '/'
+          #   versions+="$version "
+          # echo "versions=$versions"
+          # echo "versions=$versions" >> "$GITHUB_OUTPUT"
           versions="${CHANGED_FILES//\/rockcraft.yaml/}"  # space-separated versions
           echo "versions=$versions"
           echo "versions=$versions" >> "$GITHUB_OUTPUT"
@@ -44,17 +55,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo snap install concierge --classic
-          # We need the kubectl (classic) snap because `kgoss` needs access to the /tmp directory
-          sudo concierge prepare -p microk8s --extra-snaps rockcraft,just,kubectl
-          sudo microk8s enable registry
-          # FIXME: install via the goss snap when available
-          goss_base_url="https://github.com/goss-org/goss/releases/latest/download"
-          curl -L ${goss_base_url}/goss-linux-amd64 -o /usr/local/bin/goss
-          chmod +rx /usr/local/bin/goss
-          curl -L ${goss_base_url}/kgoss -o /usr/local/bin/kgoss
-          chmod +rx /usr/local/bin/kgoss
-          curl -L ${goss_base_url}/dgoss -o /usr/local/bin/dgoss
-          chmod +rx /usr/local/bin/dgoss
+          sudo concierge prepare -p crafts --extra-snaps=just,yq,docker
       - name: Print disk utilization
         if: ${{ (runner.debug == '1') }}
         run: df -h
@@ -68,9 +69,7 @@ jobs:
         run: df -h
       - name: Pack and test the rocks
         run: |
-          if [ -n "${{ inputs.rock-path }}" ]; then
-            cd "${{ inputs.rock-path }}"
-          fi
+          cd "${{ inputs.rock-path }}"
           for version in ${{ needs.changes.outputs.versions }}; do
             just pack "$version"
             just test "$version"
