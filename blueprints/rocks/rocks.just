@@ -20,9 +20,15 @@ latest_version := `find . -name rockcraft.yaml -printf '%h\n' | sort -V | tail -
   echo "✓ Rock pushed to local registry under 'rockcraft-test:latest'"
 
 # Print the rock name
-[group("dev")]
+[group("info")]
 @name:
   echo "{{rock_name}}"
+
+# Print the latest rock version
+[group("info")]
+@latest-version:
+  echo "{{latest_version}}"
+
 
 # Pack a rock of a specific component and version
 [group("dev")]
