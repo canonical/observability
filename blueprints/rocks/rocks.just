@@ -1,7 +1,7 @@
 # Centralized justfile for the Canonical Observability rocks
 set shell := ["bash", "-uc"]
 
-export rock_name := `echo ${PWD##*/} | sed 's/-rock$//'`  # Get the rock name from the folder name
+rock_name := `echo ${PWD##*/} | sed 's/-rock$//'`  # Get the rock name from the folder name
 latest_version := `find . -name rockcraft.yaml -printf '%h\n' | sort -V | tail -n1 | sed 's@./@@'`
 
 [private]
