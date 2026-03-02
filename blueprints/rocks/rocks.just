@@ -19,6 +19,11 @@ latest_version := `find . -name rockcraft.yaml -printf '%h\n' | sort -V | tail -
   cd {{version}}; sudo rockcraft.skopeo --insecure-policy copy --dest-tls-verify=false "oci-archive:{{rock_name}}_{{version}}_amd64.rock" docker-daemon:rockcraft-test:latest
   echo "✓ Rock pushed to local registry under 'rockcraft-test:latest'"
 
+# Print the rock name
+[group("dev")]
+@name:
+  echo "{{rock_name}}"
+
 # Pack a rock of a specific component and version
 [group("dev")]
 pack version=latest_version:
@@ -44,6 +49,7 @@ test version=latest_version: (push-to-registry version)
   echo "✓ 'rockcraft test' passed.
 
 # Generate SBOM for the rock
+[group("security")]
 sbom version=latest_version:
   syft {{version}}/*.rock -o "spdx-json=rock.sbom.json"
 
