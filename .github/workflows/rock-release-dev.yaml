@@ -3,10 +3,6 @@ name: Build rock and release dev tag to GHCR
 on:
   workflow_call:
     inputs:
-      rock-name:
-        description: "Name of the application for which to build the rock"
-        required: true
-        type: string
       rock-path:
         description: "Optional path to the rock(s) directory to operate in"
         required: false
