@@ -7,20 +7,22 @@ concurrency:
 on:
   workflow_call:
     inputs:
-      rock-name:
-        description: "Name of the application for which to build the rock"
-        required: true
+      rock-path:
+        description: "Path to the rock(s) directory to operate in (defaults to 'rock')"
+        required: false
+        default: "."
+        type: string
+      rock-support:
+        description: "Which level of semantic version to support in the OCI Factory ('patch', 'minor', 'major')"
+        required: false
+        default: "minor"
         type: string
       risk-track:
         description: "Risk track on which to release the rock"
         required: false
         default: "stable"
         type: string
-      rock-path:
-        description: "Path to the rock(s) directory to operate in (defaults to 'rock')"
-        required: false
-        default: "rock"
-        type: string
+      
     secrets:
       OBSERVABILITY_NOCTUA_TOKEN:
         required: true
@@ -39,82 +41,35 @@ jobs:
         with:
           path: ${{ inputs.rock-path }}
           fetch-depth: 2 # Needed to check modified files
-      - name: Get the changed rockcraft.yaml files
+      - name: Find rockcraft.yaml changes
         id: changed-files
         uses: tj-actions/changed-files@v46
         with:
           path: ${{ inputs.rock-path }}
-          files: '**/rockcraft.yaml'
-      - name: Sync the OCI Factory fork
-        id: fork-sync
-        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
+          files: "**/rockcraft.yaml"
+      - name: Extract the versions
+        id: changed-versions
         env:
-          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
-        run: gh repo sync --force observability-noctua-bot/oci-factory
-      - name: Clone the fork
-        id: fork-clone
-        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
-        uses: actions/checkout@v4
-        with:
-          path: oci-factory
-          repository: observability-noctua-bot/oci-factory
-          token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
+          ROCK_PATH: ${{ inputs.rock-path }}
+          # CHANGED_FILES is a space-separated list
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          versions="${CHANGED_FILES//\/rockcraft.yaml/}"  # space-separated versions
+          echo "versions=$versions"
+          echo "versions=$versions" >> "$GITHUB_OUTPUT"
+
       - name: Install dependencies
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: |
+          sudo snap install just --classic
           sudo snap install astral-uv --classic  # used to run noctua
-      - name: Update releases in image.yaml
-        id: update-releases
+          sudo snap install yq
+      - name: Release to OCI Factory
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
-        shell: bash  # The for-loop parsing is bash-specific
         env:
-          ROCK_NAME: ${{ inputs.rock-name }}
-          # CHANGED_FILES is a space-separated list
-          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_and_modified_files }}
-          RISK_TRACK: ${{ inputs.risk-track }}
+          GITHUB_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
         run: |
-          TRACK=${RISK_TRACK:-stable}
-          cd "${{ inputs.rock-path }}"
-          # Export current time to create a unique branch name for the fork
-          echo "now_epoch=$(date -d now +%s)" >> "$GITHUB_OUTPUT"
-          sha="$(git rev-parse HEAD)"
-          versions="${CHANGED_FILES//\/rockcraft.yaml/}"  # space-separated versions
-          # Build the --version flags for noctua
-          versions_flags="$(for v in $versions; do echo -n "--version=$v "; done)"
-          # Generate the manifest via noctua
-          # shellcheck disable=SC2086 # Intended word-splitting of $versions_flags
-          uvx --from=git+https://github.com/lucabello/noctua noctua rock manifest \
-            "${{ github.repository }}" \
-            --commit="$sha" \
-            --base=24.04 \
-            --risk="$TRACK" \
-            $versions_flags \
-            > "$GITHUB_WORKSPACE/oci-factory/oci/$ROCK_NAME/image.yaml"
-      - name: Commit to the fork
-        id: fork-commit
-        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
-        uses: EndBug/add-and-commit@v9
-        with:
-          add: 'oci/${{ inputs.rock-name }}/image.yaml'
-          cwd: './oci-factory'
-          message: 'chore: Add new ${{ inputs.rock-name }} releases'
-          new_branch: 'update-${{ steps.update-releases.outputs.now_epoch }}'
-          push: 'origin update-${{ steps.update-releases.outputs.now_epoch }} --force'
-      - name: Open a PR from the fork to upstream
-        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
-        id: upstream-pr
-        env:
-          GH_TOKEN: "${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}"
-          NOW_EPOCH: "${{ steps.update-releases.outputs.now_epoch }}"
-        run: |
-          cd "$GITHUB_WORKSPACE/oci-factory"
-          PR_URL="$(gh pr list --repo canonical/oci-factory --head "observability-noctua-bot:update-$NOW_EPOCH")"
-          if [[ -n "${PR_URL}" ]]; then
-            echo "PR already exists: ${PR_URL}"
-            exit 0
-          else
-            gh pr create --repo canonical/oci-factory \
-              --head "observability-noctua-bot:update-${NOW_EPOCH}" \
-              --title "chore: Add new ${{ inputs.rock-name }} releases" \
-              --body "This is an automatic PR opened by the Observability Noctua bot."
-          fi
+          for version in $versions; do
+            echo "Releasing version $version to OCI Factory on track ${{ inputs.risk-track }}"
+            just release-oci-factory $version ${{ inputs.rock-support }} ${{ inputs.risk-track }}
+          done
