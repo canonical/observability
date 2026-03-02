@@ -23,7 +23,7 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@v46
         with:
-          path: 
+          path: ${{ inputs.rock-path }}
           files: "**/rockcraft.yaml"
       - name: Extract the versions
         id: changed-versions
