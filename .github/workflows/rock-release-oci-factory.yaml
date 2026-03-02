@@ -71,5 +71,5 @@ jobs:
         run: |
           for version in $versions; do
             echo "Releasing version $version to OCI Factory on track ${{ inputs.risk-track }}"
-            just release-oci-factory $version ${{ inputs.rock-support }} ${{ inputs.risk-track }}
+            just release-oci-factory "$version" ${{ inputs.rock-support }} ${{ inputs.risk-track }}
           done
