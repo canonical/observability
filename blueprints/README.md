@@ -21,6 +21,8 @@ set allow-duplicate-recipes
 set allow-duplicate-variables
 import? '<blueprint>.just'
 
+export rock_name := "custom-rock-name"  #  Variables override
+
 [private]
 @default:
 	just --list

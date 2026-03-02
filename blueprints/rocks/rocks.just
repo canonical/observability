@@ -1,12 +1,13 @@
+# Centralized justfile for the Canonical Observability rocks
 set shell := ["bash", "-uc"]
 
-rock_name := `echo ${PWD##*/} | sed 's/-rock$//'`  # Get the rock name from the folder name
+export rock_name := `echo ${PWD##*/} | sed 's/-rock$//'`  # Get the rock name from the folder name
 latest_version := `find . -name rockcraft.yaml -printf '%h\n' | sort -V | tail -n1 | sed 's@./@@'`
 
 [private]
 @default:
   just --list
-  echo ""
+  echo "{{rock_name}}"
   echo "For help with a specific recipe, run: just --usage <recipe>"
 
 # Push an OCI image to a local registry
@@ -63,8 +64,7 @@ update source_repo:
     '.version = strenv(version) | .parts.{{rock_name}}["source-tag"] = strenv(latest_release)' \
     "./$version/rockcraft.yaml"
   # Automatically update build tools (go) from the upstream repository
-  TMP_DIR="/tmp/rock-update"
-  rm -rf "$TMP_DIR"; mkdir -p "$TMP_DIR"
+  TMP_DIR="$(mktemp -d)"
   gh repo clone "{{source_repo}}" "$TMP_DIR/{{source_repo}}" -- --branch "$latest_release" --depth 1
   # If it's a Go project, update the Go version
   if [[ -f "$TMP_DIR/{{source_repo}}/go.mod" ]]; then
@@ -82,7 +82,7 @@ refresh:
   #!/usr/bin/env bash
   refresh_folder="blueprints/rocks"
   api_path="repos/canonical/observability/contents/$refresh_folder"
-  for file in rock.just spread.yaml; do
+  for file in rocks.just spread.yaml; do
     echo "Fetching latest '$file' from canonical/observability ..."
     gh api "$api_path/$file" --jq '.content' | base64 --decode > "$file"
     echo "✓ $file updated"
@@ -113,8 +113,7 @@ release-oci-factory version=latest_version support="minor" risk="stable":
   repository="$(git remote get-url origin | sed -E 's#(git@[^:]+:|https?://[^/]+/)##; s/\.git$//')"
   # Clone the oci-factory and push data to it
   gh repo sync --force observability-noctua-bot/oci-factory
-  TMP_DIR="/tmp/rock-release-oci-factory"
-  rm -rf "$TMP_DIR"; mkdir -p "$TMP_DIR"
+  TMP_DIR="$(mktemp -d)"
   git clone https://github.com/observability-noctua-bot/oci-factory "$TMP_DIR/oci-factory"
   echo "✓ Cloned observability-noctua-bot/oci-factory"
   # Build the OCI Factory manifest

@@ -1,6 +1,6 @@
 set allow-duplicate-recipes
 set allow-duplicate-variables
-import? 'rock.just'
+import? 'rocks.just'
 
 [private]
 @default:
