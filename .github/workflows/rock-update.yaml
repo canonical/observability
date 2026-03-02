@@ -35,6 +35,10 @@ on:
         default: 'webops+observability-noctua-bot@canonical.com'
         required: false
         type: string
+      rock-path:
+        description: "Optional path to the rock(s) directory to operate in"
+        required: false
+        type: string
     secrets:
       OBSERVABILITY_NOCTUA_TOKEN:
         required: true

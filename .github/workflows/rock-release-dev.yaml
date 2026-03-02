@@ -7,6 +7,10 @@ on:
         description: "Name of the application for which to build the rock"
         required: true
         type: string
+      rock-path:
+        description: "Optional path to the rock(s) directory to operate in"
+        required: false
+        type: string
     secrets:
       OBSERVABILITY_NOCTUA_TOKEN:
         required: true
@@ -26,6 +30,9 @@ jobs:
           | sh -s -- -b /usr/local/bin
     - name: Build rock
       run: |
+        if [ -n "${{ inputs.rock-path }}" ]; then
+          cd "${{ inputs.rock-path }}"
+        fi
         latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
         just pack "$latest_version"
     - name: Upload rock to ghcr.io
@@ -33,6 +40,9 @@ jobs:
         ROCK_NAME: ${{ inputs.rock-name }}
         OBSERVABILITY_NOCTUA_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
       run: |
+        if [ -n "${{ inputs.rock-path }}" ]; then
+          cd "${{ inputs.rock-path }}"
+        fi
         latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
         cd "$latest_version"
         sudo skopeo --insecure-policy copy \
@@ -43,6 +53,9 @@ jobs:
       env:
         ROCK_NAME: ${{ inputs.rock-name }}
       run: |
+        if [ -n "${{ inputs.rock-path }}" ]; then
+          cd "${{ inputs.rock-path }}"
+        fi
         latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
         cd "$latest_version"
         # shellcheck disable=SC2086 # glob passed to realpath can't be wrapped

@@ -2,6 +2,11 @@ name: Pull Request
 
 on:
   workflow_call:
+    inputs:
+      rock-path:
+        description: "Optional path to the rock(s) directory to operate in"
+        required: false
+        type: string
 
 
 jobs:
@@ -63,6 +68,9 @@ jobs:
         run: df -h
       - name: Pack and test the rocks
         run: |
+          if [ -n "${{ inputs.rock-path }}" ]; then
+            cd "${{ inputs.rock-path }}"
+          fi
           for version in ${{ needs.changes.outputs.versions }}; do
             just pack "$version"
             just test "$version"
