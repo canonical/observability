@@ -34,8 +34,8 @@ jobs:
         run: |
           raw_versions="${CHANGED_FILES//\/rockcraft.yaml/}"  # space-separated versions
           versions=""
-          for path in $raw_versions; do
-            version="${path#*/$ROCK_PATH/}"  # Remove 'rock_path/' and everything before it
+          for raw_path in $raw_versions; do
+            version="${raw_path#*$ROCK_PATH/}"  # Remove 'rock_path/' and everything before it
             version="${version%%/*}"  # Remove everything after the first '/'
             versions+="$version "
           done
