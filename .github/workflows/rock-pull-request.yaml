@@ -32,15 +32,12 @@ jobs:
           # CHANGED_FILES is a space-separated list
           CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          # raw_versions="${CHANGED_FILES//\/rockcraft.yaml/}"  # space-separated versions
-          # versions=""
-          # for path in $raw_versions; do
-          #   version="${path#*/$ROCK_PATH/}"  # Remove 'rock_path/' and everything before it
-          #   version="${version%%/*}"  # Remove everything after the first '/'
-          #   versions+="$version "
-          # echo "versions=$versions"
-          # echo "versions=$versions" >> "$GITHUB_OUTPUT"
-          versions="${CHANGED_FILES//\/rockcraft.yaml/}"  # space-separated versions
+          raw_versions="${CHANGED_FILES//\/rockcraft.yaml/}"  # space-separated versions
+          versions=""
+          for path in $raw_versions; do
+            version="${path#*/$ROCK_PATH/}"  # Remove 'rock_path/' and everything before it
+            version="${version%%/*}"  # Remove everything after the first '/'
+            versions+="$version "
           echo "versions=$versions"
           echo "versions=$versions" >> "$GITHUB_OUTPUT"
 
