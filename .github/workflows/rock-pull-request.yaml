@@ -38,6 +38,7 @@ jobs:
             version="${path#*/$ROCK_PATH/}"  # Remove 'rock_path/' and everything before it
             version="${version%%/*}"  # Remove everything after the first '/'
             versions+="$version "
+          done
           echo "versions=$versions"
           echo "versions=$versions" >> "$GITHUB_OUTPUT"
 
