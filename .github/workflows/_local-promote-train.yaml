@@ -19,6 +19,7 @@ jobs:
     name: Promote Charm
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         charm-repo:
           - alertmanager-k8s-operator
