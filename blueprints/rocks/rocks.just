@@ -29,7 +29,6 @@ latest_version := `find . -name rockcraft.yaml -printf '%h\n' | sort -V | tail -
 @latest-version:
   echo "{{latest_version}}"
 
-
 # Pack a rock of a specific component and version
 [group("dev")]
 pack version=latest_version:
@@ -61,7 +60,7 @@ test version=latest_version:
 # Generate SBOM for the rock
 [group("security")]
 sbom version=latest_version:
-  syft {{version}}/*.rock -o "spdx-json=rock.sbom.json"
+  syft {{version}}/*.rock -o "spdx-json={{version}}/rock.sbom.json"
 
 # Generate a rock for the latest version of the upstream project
 [arg("source_repo", help="Repository of the upstream project in 'org/repo' form")]
