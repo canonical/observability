@@ -89,7 +89,7 @@ update source_repo:
   if [[ -f "$TMP_DIR/{{source_repo}}/go.mod" ]]; then
     go_snap_version="$(grep -Po '^go \K(\S+)' "$TMP_DIR/{{source_repo}}/go.mod" | sed -E 's/([0-9]+\.[0-9]+).*/\1/')"
     go_snap_version="$go_snap_version" yq -i \
-      '.parts.{{rock_name}}.build-snaps += "go/"+strenv(go_snap_version)+"/stable"' \
+      '(.parts.{{rock_name}}.build-snaps[] | select(test("^go/"))) = "go/"+strenv(go_snap_version)+"/stable"' \
       "./$version/rockcraft.yaml"
   fi
   rm -rf "$TMP_DIR"
