@@ -233,7 +233,7 @@ jobs:
                 - hostpath-storage
                 - dns
                 - rbac
-                - metallb
+                - metallb:10.64.140.43-10.64.140.49
           host:
             packages:
               - gnome-keyring
@@ -348,7 +348,7 @@ jobs:
                 - hostpath-storage
                 - dns
                 - rbac
-                - metallb
+                - metallb:10.64.140.43-10.64.140.49
           host:
             packages:
               - gnome-keyring
