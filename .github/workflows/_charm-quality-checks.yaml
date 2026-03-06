@@ -208,19 +208,75 @@ jobs:
     if: ${{ ! inputs.parallelize-integration && inputs.enable-integration }}
     runs-on: ubuntu-latest
     needs: [snap-channels, pack-charm]
-    env:
-      CONCIERGE_JUJU_CHANNEL: ${{ needs.snap-channels.outputs.juju-channel }}
-      CONCIERGE_MICROK8S_CHANNEL: 1.32-strict/stable
-      CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install dependencies
         run: |
           sudo snap install concierge --classic
-          sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv,terraform
-          sudo snap install kubectl --classic
-          juju model-defaults automatically-retry-hooks="${{ inputs.automatically-retry-hooks }}"
+          if [[ "${{ inputs.provider }}" == "microk8s" ]]; then
+            cat > concierge.yaml << 'EOF'
+          juju:
+            channel: ${{ needs.snap-channels.outputs.juju-channel }}
+            model-defaults:
+              test-mode: "true"
+              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
+            extra-bootstrap-args: --config agent-stream=proposed
+          providers:
+            lxd:
+              enable: true
+            microk8s:
+              enable: true
+              bootstrap: true
+              channel: 1.32-strict/stable
+              addons:
+                - hostpath-storage
+                - dns
+                - rbac
+                - metallb
+          host:
+            packages:
+              - gnome-keyring
+              - python3-pip
+              - python3-venv
+            snaps:
+              charmcraft:
+                channel: ${{ inputs.charmcraft-channel }}
+              jq:
+              yq:
+              rockcraft:
+              astral-uv:
+              terraform:
+              kubectl:
+          EOF
+          else
+            cat > concierge.yaml << 'EOF'
+          juju:
+            channel: ${{ needs.snap-channels.outputs.juju-channel }}
+            model-defaults:
+              test-mode: "true"
+              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
+          providers:
+            lxd:
+              enable: true
+              bootstrap: true
+          host:
+            packages:
+              - gnome-keyring
+              - python3-pip
+              - python3-venv
+            snaps:
+              charmcraft:
+                channel: ${{ inputs.charmcraft-channel }}
+              jq:
+              yq:
+              snapcraft:
+              astral-uv:
+              terraform:
+              kubectl:
+          EOF
+          fi
+          sudo concierge prepare -c concierge.yaml
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
@@ -266,19 +322,74 @@ jobs:
       fail-fast: false
       matrix:
         suite: ${{ fromJSON(needs.integration-matrix.outputs.suites) }}
-    env:
-      CONCIERGE_JUJU_CHANNEL: ${{ needs.snap-channels.outputs.juju-channel }}
-      CONCIERGE_MICROK8S_CHANNEL: 1.32-strict/stable
-      CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install dependencies
         run: |
           sudo snap install concierge --classic
-          sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv,terraform
-          sudo snap install kubectl --classic
-          juju model-defaults automatically-retry-hooks="${{ inputs.automatically-retry-hooks }}"
+          if [[ "${{ inputs.provider }}" == "microk8s" ]]; then
+            cat > concierge.yaml << 'EOF'
+          juju:
+            channel: ${{ needs.snap-channels.outputs.juju-channel }}
+            model-defaults:
+              test-mode: "true"
+              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
+          providers:
+            lxd:
+              enable: true
+            microk8s:
+              enable: true
+              bootstrap: true
+              channel: 1.32-strict/stable
+              addons:
+                - hostpath-storage
+                - dns
+                - rbac
+                - metallb:10.64.140.43-10.64.140.49
+          host:
+            packages:
+              - gnome-keyring
+              - python3-pip
+              - python3-venv
+            snaps:
+              charmcraft:
+                channel: ${{ inputs.charmcraft-channel }}
+              jq:
+              yq:
+              rockcraft:
+              astral-uv:
+              terraform:
+              kubectl:
+          EOF
+          else
+            cat > concierge.yaml << 'EOF'
+          juju:
+            channel: ${{ needs.snap-channels.outputs.juju-channel }}
+            model-defaults:
+              test-mode: "true"
+              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
+          providers:
+            lxd:
+              enable: true
+              bootstrap: true
+          host:
+            packages:
+              - gnome-keyring
+              - python3-pip
+              - python3-venv
+            snaps:
+              charmcraft:
+                channel: ${{ inputs.charmcraft-channel }}
+              jq:
+              yq:
+              snapcraft:
+              astral-uv:
+              terraform:
+              kubectl:
+          EOF
+          fi
+          sudo concierge prepare -c concierge.yaml
       # FIXME: Remove the below step when runners are configurable. See https://github.com/canonical/observability/issues/408.
       - name: Clean worker caches
         run: |
