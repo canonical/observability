@@ -256,6 +256,7 @@ jobs:
             model-defaults:
               test-mode: "true"
               automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
+            extra-bootstrap-args: --config agent-stream=proposed
           providers:
             lxd:
               enable: true
@@ -335,6 +336,7 @@ jobs:
             model-defaults:
               test-mode: "true"
               automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
+            extra-bootstrap-args: --config agent-stream=proposed
           providers:
             lxd:
               enable: true
@@ -346,7 +348,7 @@ jobs:
                 - hostpath-storage
                 - dns
                 - rbac
-                - metallb:10.64.140.43-10.64.140.49
+                - metallb
           host:
             packages:
               - gnome-keyring
@@ -369,6 +371,7 @@ jobs:
             model-defaults:
               test-mode: "true"
               automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
+            extra-bootstrap-args: --config agent-stream=proposed
           providers:
             lxd:
               enable: true
