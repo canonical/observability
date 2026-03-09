@@ -9,8 +9,8 @@ on:
         required: false
         type: string
       provider:
-        description: "The provider to choose for either machine or k8s tests ('machine' or 'microk8s')"
-        default: 'microk8s'
+        description: "The provider to choose for either machine or k8s tests ('machine', 'microk8s', or 'k8s')"
+        default: 'k8s'
         required: false
         type: string
       charmcraft-channel:
@@ -51,6 +51,12 @@ on:
         default: true
         required: false
         type: boolean
+      enable-integration:
+        description: |
+          Enable running integration tests.
+        type: boolean
+        default: true
+        required: false
       pack-using-remote-build:
         description: |
           When packing the charm for release, use remote-build.
@@ -153,7 +159,7 @@ jobs:
 
   quality-checks:
     name: Quality Checks
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v1
+    uses: ./.github/workflows/_charm-quality-checks.yaml
     needs: [define-matrix]
     secrets: inherit
     with:
@@ -163,6 +169,7 @@ jobs:
       juju-channel: ${{ inputs.juju-channel }}
       parallelize-integration: ${{ inputs.parallelize-integration }}
       automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
+      enable-integration: ${{ inputs.enable-integration }}
     
   release-charm:
     name: Release the charm
