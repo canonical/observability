@@ -9,7 +9,7 @@ on:
         default: .
       provider:
         type: string
-        description: "The provider to choose for integration tests ('machine' or 'microk8s')"
+        description: "The provider to choose for integration tests ('machine', 'microk8s', or 'k8s')"
         required: true
       charmcraft-channel:
         type: string
@@ -212,10 +212,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install dependencies
+        env:
+          PROVIDER: "${{ inputs.provider }}"
         run: |
           sudo snap install concierge --classic
-          if [[ "${{ inputs.provider }}" == "microk8s" ]]; then
-            cat > concierge.yaml << 'EOF'
+          case "$PROVIDER" in
+            machine)
+              sudo concierge prepare -p machine --extra-snaps=astral-uv,terraform
+              ;;
+            microk8s)
+              sudo concierge prepare -p microk8s --extra-snaps=astral-uv,terraform
+              ;;
+            k8s)
+              cat > concierge.yaml << 'EOF'
           juju:
             channel: ${{ needs.snap-channels.outputs.juju-channel }}
             model-defaults:
@@ -249,37 +258,10 @@ jobs:
               rockcraft:
               astral-uv:
               terraform:
-              kubectl:
           EOF
-          else
-            cat > concierge.yaml << 'EOF'
-          juju:
-            channel: ${{ needs.snap-channels.outputs.juju-channel }}
-            model-defaults:
-              test-mode: "true"
-              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
-            extra-bootstrap-args: --config agent-stream=proposed
-          providers:
-            lxd:
-              enable: true
-              bootstrap: true
-          host:
-            packages:
-              - gnome-keyring
-              - python3-pip
-              - python3-venv
-            snaps:
-              charmcraft:
-                channel: ${{ inputs.charmcraft-channel }}
-              jq:
-              yq:
-              snapcraft:
-              astral-uv:
-              terraform:
-              kubectl:
-          EOF
-          fi
-          sudo concierge prepare -c concierge.yaml --trace
+              sudo concierge prepare -c concierge.yaml
+              ;;
+          esac
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
@@ -329,10 +311,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install dependencies
+        env:
+          PROVIDER: "${{ inputs.provider }}"
         run: |
           sudo snap install concierge --classic
-          if [[ "${{ inputs.provider }}" == "microk8s" ]]; then
-            cat > concierge.yaml << 'EOF'
+          case "$PROVIDER" in
+            machine)
+              sudo concierge prepare -p machine --extra-snaps=astral-uv,terraform
+              ;;
+            microk8s)
+              sudo concierge prepare -p microk8s --extra-snaps=astral-uv,terraform
+              ;;
+            k8s)
+              cat > concierge.yaml << 'EOF'
           juju:
             channel: ${{ needs.snap-channels.outputs.juju-channel }}
             model-defaults:
@@ -366,37 +357,10 @@ jobs:
               rockcraft:
               astral-uv:
               terraform:
-              kubectl:
           EOF
-          else
-            cat > concierge.yaml << 'EOF'
-          juju:
-            channel: ${{ needs.snap-channels.outputs.juju-channel }}
-            model-defaults:
-              test-mode: "true"
-              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
-            extra-bootstrap-args: --config agent-stream=proposed
-          providers:
-            lxd:
-              enable: true
-              bootstrap: true
-          host:
-            packages:
-              - gnome-keyring
-              - python3-pip
-              - python3-venv
-            snaps:
-              charmcraft:
-                channel: ${{ inputs.charmcraft-channel }}
-              jq:
-              yq:
-              snapcraft:
-              astral-uv:
-              terraform:
-              kubectl:
-          EOF
-          fi
-          sudo concierge prepare -c concierge.yaml --trace
+              sudo concierge prepare -c concierge.yaml
+              ;;
+          esac
       # FIXME: Remove the below step when runners are configurable. See https://github.com/canonical/observability/issues/408.
       - name: Clean worker caches
         run: |
