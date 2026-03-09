@@ -61,6 +61,33 @@ test version=latest_version:
 [group("security")]
 sbom version=latest_version:
   syft {{version}}/*.rock -o "spdx-json={{version}}/rock.sbom.json"
+  @echo "✓ SBOM saved to {{version}}/rock.sbom.json"
+
+# Perform a securiy scan
+[group("security")]
+scan version=latest_version: (sbom version)
+  uvx --from=trivy-py trivy sbom "{{version}}/rock.sbom.json"
+  @echo "✓ Vulnerability scan done"
+
+# Check whether CVEs affect the upstream project
+[group("security")]
+govulncheck source_repo version=latest_version:
+  #!/usr/bin/env bash
+  set -e
+  echo "Cloning {{source_repo}}"
+  which -s govulncheck || { echo "govulncheck not found; install it with:  go install golang.org/x/vuln/cmd/govulncheck@latest"; exit 1; }
+  TMP_DIR="$(mktemp -d)"
+  gh repo clone "{{source_repo}}" "$TMP_DIR/{{source_repo}}" -- --branch "{{version}}" --depth 1 2>/dev/null \
+    || gh repo clone "{{source_repo}}" "$TMP_DIR/{{source_repo}}" -- --branch "v{{version}}" --depth 1
+  if [[ ! -f "$TMP_DIR/{{source_repo}}/go.mod" ]]; then
+    echo "⨯ {{source_repo}} is not a Go project (go.mod is missing)"
+    exit 2
+  fi
+  echo "Running 'govulncheck' (this may take a while)"
+  vuln_exit=0; (cd "$TMP_DIR/{{source_repo}}" && govulncheck ./...) || vuln_exit=$?
+  rm -rf "$TMP_DIR"
+  if [ "$vuln_exit" -ne 0 ]; then echo "⨯ 'govulncheck' failed"; exit "$vuln_exit"; fi
+  echo "✓ 'govulncheck' passed."
 
 # Generate a rock for the latest version of the upstream project
 [arg("source_repo", help="Repository of the upstream project in 'org/repo' form")]
