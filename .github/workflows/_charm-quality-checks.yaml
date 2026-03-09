@@ -225,15 +225,17 @@ jobs:
           providers:
             lxd:
               enable: true
-            microk8s:
+            k8s:
               enable: true
               bootstrap: true
-              channel: 1.32-strict/stable
-              addons:
-                - hostpath-storage
-                - dns
-                - rbac
-                - metallb:10.64.140.43-10.64.140.49
+              bootstrap-constraints:
+                root-disk: "2G"
+              features:
+                load-balancer:
+                  l2-mode: "true"
+                  cidrs: "10.43.45.0/28"
+                local-storage: {}
+                network: {}
           host:
             packages:
               - gnome-keyring
@@ -340,15 +342,17 @@ jobs:
           providers:
             lxd:
               enable: true
-            microk8s:
+            k8s:
               enable: true
               bootstrap: true
-              channel: 1.32-strict/stable
-              addons:
-                - hostpath-storage
-                - dns
-                - rbac
-                - metallb:10.64.140.43-10.64.140.49
+              bootstrap-constraints:
+                root-disk: "2G"
+              features:
+                load-balancer:
+                  l2-mode: "true"
+                  cidrs: "10.43.45.0/28"
+                local-storage: {}
+                network: {}
           host:
             packages:
               - gnome-keyring
