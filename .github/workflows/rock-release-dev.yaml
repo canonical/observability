@@ -3,9 +3,10 @@ name: Build rock and release dev tag to GHCR
 on:
   workflow_call:
     inputs:
-      rock-name:
-        description: "Name of the application for which to build the rock"
-        required: true
+      rock-path:
+        description: "Optional path to the rock(s) directory to operate in"
+        required: false
+        default: "."
         type: string
     secrets:
       OBSERVABILITY_NOCTUA_TOKEN:
@@ -20,40 +21,27 @@ jobs:
     - name: Install dependencies
       run: |
         sudo snap install concierge --classic
-        sudo concierge prepare -p microk8s --extra-snaps=just,yq
-        # Install Syft
-        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh \
-          | sh -s -- -b /usr/local/bin
-    - name: Build rock
-      run: |
-        latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
-        just pack "$latest_version"
-    - name: Upload rock to ghcr.io
+        sudo concierge prepare -p crafts --extra-snaps=just,yq,syft
+    - name: Build rock and release to GHCR
+      id: build-and-release
       env:
-        ROCK_NAME: ${{ inputs.rock-name }}
-        OBSERVABILITY_NOCTUA_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
       run: |
-        latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
-        cd "$latest_version"
-        sudo skopeo --insecure-policy copy \
-          "oci-archive:$(realpath ./*.rock)" \
-          "docker://ghcr.io/canonical/$ROCK_NAME:dev" \
-          --dest-creds "observability-noctua-bot:$OBSERVABILITY_NOCTUA_TOKEN"
+        cd "${{ inputs.rock-path }}"
+        echo "latest_version=$(just latest-version)" >> "$GITHUB_ENV"
+        just pack
+        just release-ghcr
     - name: Create SBOM
-      env:
-        ROCK_NAME: ${{ inputs.rock-name }}
       run: |
-        latest_version="$(find . -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -n1 | sed 's@./@@')"
-        cd "$latest_version"
-        # shellcheck disable=SC2086 # glob passed to realpath can't be wrapped
-        syft "$(realpath ./${ROCK_NAME}_*.rock)" -o "spdx-json=${ROCK_NAME}.sbom.json"
+        cd "${{ inputs.rock-path }}"
+        just sbom
     - name: Upload SBOM
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.rock-name }}-sbom
-        path: "${{ inputs.rock-name}}.sbom.json"
+        name: rock-sbom
+        path: "${{ inputs.rock-path }}/${{ steps.build-and-release.outputs.latest_version }}/rock.sbom.json"
     - name: Upload locally built rock artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.rock-name }}-rock
-        path: "${{ inputs.rock-name }}_*.rock"
+        name: dev.rock
+        path: "${{ inputs.rock-path }}/${{ steps.build-and-release.outputs.latest_version }}/*.rock"
