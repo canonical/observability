@@ -45,6 +45,7 @@ jobs:
           - mimir-worker-k8s-operator
           - opentelemetry-collector-operator
           - opentelemetry-collector-k8s-operator
+          - otelcol-integrator-operator
           - parca-k8s-operator
           - parca-agent-operator
           - parca-scrape-target-operator
