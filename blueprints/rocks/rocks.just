@@ -92,11 +92,16 @@ govulncheck source_repo version=latest_version:
 # Generate a rock for the latest version of the upstream project
 [arg("source_repo", help="Repository of the upstream project in 'org/repo' form")]
 [group("maintenance")]
-update source_repo:
+update source_repo release_tag="":
   #!/usr/bin/env bash
   set -e
-  latest_release="$(gh release list --repo {{source_repo}} --exclude-pre-releases --limit=1 --json tagName --jq '.[0].tagName')"
-  echo "Latest release for {{source_repo}} is $latest_release"
+  if [[ -z "$release_tag" ]]; then
+    latest_release="$(gh release list --repo {{source_repo}} --exclude-pre-releases --limit=1 --json tagName --jq '.[0].tagName')"
+    echo "Latest release for {{source_repo}} is $latest_release"
+  else
+    latest_release="$release_tag"
+    echo "Release version manually set to $latest_release"
+  fi
   # Explicitly filter out prefixes for known rocks, so we can notice if a new rock has a different schema
   version="${latest_release}"
   version="${version#mimir-}"  # mimir
