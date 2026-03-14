@@ -1,0 +1,70 @@
+name: Terraform release
+
+# On PRs touching .tf files: verify terraform/VERSION was bumped and is valid semver.
+# On merge to main: tag the repo with the version from terraform/VERSION.
+# The version is stored in terraform/VERSION as a plain semver string (e.g. 2.1.0).
+
+on:
+  workflow_call:
+    inputs:
+      event:
+        description: "Triggering event passed by the caller (pull_request or push)"
+        required: true
+        type: string
+
+env:
+  # This regex comes from https://semver.org/
+  SEMVER_RE: '^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
+
+jobs:
+  lint-tf-version:
+    name: Lint terraform version
+    runs-on: ubuntu-latest
+    if: inputs.event == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check terraform/VERSION was bumped
+        run: |
+          git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -q '^terraform/VERSION$' || {
+            echo "ERROR: .tf files changed but terraform/VERSION was not bumped."
+            exit 1
+          }
+      - name: Validate semver format
+        run: |
+          version=$(tr -d '[:space:]' < terraform/VERSION)
+          echo "$version" | grep -qP "$SEMVER_RE" || {
+            echo "ERROR: '$version' is not valid semver."
+            exit 1
+          }
+          echo "Version: $version"
+
+  tag-terraform-release:
+    name: Tag terraform release
+    runs-on: ubuntu-latest
+    if: inputs.event == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read and validate version
+        id: version
+        run: |
+          version=$(tr -d '[:space:]' < terraform/VERSION)
+          echo "$version" | grep -qP "$SEMVER_RE" || {
+            echo "ERROR: '$version' is not valid semver."
+            exit 1
+          }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Create and push tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          tag="${VERSION}"
+          if git ls-remote --tags origin "refs/tags/${tag}" | grep -q "${tag}"; then
+            echo "Tag ${tag} already exists, skipping."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "${tag}"
+          git push origin "${tag}"
