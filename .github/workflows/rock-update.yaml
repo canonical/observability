@@ -83,6 +83,8 @@ jobs:
           sudo snap install yq
       - name: Check for new upstream releases and create the rock if needed
         id: check-and-update
+        env:
+          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
         run: |
           cd "${{ inputs.rock-path }}"
           just update ${{ inputs.source-repo }}
