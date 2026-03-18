@@ -131,6 +131,7 @@ update source_repo release_tag="":
 [group("maintenance")]
 refresh:
   #!/usr/bin/env bash
+  which -s gh || { echo "gh not found"; exit 1; }
   refresh_folder="blueprints/rocks"
   api_path="repos/canonical/observability/contents/$refresh_folder"
   for file in rocks.just spread.yaml; do
