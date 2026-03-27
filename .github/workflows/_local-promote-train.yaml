@@ -55,7 +55,6 @@ jobs:
           - prometheus-scrape-target-k8s-operator
           - tempo-coordinator-k8s-operator
           - tempo-worker-k8s-operator
-          - traefik-k8s-operator
     steps:
       - name: Checkout the charm repository
         uses: actions/checkout@v4
