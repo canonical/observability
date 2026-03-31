@@ -134,7 +134,6 @@ jobs:
           CHARM_PATH: "${{ inputs.charm-path }}"
         run: |
           sudo snap install opentofu --classic
-          cd "$CHARM_PATH"
           tofu fmt -check -recursive -diff
           if [ -d "$CHARM_PATH/terraform" ]; then
             cd "$CHARM_PATH/terraform"
