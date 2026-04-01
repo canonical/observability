@@ -68,6 +68,7 @@ jobs:
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         env:
           GITHUB_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
+          versions: ${{ steps.changed-versions.outputs.versions }}
         run: |
           for version in $versions; do
             echo "Releasing version $version to OCI Factory on track ${{ inputs.risk-track }}"
