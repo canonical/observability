@@ -7,8 +7,13 @@ on:
   workflow_call:
     inputs:
       charm-path:
-        description: "Path to the charm we want to publish. Defaults to the current working directory."
+        description: "Path to the command runner that runs unit tests and produces coverage. Defaults to the current working directory."
         default: '.'
+        required: false
+        type: string
+      lockfile-path:
+        description: "Path to the lockfile folder (or requirements.txt). Useful for monorepos, where the root doesn't have a lockfile. If empty, `charm-path` is used."
+        default: ""
         required: false
         type: string
       tiobe-project-name:
@@ -53,10 +58,17 @@ jobs:
       - name: Activate and prepare Python virtual environment
         env:
           CHARM_PATH: ${{ inputs.charm-path }}
+          LOCKFILE_PATH: ${{ inputs.lockfile-path }}
         run: |
-          pushd "${CHARM_PATH}"
+          # Use LOCKFILE_PATH (if not empty) to create the virtual environment, otherwise use CHARM_PATH
+          VENV_PATH="$LOCKFILE_PATH"
+          if [[ -z "$LOCKFILE_PATH" ]]; then
+            VENV_PATH="$CHARM_PATH"
+          fi
+
+          pushd "${VENV_PATH}"
           if [[ -f uv.lock ]]; then
-            uv sync --extra=dev
+            uv sync --all-extras --all-groups
             source .venv/bin/activate
           else 
              python -m venv .venv
