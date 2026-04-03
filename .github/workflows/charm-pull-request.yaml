@@ -44,6 +44,14 @@ on:
         type: boolean
         default: true
         required: false
+      enable-spread-integration:
+        description: |
+          Enable running spread-based integration tests via `charmcraft test`.
+          Each spread task in <charm-path>/spread/integration/ is run in parallel
+          on its own runner.
+        type: boolean
+        default: false
+        required: false
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -134,4 +142,5 @@ jobs:
       parallelize-integration: ${{ inputs.parallelize-integration }}
       automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
       enable-integration: ${{ inputs.enable-integration }}
+      enable-spread-integration: ${{ inputs.enable-spread-integration }}
 
