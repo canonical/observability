@@ -61,9 +61,17 @@ jobs:
       - name: Install dependencies
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         run: |
-          sudo snap install just --classic
+          sudo snap install concierge --classic
+          sudo concierge prepare -p crafts --extra-snaps=just,yq
           sudo snap install astral-uv --classic  # used to run noctua
-          sudo snap install yq
+      - name: Pack the rocks
+        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
+        env:
+          versions: ${{ steps.changed-versions.outputs.versions }}
+        run: |
+          for version in $versions; do
+            just pack "$version"
+          done
       - name: Release to OCI Factory
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         env:
