@@ -384,6 +384,11 @@ jobs:
         with:
           name: charms-tests${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           path: ${{ inputs.charm-path }}
+      - name: Open SSH session before integration tests
+        uses: mxschmitt/action-tmate@v3
+        with:
+          timeout-minutes: 30
+          limit-access-to-actor: true
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
