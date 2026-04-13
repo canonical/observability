@@ -19,19 +19,21 @@ In the context of __Terraform-first Juju operations__,
 facing __the friction between track-first and SemVer-first tagging__,
 we decided for __Separate full-SemVer tag dedicated to Terraform__,
 and rejected __Major.minor, metadata__,
-to achieve __strict reproducability__,
+to achieve __strict reproducibility__,
 accepting __version opaqueness__.
 
 ## User experience
+Note: The *channel* input is validated by Terraform for the track and by the Juju client for the risk; guiding the user. No validation can be done on the *revision* (currently not feasible with the Terraform Juju provider), so we say "incorrect config is user error".
+
 1. First deployment
     - *terraform apply*
 2. In-track refresh
     - No change to source e.g., ?ref=1.0.0
-    - Update the risk or revision input; TF validation guides the user
+    - Update the risk and/or revision input
     - *terraform apply*
 3. Cross-track refresh
     - Update the source e.g., ?ref=2.0.0
-    - Update the channel or revision input; TF validation guides the user
+    - Update the channel or revision input
     - Read the module’s docs for extra guidance
     - *terraform apply*
 4. Revert failed deployment
