@@ -4,6 +4,11 @@ set shell := ["bash", "-uc"]
 rock_name := `echo ${PWD##*/} | sed 's/-rock$//'`  # Get the rock name from the folder name
 latest_version := `find . -name rockcraft.yaml -printf '%h\n' | sort -V | tail -n1 | sed 's@./@@'`
 
+# LTS end-of-life overrides. Override this variable in the local 'justfile'.
+# Define mappings from LTS minor versions to their EOL date in YYYY-MM-DD format.
+# Example: lts_releases := '{"2.14": "2026-12-31", "2.12": "2025-06-30"}'
+lts_releases := '{}'
+
 [private]
 @default:
   just --list
@@ -169,6 +174,14 @@ release-oci-factory version=latest_version support="minor" risk="stable":
   git clone https://github.com/observability-noctua-bot/oci-factory "$TMP_DIR/oci-factory"
   echo "✓ Cloned observability-noctua-bot/oci-factory"
   # Build the OCI Factory manifest
+  # Check if this version has a custom EOL in lts_releases
+  minor_version="$(echo "{{version}}" | grep -oP '^\d+\.\d+')"
+  eol_date="$(echo '{{lts_releases}}' | jq -r --arg v "$minor_version" '.[$v] // empty')"
+  eol_flag=""
+  if [[ -n "$eol_date" ]]; then
+    eol_flag="--eol=$eol_date"
+    echo "LTS release detected: EOL set to $eol_date"
+  fi
   echo "Building the OCI Factory manifest..."; echo
   uvx --from=git+https://github.com/lucabello/noctua noctua rock manifest \
     "$repository" \
@@ -177,6 +190,7 @@ release-oci-factory version=latest_version support="minor" risk="stable":
     --support="{{support}}" \
     --risk="{{risk}}" \
     --version="{{version}}" \
+    $eol_flag \
     | tee "$TMP_DIR/oci-factory/oci/{{rock_name}}/image.yaml"
   echo; echo "✓ OCI Factory manifest generated"
   # Commit the changes and create a PR
