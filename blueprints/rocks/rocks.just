@@ -168,6 +168,9 @@ release-oci-factory version=latest_version support="minor" risk="stable":
   if [[ -z "$GITHUB_TOKEN" ]]; then echo "× Please export GITHUB_TOKEN for the user observability-noctua-bot"; exit 1; fi
   if [ ! -e {{version}}/*.rock ]; then echo "× Error: rock not found. Please run 'just pack {{version}}' first."; exit 2; fi
   repository="$(git remote get-url origin | sed -E 's#(git@[^:]+:|https?://[^/]+/)##; s/\.git$//')"
+  # Extract the base from the rockcraft.yaml (e.g. "ubuntu@24.04" -> "24.04")
+  rock_base="$(yq -r '.base' "{{version}}/rockcraft.yaml" | sed 's/.*@//')"
+  echo "Detected base: $rock_base"
   # Clone the oci-factory and push data to it
   gh repo sync --force observability-noctua-bot/oci-factory
   TMP_DIR="$(mktemp -d)"
@@ -183,16 +186,24 @@ release-oci-factory version=latest_version support="minor" risk="stable":
     echo "LTS release detected: EOL set to $eol_date"
   fi
   echo "Building the OCI Factory manifest..."; echo
+  manifest_file="$TMP_DIR/oci-factory/oci/{{rock_name}}/image.yaml"
   uvx --from=git+https://github.com/lucabello/noctua noctua rock manifest \
     "$repository" \
     --commit="$(git rev-parse HEAD)" \
-    --base=24.04 \
+    --base="$rock_base" \
     --support="{{support}}" \
     --risk="{{risk}}" \
     --version="{{version}}" \
     $eol_flag \
-    | tee "$TMP_DIR/oci-factory/oci/{{rock_name}}/image.yaml"
+    | tee "$manifest_file"
   echo; echo "✓ OCI Factory manifest generated"
+  # If there's nothing to upload, exit early
+  upload_count="$(yq '.upload | length' "$manifest_file")"
+  if [[ "$upload_count" -eq 0 ]]; then
+    echo "✓ Nothing to update in OCI Factory"
+    rm -rf "$TMP_DIR"
+    exit 0
+  fi
   # Commit the changes and create a PR
   pushd "$TMP_DIR/oci-factory" >/dev/null
   git config user.name observability-noctua-bot
