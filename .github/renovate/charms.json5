@@ -10,7 +10,11 @@
   "schedule": ["* 8-11 * * 1"],  // Monday 08:00-11:00 UTC
   "timezone": "Etc/UTC",
   "labels": [],
-  "enabledManagers": ["custom.regex"],
+  "enabledManagers": ["custom.regex", "pep621"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+  },
   "packageRules": [
     // Enable automerge for minor and patch docker updates
     {
@@ -23,6 +27,17 @@
       "matchDatasources": ["docker"],
       "matchUpdateTypes": ["major"],
       "automerge": false
+    },
+    // Only allow lock file maintenance for Python deps (single PR),
+    // not individual dependency PRs
+    {
+      "matchManagers": ["pep621"],
+      "enabled": false
+    },
+    {
+      "matchManagers": ["pep621"],
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "enabled": true
     },
   ],
   "customManagers": [
