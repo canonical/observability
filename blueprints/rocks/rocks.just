@@ -198,7 +198,7 @@ release-oci-factory version=latest_version support="minor" risk="stable":
     | tee "$manifest_file"
   echo; echo "✓ OCI Factory manifest generated"
   # If there's nothing to upload, exit early
-  upload_count="$(yq '.upload | length' "$manifest_file")"
+  upload_count="$(cat "$manifest_file" | yq '.upload | length')"
   if [[ "$upload_count" -eq 0 ]]; then
     echo "✓ Nothing to update in OCI Factory"
     rm -rf "$TMP_DIR"
