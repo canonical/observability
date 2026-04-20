@@ -7,7 +7,7 @@
     ":automergePr",
     ":disableDependencyDashboard",
   ],
-  "schedule": ["* 8-11 * * 1"],  // Monday 08:00-11:00 UTC
+  "schedule": ["* 8-11 * * *"],  // Daily 08:00-11:00 UTC
   "timezone": "Etc/UTC",
   "labels": [],
   "enabledManagers": ["custom.regex", "pep621"],
