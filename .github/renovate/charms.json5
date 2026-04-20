@@ -18,13 +18,13 @@
   "packageRules": [
     // Disable version bumps for OCI images; only track digest updates
     {
-      "matchManagers": ["custom:regex"],
+      "matchManagers": ["custom.regex"],
       "matchDatasources": ["docker"],
       "matchUpdateTypes": ["major", "minor", "patch"],
       "enabled": false
     },
     {
-      "matchManagers": ["custom:regex"],
+      "matchManagers": ["custom.regex"],
       "matchDatasources": ["docker"],
       "matchUpdateTypes": ["digest"],
       "automerge": true
