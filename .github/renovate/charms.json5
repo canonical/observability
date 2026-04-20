@@ -16,17 +16,18 @@
     "automerge": true,
   },
   "packageRules": [
-    // Enable automerge for minor and patch docker updates
+    // Disable version bumps for OCI images; only track digest updates
     {
       "matchManagers": ["custom:regex"],
       "matchDatasources": ["docker"],
-      "automerge": true
+      "matchUpdateTypes": ["major", "minor", "patch"],
+      "enabled": false
     },
     {
       "matchManagers": ["custom:regex"],
       "matchDatasources": ["docker"],
-      "matchUpdateTypes": ["major"],
-      "automerge": false
+      "matchUpdateTypes": ["digest"],
+      "automerge": true
     },
     // Only allow lock file maintenance for Python deps (single PR),
     // not individual dependency PRs
