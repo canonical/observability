@@ -13,8 +13,8 @@ on:
         default: ''
         required: false
         type: string
-      charm-path:
-        description: "Path to the charm directory containing the terraform/ folder."
+      root-path:
+        description: "Path to the root directory containing the terraform/ folder."
         default: '.'
         required: false
         type: string
@@ -33,7 +33,7 @@ jobs:
           fetch-depth: 0
       - name: Check for terraform changes
         id: check-changes
-        working-directory: ${{ inputs.charm-path }}
+        working-directory: ${{ inputs.root-path }}
         run: |
           # Check if the push includes changes to terraform/
           if git diff --name-only HEAD~1..HEAD | grep -q '^terraform/'; then
@@ -43,7 +43,7 @@ jobs:
           fi
       - name: Create Terraform tag
         if: steps.check-changes.outputs.changed == 'true'
-        working-directory: ${{ inputs.charm-path }}
+        working-directory: ${{ inputs.root-path }}
         env:
           TAG_PREFIX: ${{ inputs.terraform-tag-prefix }}
           TAG_SUFFIX: ${{ inputs.terraform-tag-suffix }}

@@ -242,10 +242,10 @@ jobs:
     needs:
       - release-charm
     if: github.ref_name != 'main' && startsWith(github.ref_name, 'track/')
-    uses: ./.github/workflows/_charm-terraform-release.yaml
+    uses: ./.github/workflows/terraform-release.yaml
     permissions:
       contents: write
     with:
       terraform-tag-prefix: "${{ inputs.terraform-tag-prefix }}"
       terraform-tag-suffix: "${{ inputs.terraform-tag-suffix }}"
-      charm-path: "${{ inputs.charm-path }}"
+      root-path: "${{ inputs.charm-path }}"
