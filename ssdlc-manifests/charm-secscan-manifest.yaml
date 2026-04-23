@@ -172,3 +172,23 @@ artifacts:
     channel: 2/edge
     base: ubuntu@20.04
     type: charm
+
+  - name: litmus-auth-k8s
+    channel: 2/edge
+    base: ubuntu@24.04
+    type: charm
+
+  - name: litmus-backend-k8s
+    channel: 2/edge
+    base: ubuntu@24.04
+    type: charm
+
+  - name: litmus-chaoscenter-k8s
+    channel: 2/edge
+    base: ubuntu@24.04
+    type: charm
+
+  - name: litmus-infrastructure-k8s
+    channel: dev/edge
+    base: ubuntu@24.04
+    type: charm
