@@ -13,9 +13,9 @@ on:
         default: ''
         required: false
         type: string
-      root-path:
-        description: "Path to the root directory containing the terraform/ folder."
-        default: '.'
+      terraform-path:
+        description: "Path to the terraform directory, relative to the repository root."
+        default: 'terraform'
         required: false
         type: string
 
@@ -33,28 +33,29 @@ jobs:
           fetch-depth: 0
       - name: Check for terraform changes
         id: check-changes
-        working-directory: ${{ inputs.root-path }}
+        env:
+          TERRAFORM_PATH: ${{ inputs.terraform-path }}
         run: |
-          # Check if the push includes changes to terraform/
-          if git diff --name-only HEAD~1..HEAD | grep -q '^terraform/'; then
+          # Check if the push includes changes to the terraform directory
+          if git diff --name-only HEAD~1..HEAD | grep -q "^${TERRAFORM_PATH}/"; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
       - name: Create Terraform tag
         if: steps.check-changes.outputs.changed == 'true'
-        working-directory: ${{ inputs.root-path }}
         env:
+          TERRAFORM_PATH: ${{ inputs.terraform-path }}
           TAG_PREFIX: ${{ inputs.terraform-tag-prefix }}
           TAG_SUFFIX: ${{ inputs.terraform-tag-suffix }}
           GIT_BRANCH: ${{ github.ref_name }}
         run: |
           # Extract semantic version from the track branch name
           track_version="${GIT_BRANCH#track/}"
-          # Calculate patch version: number of commits touching terraform/ since diverging from main
+          # Calculate patch version: number of commits touching terraform dir since diverging from main
           git fetch origin main
           merge_base=$(git merge-base HEAD origin/main)
-          patch=$(git rev-list --count "$merge_base"..HEAD -- terraform/)
+          patch=$(git rev-list --count "$merge_base"..HEAD -- "$TERRAFORM_PATH/")
           # Build the tag
           tag="${TAG_PREFIX}${track_version}.${patch}${TAG_SUFFIX}"
           echo "Creating tag: $tag"

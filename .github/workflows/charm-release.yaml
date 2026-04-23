@@ -248,4 +248,4 @@ jobs:
     with:
       terraform-tag-prefix: "${{ inputs.terraform-tag-prefix }}"
       terraform-tag-suffix: "${{ inputs.terraform-tag-suffix }}"
-      root-path: "${{ inputs.charm-path }}"
+      terraform-path: "${{ inputs.charm-path }}/terraform"
