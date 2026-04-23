@@ -19,7 +19,7 @@ on:
         default: .logs
       provider:
         type: string
-        description: "The provider to choose for integration tests ('machine' or 'microk8s')"
+        description: "The provider to choose for integration tests ('machine', 'microk8s', or 'k8s')"
         required: true
       charmcraft-channel:
         type: string
@@ -43,6 +43,12 @@ on:
           Sets the `automatically-retry-hooks` in the model-defaults config.
         required: true
         type: boolean
+      enable-integration:
+        description: |
+          Enable running integration tests.
+        type: boolean
+        default: true
+        required: false
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -138,7 +144,6 @@ jobs:
           CHARM_PATH: "${{ inputs.charm-path }}"
         run: |
           sudo snap install opentofu --classic
-          cd "$CHARM_PATH"
           tofu fmt -check -recursive -diff
           if [ -d "$CHARM_PATH/terraform" ]; then
             cd "$CHARM_PATH/terraform"
@@ -209,22 +214,63 @@ jobs:
 
   integration-mono:
     name: Integration Tests (sequential)
-    if: ${{ ! inputs.parallelize-integration }}
+    if: ${{ ! inputs.parallelize-integration && inputs.enable-integration }}
     runs-on: ubuntu-latest
     needs: [snap-channels, pack-charm]
-    env:
-      CONCIERGE_JUJU_CHANNEL: ${{ needs.snap-channels.outputs.juju-channel }}
-      CONCIERGE_MICROK8S_CHANNEL: 1.32-strict/stable
-      CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install dependencies
+        env:
+          PROVIDER: "${{ inputs.provider }}"
         run: |
           sudo snap install concierge --classic
-          sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv
-          sudo snap install kubectl --classic
-          juju model-defaults automatically-retry-hooks="${{ inputs.automatically-retry-hooks }}"
+          case "$PROVIDER" in
+            machine)
+              sudo concierge prepare -p machine --extra-snaps=astral-uv,terraform
+              ;;
+            microk8s)
+              sudo concierge prepare -p microk8s --extra-snaps=astral-uv,terraform
+              ;;
+            k8s)
+              cat > concierge.yaml << 'EOF'
+          juju:
+            channel: ${{ needs.snap-channels.outputs.juju-channel }}
+            model-defaults:
+              test-mode: "true"
+              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
+            extra-bootstrap-args: --config agent-stream=proposed
+          providers:
+            lxd:
+              enable: true
+            k8s:
+              enable: true
+              bootstrap: true
+              bootstrap-constraints:
+                root-disk: "2G"
+              features:
+                load-balancer:
+                  l2-mode: "true"
+                  cidrs: "10.43.45.0/28"
+                local-storage: {}
+                network: {}
+          host:
+            packages:
+              - gnome-keyring
+              - python3-pip
+              - python3-venv
+            snaps:
+              charmcraft:
+                channel: ${{ inputs.charmcraft-channel }}
+              jq:
+              yq:
+              rockcraft:
+              astral-uv:
+              terraform:
+          EOF
+              sudo concierge prepare -c concierge.yaml
+              ;;
+          esac
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
@@ -233,14 +279,14 @@ jobs:
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
-          charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | tail -n1)"
+          charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | sort | tail -n1)"
           CHARM_PATH="$(realpath "$charm_relative_path")"
           export CHARM_PATH
           uvx tox -e integration
 
   integration-matrix:
     name: Define Integration tests matrix
-    if: ${{ inputs.parallelize-integration }}
+    if: ${{ inputs.parallelize-integration && inputs.enable-integration }}
     runs-on: ubuntu-latest
     needs: [pack-charm]
     outputs:
@@ -251,33 +297,98 @@ jobs:
       - name: Generate matrix list
         id: suites
         run: |
+          base_dir="$PWD"
           cd ${{ inputs.charm-path }}
           list="$(find tests/integration -name 'test_*.py' -printf '%f\n' | jq -r -ncR '[inputs]')"
+          if [[ "$list" == "[]" ]]; then
+            echo "No integration test files found in tests/integration. Searching in $base_dir/tests/integration."
+            list="$(find "$base_dir"/tests/integration -name 'test_*.py' -printf '%f\n' | jq -r -ncR '[inputs]')"
+          fi
           echo "suites=$list"
           echo "suites=$list" >> "$GITHUB_OUTPUT"
           
   integration-test:
     name: Integration Tests (parallel)
-    if: ${{ inputs.parallelize-integration }}
+    if: ${{ inputs.parallelize-integration && inputs.enable-integration }}
     runs-on: ubuntu-latest
     needs: [snap-channels, pack-charm, integration-matrix]
     strategy:
       fail-fast: false
       matrix:
         suite: ${{ fromJSON(needs.integration-matrix.outputs.suites) }}
-    env:
-      CONCIERGE_JUJU_CHANNEL: ${{ needs.snap-channels.outputs.juju-channel }}
-      CONCIERGE_MICROK8S_CHANNEL: 1.32-strict/stable
-      CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install dependencies
+        env:
+          PROVIDER: "${{ inputs.provider }}"
         run: |
           sudo snap install concierge --classic
-          sudo concierge prepare -p "${{ inputs.provider }}" --extra-snaps=astral-uv
-          sudo snap install kubectl --classic
-          juju model-defaults automatically-retry-hooks="${{ inputs.automatically-retry-hooks }}"
+          case "$PROVIDER" in
+            machine)
+              sudo concierge prepare -p machine --extra-snaps=astral-uv,terraform
+              ;;
+            microk8s)
+              sudo concierge prepare -p microk8s --extra-snaps=astral-uv,terraform
+              ;;
+            k8s)
+              cat > concierge.yaml << 'EOF'
+          juju:
+            channel: ${{ needs.snap-channels.outputs.juju-channel }}
+            model-defaults:
+              test-mode: "true"
+              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
+            extra-bootstrap-args: --config agent-stream=proposed
+          providers:
+            lxd:
+              enable: true
+            k8s:
+              enable: true
+              bootstrap: true
+              bootstrap-constraints:
+                root-disk: "2G"
+              features:
+                load-balancer:
+                  l2-mode: "true"
+                  cidrs: "10.43.45.0/28"
+                local-storage: {}
+                network: {}
+          host:
+            packages:
+              - gnome-keyring
+              - python3-pip
+              - python3-venv
+            snaps:
+              charmcraft:
+                channel: ${{ inputs.charmcraft-channel }}
+              jq:
+              yq:
+              rockcraft:
+              astral-uv:
+              terraform:
+          EOF
+              sudo concierge prepare -c concierge.yaml
+              ;;
+          esac
+      # FIXME: Remove the below step when runners are configurable. See https://github.com/canonical/observability/issues/408.
+      - name: Clean worker caches
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          # Remove Swift toolchain
+          sudo rm -rf /usr/share/swift
+          # Remove Java (JDKs)
+          sudo rm -rf /usr/lib/jvm
+          # Remove Chromium (optional if not using for browser tests)
+          sudo rm -rf /usr/local/share/chromium
+          # Remove Microsoft/Edge and Google Chrome builds
+          sudo rm -rf /opt/microsoft /opt/google
+          # Remove Azure CLI
+          sudo rm -rf /opt/az
+          # Remove Haskell (GHC)
+          sudo rm -rf /usr/local/.ghcup
+          # Docker clean up
+          sudo docker image prune --all --force
+          sudo docker builder prune -a
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
@@ -286,7 +397,7 @@ jobs:
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
-          charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | tail -n1)"
+          charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | sort | tail -n1)"
           CHARM_PATH="$(realpath "$charm_relative_path")"
           export CHARM_PATH
           if [[ "${{ runner.debug }}" == "1" ]]; then

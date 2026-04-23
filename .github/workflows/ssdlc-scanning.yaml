@@ -1,0 +1,31 @@
+name: SSDLC scanning
+
+on:
+    workflow_dispatch:
+    schedule:
+      - cron: "0 0 10 4,10 *"
+#              │ │ │  │    │
+#              │ │ │  │    └─ any day of the week.
+#              │ │ │  └────── 4th and 10th month (April & October).
+#              │ │ └───────── 10th day of the month.
+#              │ └─────────── 0th hour of the day.
+#              └───────────── Start of the hour (minutes = 0).
+
+jobs:
+    scan:
+        runs-on: [self-hosted, self-hosted-linux-amd64-jammy-private-endpoint-medium]
+        strategy:
+          fail-fast: false
+          matrix:
+            type: [sbom, secscan]
+            artifact: [rock, charm]
+
+        name: SSDLC scanning - ${{ matrix.type }} - ${{ matrix.artifact }} artifacts
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v4
+          - name: Run sbomber action
+            uses: canonical/sbomber/.github/actions/run@main
+            with:
+              manifest: "${{ github.workspace }}/ssdlc-manifests/${{ matrix.artifact }}-${{ matrix.type }}-manifest.yaml"
+              artifact-name: ${{ matrix.artifact }}-${{ matrix.type }}

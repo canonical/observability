@@ -17,4 +17,4 @@ jobs:
           sudo snap install astral-uv --classic
           sudo snap install just --classic
       - name: Lint the workflows
-        run: just lint-workflows
+        run: just lint

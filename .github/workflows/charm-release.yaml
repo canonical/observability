@@ -9,8 +9,8 @@ on:
         required: false
         type: string
       provider:
-        description: "The provider to choose for either machine or k8s tests ('machine' or 'microk8s')"
-        default: 'microk8s'
+        description: "The provider to choose for either machine or k8s tests ('machine', 'microk8s', or 'k8s')"
+        default: 'k8s'
         required: false
         type: string
       charmcraft-channel:
@@ -51,9 +51,25 @@ on:
         default: true
         required: false
         type: boolean
+      enable-integration:
+        description: |
+          Enable running integration tests.
+        type: boolean
+        default: true
+        required: false
+      pack-using-remote-build:
+        description: |
+          When packing the charm for release, use remote-build.
+          Remote-building is useful when you want to pack and release a charm for archs such as S390x or PPC64EL.
+        default: false
+        required: false
+        type: boolean
     secrets:
       CHARMHUB_TOKEN:
         required: true
+      LAUNCHPAD_TOKEN:
+        required: false
+      
 
 concurrency:
   group: release${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
@@ -74,7 +90,7 @@ jobs:
 
       - name: Determine changed files in the PR
         id: changed-files
-        uses: tj-actions/changed-files@v45
+        uses: tj-actions/changed-files@v46
         with:
           files_ignore: |
             README.md
@@ -111,12 +127,20 @@ jobs:
         id: build-matrix
         run: |
           cd "${{ inputs.charm-path }}"
-          runners="$( \
-            yq -o json '.platforms | to_entries | map(.key)' charmcraft.yaml | \
-            sed 's/".*amd64.*"/"ubuntu-latest"/' | \
-            sed 's/".*arm64.*"/"Ubuntu_ARM64_4C_16G_03"/' | \
-            jq -rc 'unique' \
-          )"
+
+          if [ "${{ inputs.pack-using-remote-build }}" = "true" ]; then
+            # If using remote build, just use ubuntu-latest
+            runners='["ubuntu-latest"]'
+          else
+            # Normal logic: get runners from charmcraft.yaml
+            runners="$( \
+              yq -o json '.platforms | to_entries | map(.key)' charmcraft.yaml | \
+              sed 's/".*amd64.*"/"ubuntu-latest"/' | \
+              sed 's/".*arm64.*"/"Ubuntu_ARM64_4C_16G_03"/' | \
+              jq -rc 'unique' \
+            )"
+          fi
+
           echo "runners=$runners"
           echo "runners=$runners" >> "$GITHUB_OUTPUT"
       - name: Define release channel
@@ -135,7 +159,7 @@ jobs:
 
   quality-checks:
     name: Quality Checks
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v1
+    uses: ./.github/workflows/_charm-quality-checks.yaml
     needs: [define-matrix]
     secrets: inherit
     with:
@@ -145,22 +169,26 @@ jobs:
       juju-channel: ${{ inputs.juju-channel }}
       parallelize-integration: ${{ inputs.parallelize-integration }}
       automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
+      enable-integration: ${{ inputs.enable-integration }}
     
   release-charm:
     name: Release the charm
     needs:
       - define-matrix
       - quality-checks
-    uses: canonical/observability/.github/workflows/_charm-release.yaml@v1
+    uses: ./.github/workflows/_charm-release.yaml
     permissions:
       contents: write
-    secrets: inherit
+    secrets:
+      CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
+      LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
     with:
       release-channel: "${{ needs.define-matrix.outputs.release-channel }}"
       charm-path: "${{ inputs.charm-path }}"
       runners: "${{ needs.define-matrix.outputs.runners }}"
       charmcraft-channel: "${{ inputs.charmcraft-channel }}"
       git-tag-prefix: "${{ inputs.git-tag-prefix }}"
+      pack-using-remote-build: ${{ inputs.pack-using-remote-build }}
       
   release-libs:
     name: Release any bumped charm library
