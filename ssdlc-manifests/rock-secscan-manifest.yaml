@@ -80,11 +80,6 @@ artifacts:
     version: 0-24.04
     type: rock
 
-  - name: traefik-rock
-    image: ubuntu/traefik
-    version: 2-22.04
-    type: rock
-
   - name: loki-rock
     image: ubuntu/loki
     version: 3-24.04
@@ -97,40 +92,40 @@ artifacts:
 
   - name: litmuschaos-authserver-rock
     image: ubuntu/litmuschaos-authserver
-    version: 3-24.04
+    version: 3-24.04_edge
     type: rock
 
   - name: litmuschaos-server-rock
     image: ubuntu/litmuschaos-server
-    version: 3-24.04
+    version: 3-24.04_edge
     type: rock
   
   - name: litmuschaos-frontend-rock
     image: ubuntu/litmuschaos-frontend
-    version: 3-24.04
+    version: 3-24.04_edge
     type: rock
 
   - name: litmuschaos-event-tracker-rock
     image: ubuntu/litmuschaos-event-tracker
-    version: 3-24.04
+    version: 3-24.04_edge
     type: rock
 
   - name: litmuschaos-exporter-rock
     image: ubuntu/litmuschaos-exporter
-    version: 3-24.04
+    version: 3-24.04_edge
     type: rock
   
   - name: litmuschaos-operator-rock
     image: ubuntu/litmuschaos-operator
-    version: 3-24.04
+    version: 3-24.04_edge
     type: rock
 
   - name: litmuschaos-runner-rock
     image: ubuntu/litmuschaos-runner
-    version: 3-24.04
+    version: 3-24.04_edge
     type: rock
   
   - name: litmuschaos-subscriber-rock
     image: ubuntu/litmuschaos-subscriber
-    version: 3-24.04
+    version: 3-24.04_edge
     type: rock
