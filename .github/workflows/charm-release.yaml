@@ -83,12 +83,14 @@ jobs:
       any_modified: ${{ steps.echo-changes.outputs.any_modified }}
     steps:
       - name: Checkout repository
+        if: github.event_name != 'workflow_dispatch'
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }} # To be compatible with PRs from forks
           fetch-depth: 0
 
       - name: Determine changed files in the PR
+        if: github.event_name != 'workflow_dispatch'
         id: changed-files
         uses: tj-actions/changed-files@v46
         with:
@@ -105,9 +107,14 @@ jobs:
       - name: Echo changed files
         id: echo-changes
         run: |
-          echo "Changes made: ${{ steps.changed-files.outputs.any_modified }}"
-          echo "Modified files: ${{ steps.changed-files.outputs.all_modified_files }}"
-          echo "any_modified=${{ steps.changed-files.outputs.any_modified }}" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual dispatch detected, skipping ignorelist check"
+            echo "any_modified=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Changes made: ${{ steps.changed-files.outputs.any_modified }}"
+            echo "Modified files: ${{ steps.changed-files.outputs.all_modified_files }}"
+            echo "any_modified=${{ steps.changed-files.outputs.any_modified }}" >> "$GITHUB_OUTPUT"
+          fi
 
   define-matrix:
     name: Define runner and build matrix
