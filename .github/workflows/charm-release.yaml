@@ -64,6 +64,16 @@ on:
         default: false
         required: false
         type: boolean
+      terraform-tag-prefix:
+        description: "Tag prefix to use for the Terraform release tag."
+        default: 'tf-'
+        required: false
+        type: string
+      terraform-tag-suffix:
+        description: "Tag suffix to append to the Terraform release tag."
+        default: ''
+        required: false
+        type: string
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -233,3 +243,16 @@ jobs:
               fi
             done
           fi
+
+  release-terraform:
+    name: Release the Terraform module
+    needs:
+      - release-charm
+    if: github.ref_name != 'main' && startsWith(github.ref_name, 'track/')
+    uses: ./.github/workflows/terraform-release.yaml
+    permissions:
+      contents: write
+    with:
+      terraform-tag-prefix: "${{ inputs.terraform-tag-prefix }}"
+      terraform-tag-suffix: "${{ inputs.terraform-tag-suffix }}"
+      terraform-path: "${{ inputs.charm-path }}/terraform"

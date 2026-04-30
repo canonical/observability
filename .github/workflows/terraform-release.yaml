@@ -1,0 +1,82 @@
+name: Release Terraform module
+
+on:
+  workflow_call:
+    inputs:
+      terraform-tag-prefix:
+        description: "Tag prefix to use for the Terraform release tag."
+        default: 'tf-'
+        required: false
+        type: string
+      terraform-tag-suffix:
+        description: "Tag suffix to append to the Terraform release tag."
+        default: ''
+        required: false
+        type: string
+      terraform-path:
+        description: "Path to the terraform directory, relative to the repository root."
+        default: 'terraform'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release the Terraform module
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate branch format
+        id: validate-branch
+        env:
+          GIT_BRANCH: ${{ github.ref_name }}
+        run: |
+          # Only allow tagging on branches matching track/<major>.<minor>
+          if [[ "$GIT_BRANCH" =~ ^track/[0-9]+\.[0-9]+$ ]]; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Branch '$GIT_BRANCH' does not match track/<major>.<minor> format. Skipping."
+            echo "valid=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Check for terraform changes
+        if: steps.validate-branch.outputs.valid == 'true'
+        id: check-changes
+        env:
+          TERRAFORM_PATH: ${{ inputs.terraform-path }}
+        run: |
+          # Check if the push includes changes to the terraform directory
+          if git diff --name-only HEAD~1..HEAD | grep -q "^${TERRAFORM_PATH}/"; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Create Terraform tag
+        if: steps.validate-branch.outputs.valid == 'true' && steps.check-changes.outputs.changed == 'true'
+        env:
+          TERRAFORM_PATH: ${{ inputs.terraform-path }}
+          TAG_PREFIX: ${{ inputs.terraform-tag-prefix }}
+          TAG_SUFFIX: ${{ inputs.terraform-tag-suffix }}
+          GIT_BRANCH: ${{ github.ref_name }}
+        run: |
+          # Extract semantic version from the track branch name
+          track_version="${GIT_BRANCH#track/}"
+          # Calculate patch version: number of commits touching terraform dir since diverging from main
+          git fetch origin main
+          merge_base=$(git merge-base HEAD origin/main)
+          patch=$(git rev-list --count "$merge_base"..HEAD -- "$TERRAFORM_PATH/")
+          # Build the tag
+          tag="${TAG_PREFIX}${track_version}.${patch}${TAG_SUFFIX}"
+          echo "Creating tag: $tag"
+          # Configure git with noctua bot identity
+          git config --global user.email "webops+observability-noctua-bot@canonical.com"
+          git config --global user.name "Noctua"
+          # Create and push the annotated tag
+          git log -1 --pretty=%B > tag-message
+          git tag --annotate "$tag" --file=tag-message
+          rm -f tag-message
+          git push origin "$tag"
