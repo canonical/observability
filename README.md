@@ -62,8 +62,8 @@ block-beta
     integration["Integration tests"]
     displaylogs["Display logs"]
     uploadlogs["Upload logs zip file"]
+    integration --> displaylogs --> uploadlogs
   end
-
 
   block
     columns 1

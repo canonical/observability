@@ -284,6 +284,43 @@ jobs:
           CHARM_PATH="$(realpath "$charm_relative_path")"
           export CHARM_PATH
           uvx tox -e integration
+      - name: Determine log files location
+        if: always()
+        id: get_log_path
+        env:
+          LOG_PATH: ${{ inputs.log-path }}
+          CHARM_PATH: ${{ inputs.charm-path }}
+        run: |
+          # if the user gave us a relative path, interpret it from the charm-path root.
+          # if path starts with / it's absolute, else it's relative, and we prepend the (absolute) charm-path to it
+          case "$LOG_PATH" in
+            /*) log_path="$LOG_PATH" ;;
+            *) log_path="$CHARM_PATH/$LOG_PATH" ;;
+          esac
+          echo "log path is: $log_path"
+          echo "log_path=$log_path" >> "$GITHUB_OUTPUT"
+      - name: Show logs
+        if: always()
+        env:
+          LOG_DIR: ${{ steps.get_log_path.outputs.log_path }}
+        run: |
+          if test -d "$LOG_DIR"; then
+            shopt -s nullglob
+            for filename in "$LOG_DIR"/*.txt; do
+                printf '\n::group:: %s\n' "$filename"
+                cat "$filename"
+                printf "\n::endgroup::\n"
+            done
+          else
+            echo "$LOG_DIR not found"
+          fi
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: charm-logs${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          include-hidden-files: true
+          path: ${{ steps.get_log_path.outputs.log_path }}
 
   integration-matrix:
     name: Define Integration tests matrix
@@ -415,21 +452,29 @@ jobs:
           timeout-minutes: 30
           limit-access-to-actor: true
       - name: Determine log files location
+        if: always()
         id: get_log_path
+        env:
+          LOG_PATH: ${{ inputs.log-path }}
+          CHARM_PATH: ${{ inputs.charm-path }}
         run: |
           # if the user gave us a relative path, interpret it from the charm-path root.
           # if path starts with / it's absolute, else it's relative, and we prepend the (absolute) charm-path to it
-          case "${{ inputs.log-path }}" in
-            /*) log_path="${{ inputs.log-path }}" ;;
-            *) log_path="${{ inputs.charm-path }}/${{ inputs.log-path }}" ;;
+          case "$LOG_PATH" in
+            /*) log_path="$LOG_PATH" ;;
+            *) log_path="$CHARM_PATH/$LOG_PATH" ;;
           esac
           echo "log path is: $log_path"
           echo "log_path=$log_path" >> "$GITHUB_OUTPUT"
       - name: Show logs
-        run: | 
-          if test -d "${{ steps.get_log_path.outputs.log_path }}"; then
-            for filename in ${{ steps.get_log_path.outputs.log_path }}/*.txt; do
-                # begin collapsible log group for each file found in the folder; 
+        if: always()
+        env:
+          LOG_DIR: ${{ steps.get_log_path.outputs.log_path }}
+        run: |
+          if test -d "$LOG_DIR"; then
+            shopt -s nullglob
+            for filename in "$LOG_DIR"/*.txt; do
+                # begin collapsible log group for each file found in the folder;
                 # this is github CI markup
                 # cfr: https://github.com/go-task/task/issues/647
                 printf '\n::group:: %s\n' "$filename"
@@ -437,9 +482,10 @@ jobs:
                 printf "\n::endgroup::\n"
             done
           else
-            echo "${{ steps.get_log_path.outputs.log_path }} not found"
+            echo "$LOG_DIR not found"
           fi
       - name: Upload logs
+        if: always()
         uses: actions/upload-artifact@v4
         # defaults to 'warn' on failure
         with:
