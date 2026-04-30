@@ -10,7 +10,7 @@ on:
       log-path:
         type: string
         description: |
-          Path to a directory where the .txt logfiles for an integration testing run will be stored.
+          Path to a directory where the .txt log files for an integration testing run will be stored.
           Relative and absolute file paths are both allowed. 
           Relative paths are rooted against the charm repository root. 
           Paths that begin with a wildcard character should be quoted to avoid being 
