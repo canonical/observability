@@ -61,7 +61,7 @@ block-beta
     pack["Pack the charm"]
     integration["Integration tests"]
     displaylogs["Display logs"]
-    uploadlogs["Upload logs zipfile"]
+    uploadlogs["Upload logs zip file"]
   end
 
 
