@@ -64,6 +64,16 @@ on:
         default: false
         required: false
         type: boolean
+      terraform-tag-prefix:
+        description: "Tag prefix to use for the Terraform release tag."
+        default: 'tf-'
+        required: false
+        type: string
+      terraform-tag-suffix:
+        description: "Tag suffix to append to the Terraform release tag."
+        default: ''
+        required: false
+        type: string
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -83,12 +93,14 @@ jobs:
       any_modified: ${{ steps.echo-changes.outputs.any_modified }}
     steps:
       - name: Checkout repository
+        if: github.event_name != 'workflow_dispatch'
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }} # To be compatible with PRs from forks
           fetch-depth: 0
 
       - name: Determine changed files in the PR
+        if: github.event_name != 'workflow_dispatch'
         id: changed-files
         uses: tj-actions/changed-files@v46
         with:
@@ -105,9 +117,14 @@ jobs:
       - name: Echo changed files
         id: echo-changes
         run: |
-          echo "Changes made: ${{ steps.changed-files.outputs.any_modified }}"
-          echo "Modified files: ${{ steps.changed-files.outputs.all_modified_files }}"
-          echo "any_modified=${{ steps.changed-files.outputs.any_modified }}" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual dispatch detected, skipping ignorelist check"
+            echo "any_modified=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Changes made: ${{ steps.changed-files.outputs.any_modified }}"
+            echo "Modified files: ${{ steps.changed-files.outputs.all_modified_files }}"
+            echo "any_modified=${{ steps.changed-files.outputs.any_modified }}" >> "$GITHUB_OUTPUT"
+          fi
 
   define-matrix:
     name: Define runner and build matrix
@@ -159,7 +176,7 @@ jobs:
 
   quality-checks:
     name: Quality Checks
-    uses: ./.github/workflows/_charm-quality-checks.yaml
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v2
     needs: [define-matrix]
     secrets: inherit
     with:
@@ -176,7 +193,7 @@ jobs:
     needs:
       - define-matrix
       - quality-checks
-    uses: ./.github/workflows/_charm-release.yaml
+    uses: canonical/observability/.github/workflows/_charm-release.yaml@v2
     permissions:
       contents: write
     secrets:
@@ -226,3 +243,16 @@ jobs:
               fi
             done
           fi
+
+  release-terraform:
+    name: Release the Terraform module
+    needs:
+      - release-charm
+    if: github.ref_name != 'main' && startsWith(github.ref_name, 'track/')
+    uses: ./.github/workflows/terraform-release.yaml
+    permissions:
+      contents: write
+    with:
+      terraform-tag-prefix: "${{ inputs.terraform-tag-prefix }}"
+      terraform-tag-suffix: "${{ inputs.terraform-tag-suffix }}"
+      terraform-path: "${{ inputs.charm-path }}/terraform"

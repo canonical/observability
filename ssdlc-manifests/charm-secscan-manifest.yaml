@@ -45,7 +45,7 @@ artifacts:
 
   - name: grafana-k8s
     channel: 2/edge
-    base: ubuntu@20.04
+    base: ubuntu@24.04
     type: charm
 
   - name: opentelemetry-collector-k8s
@@ -80,22 +80,22 @@ artifacts:
 
   - name: prometheus-k8s
     channel: 2/edge
-    base: ubuntu@20.04
+    base: ubuntu@24.04
     type: charm
 
   - name: catalogue-k8s
     channel: 2/edge
-    base: ubuntu@20.04
+    base: ubuntu@24.04
     type: charm
 
   - name: cos-configuration-k8s
     channel: 2/edge
-    base: ubuntu@20.04
+    base: ubuntu@24.04
     type: charm
 
   - name: prometheus-scrape-config-k8s
     channel: 2/edge
-    base: ubuntu@20.04
+    base: ubuntu@24.04
     type: charm
 
   - name: blackbox-exporter-k8s
@@ -105,12 +105,7 @@ artifacts:
 
   - name: grafana-cloud-integrator
     channel: 2/edge
-    base: ubuntu@20.04
-    type: charm
-
-  - name: traefik-k8s
-    channel: 2/edge
-    base: ubuntu@20.04
+    base: ubuntu@24.04
     type: charm
 
   - name: grafana-agent
@@ -120,7 +115,7 @@ artifacts:
 
   - name: alertmanager-k8s
     channel: 2/edge
-    base: ubuntu@20.04
+    base: ubuntu@24.04
     type: charm
 
   - name: loki-coordinator-k8s
@@ -165,12 +160,12 @@ artifacts:
 
   - name: karma-alertmanager-proxy-k8s
     channel: 2/edge
-    base: ubuntu@20.04
+    base: ubuntu@24.04
     type: charm
 
   - name: prometheus-scrape-target-k8s
     channel: 2/edge
-    base: ubuntu@20.04
+    base: ubuntu@24.04
     type: charm
 
   - name: litmus-auth-k8s
