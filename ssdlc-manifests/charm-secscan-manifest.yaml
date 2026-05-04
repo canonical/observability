@@ -5,35 +5,7 @@ clients:
   secscan: {}
 
 artifacts:
-  - name: parca-k8s
-    channel: 2/edge
-    type: charm
-
-  - name: tempo-coordinator-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: tempo-worker-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: parca-agent
-    channel: 2/edge
-    type: charm
-
-  - name: parca-scrape-target
-    channel: 2/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: polar-signals-cloud-integrator
-    channel: 2/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: loki-k8s
+  - name: alertmanager-k8s
     channel: 2/edge
     base: ubuntu@24.04
     type: charm
@@ -43,44 +15,9 @@ artifacts:
     base: ubuntu@24.04
     type: charm
 
-  - name: grafana-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
-    type: charm
-
-  - name: opentelemetry-collector-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
-    type: charm
-
-  - name: cos-proxy
+  - name: blackbox-exporter-k8s
     channel: 2/edge
     base: ubuntu@22.04
-    type: charm
-
-  - name: grafana-agent-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: istio-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: snmp-exporter
-    channel: 2/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: mimir-coordinator-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: prometheus-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
     type: charm
 
   - name: catalogue-k8s
@@ -93,12 +30,17 @@ artifacts:
     base: ubuntu@24.04
     type: charm
 
-  - name: prometheus-scrape-config-k8s
+  - name: cos-proxy
     channel: 2/edge
-    base: ubuntu@24.04
+    base: ubuntu@22.04
     type: charm
 
-  - name: blackbox-exporter-k8s
+  - name: grafana-agent
+    channel: 2/edge
+    base: ubuntu@22.04
+    type: charm
+
+  - name: grafana-agent-k8s
     channel: 2/edge
     base: ubuntu@22.04
     type: charm
@@ -108,22 +50,12 @@ artifacts:
     base: ubuntu@24.04
     type: charm
 
-  - name: grafana-agent
-    channel: 2/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: alertmanager-k8s
+  - name: grafana-k8s
     channel: 2/edge
     base: ubuntu@24.04
     type: charm
 
-  - name: loki-coordinator-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
-    type: charm
-
-  - name: script-exporter
+  - name: istio-beacon-k8s
     channel: 2/edge
     base: ubuntu@22.04
     type: charm
@@ -133,29 +65,9 @@ artifacts:
     base: ubuntu@22.04
     type: charm
 
-  - name: istio-beacon-k8s
+  - name: istio-k8s
     channel: 2/edge
     base: ubuntu@22.04
-    type: charm
-
-  - name: loki-worker-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: mimir-worker-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: prometheus-pushgateway-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: karma-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
     type: charm
 
   - name: karma-alertmanager-proxy-k8s
@@ -163,7 +75,7 @@ artifacts:
     base: ubuntu@24.04
     type: charm
 
-  - name: prometheus-scrape-target-k8s
+  - name: karma-k8s
     channel: 2/edge
     base: ubuntu@24.04
     type: charm
@@ -186,4 +98,92 @@ artifacts:
   - name: litmus-infrastructure-k8s
     channel: dev/edge
     base: ubuntu@24.04
+    type: charm
+
+  - name: loki-coordinator-k8s
+    channel: 2/edge
+    base: ubuntu@24.04
+    type: charm
+
+  - name: loki-k8s
+    channel: 2/edge
+    base: ubuntu@24.04
+    type: charm
+
+  - name: loki-worker-k8s
+    channel: 2/edge
+    base: ubuntu@22.04
+    type: charm
+
+  - name: mimir-coordinator-k8s
+    channel: 2/edge
+    base: ubuntu@22.04
+    type: charm
+
+  - name: mimir-worker-k8s
+    channel: 2/edge
+    base: ubuntu@22.04
+    type: charm
+
+  - name: opentelemetry-collector-k8s
+    channel: 2/edge
+    base: ubuntu@24.04
+    type: charm
+
+  - name: parca-agent
+    channel: 2/edge
+    type: charm
+
+  - name: parca-k8s
+    channel: 2/edge
+    type: charm
+
+  - name: parca-scrape-target
+    channel: 2/edge
+    base: ubuntu@22.04
+    type: charm
+
+  - name: polar-signals-cloud-integrator
+    channel: 2/edge
+    base: ubuntu@22.04
+    type: charm
+
+  - name: prometheus-k8s
+    channel: 2/edge
+    base: ubuntu@24.04
+    type: charm
+
+  - name: prometheus-pushgateway-k8s
+    channel: 2/edge
+    base: ubuntu@22.04
+    type: charm
+
+  - name: prometheus-scrape-config-k8s
+    channel: 2/edge
+    base: ubuntu@24.04
+    type: charm
+
+  - name: prometheus-scrape-target-k8s
+    channel: 2/edge
+    base: ubuntu@24.04
+    type: charm
+
+  - name: script-exporter
+    channel: 2/edge
+    base: ubuntu@22.04
+    type: charm
+
+  - name: snmp-exporter
+    channel: 2/edge
+    base: ubuntu@22.04
+    type: charm
+
+  - name: tempo-coordinator-k8s
+    channel: 2/edge
+    base: ubuntu@22.04
+    type: charm
+
+  - name: tempo-worker-k8s
+    channel: 2/edge
+    base: ubuntu@22.04
     type: charm
