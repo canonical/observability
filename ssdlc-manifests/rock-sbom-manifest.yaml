@@ -48,11 +48,6 @@ artifacts:
     version: 1-24.04
     type: rock
 
-  - name: karma-rock
-    image: ubuntu/karma
-    version: 0-22.04
-    type: rock
-
   - name: kiali-rock
     image: ubuntu/kiali
     version: 2-24.04

@@ -70,16 +70,6 @@ artifacts:
     base: ubuntu@22.04
     type: charm
 
-  - name: karma-alertmanager-proxy-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
-    type: charm
-
-  - name: karma-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
-    type: charm
-
   - name: litmus-auth-k8s
     channel: 2/edge
     base: ubuntu@24.04
