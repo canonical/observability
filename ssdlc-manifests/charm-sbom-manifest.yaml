@@ -4,7 +4,7 @@
 clients:
   sbom:
     department: charm_engineering
-    email: luca.bello@canonical.com # tradition
+    email: luca.bello@canonical.com  # tradition
     team: observability
 
 artifacts:
@@ -19,7 +19,7 @@ artifacts:
     type: charm
 
   - name: avalanche-k8s
-    channel: 1/edge
+    channel: 2/edge
     base: ubuntu@24.04
     type: charm
 
@@ -143,26 +143,6 @@ artifacts:
     base: ubuntu@22.04
     type: charm
 
-  - name: karma-alertmanager-proxy-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
-    type: charm
-
-  - name: karma-alertmanager-proxy-k8s
-    channel: dev/edge
-    base: ubuntu@24.04
-    type: charm
-
-  - name: karma-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
-    type: charm
-
-  - name: karma-k8s
-    channel: dev/edge
-    base: ubuntu@24.04
-    type: charm
-
   - name: litmus-auth-k8s
     channel: 2/edge
     base: ubuntu@24.04
@@ -233,11 +213,6 @@ artifacts:
     base: ubuntu@22.04
     type: charm
 
-  - name: lokis
-    channel: dev/edge
-    base: ubuntu@24.04
-    type: charm
-
   - name: mimir-coordinator-k8s
     channel: 2/edge
     base: ubuntu@22.04
@@ -254,11 +229,6 @@ artifacts:
     type: charm
 
   - name: mimir-worker-k8s
-    channel: dev/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: mimirs
     channel: dev/edge
     base: ubuntu@22.04
     type: charm
@@ -270,6 +240,11 @@ artifacts:
 
   - name: opentelemetry-collector
     channel: dev/edge
+    base: ubuntu@24.04
+    type: charm
+
+  - name: opentelemetry-collector
+    channel: 2/edge
     base: ubuntu@24.04
     type: charm
 
@@ -369,7 +344,22 @@ artifacts:
     base: ubuntu@24.04
     type: charm
 
-  - name: pyroscopes
+  - name: pyroscope-coordinator-k8s
+    channel: 2/edge
+    base: ubuntu@24.04
+    type: charm
+
+  - name: pyroscope-coordinator-k8s
+    channel: dev/edge
+    base: ubuntu@24.04
+    type: charm
+
+  - name: pyroscope-worker-k8s
+    channel: 2/edge
+    base: ubuntu@24.04
+    type: charm
+
+  - name: pyroscope-worker-k8s
     channel: dev/edge
     base: ubuntu@24.04
     type: charm
@@ -410,11 +400,6 @@ artifacts:
     type: charm
 
   - name: tempo-worker-k8s
-    channel: dev/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: tempos
     channel: dev/edge
     base: ubuntu@22.04
     type: charm
