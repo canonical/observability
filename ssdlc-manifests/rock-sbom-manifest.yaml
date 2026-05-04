@@ -163,11 +163,6 @@ artifacts:
     version: 2-24.04
     type: rock
 
-  - name: traefik-rock
-    image: ubuntu/traefik
-    version: 2.10.6-24.04
-    type: rock
-
   - name: xk6-rock
     image: ubuntu/xk6
     version: 0-24.04
