@@ -15,12 +15,12 @@ artifacts:
 
   - name: blackbox-exporter-rock
     image: ubuntu/blackbox-exporter
-    version: null
+    version: 0.28-24.04
     type: rock
 
   - name: git-sync-rock
     image: ubuntu/git-sync
-    version: null
+    version: 4.6-24.04
     type: rock
 
   - name: grafana-agent-rock
@@ -56,11 +56,6 @@ artifacts:
   - name: kiali-rock
     image: ubuntu/kiali
     version: 2-24.04
-    type: rock
-
-  - name: litestream-rock
-    image: ubuntu/litestream
-    version: null
     type: rock
 
   - name: litmuschaos-authserver-rock
@@ -120,17 +115,17 @@ artifacts:
 
   - name: nginx-prometheus-exporter-rock
     image: ubuntu/nginx-prometheus-exporter
-    version: null
+    version: 1.5-24.04
     type: rock
 
   - name: nginx-rock
     image: ubuntu/nginx
-    version: null
+    version: 1.24-24.04
     type: rock
 
   - name: node-exporter-rock
     image: ubuntu/node-exporter
-    version: null
+    version: 1.9-24.04
     type: rock
 
   - name: opentelemetry-collector-rock
@@ -155,22 +150,12 @@ artifacts:
 
   - name: pyroscope-rock
     image: ubuntu/pyroscope
-    version: null
-    type: rock
-
-  - name: s3proxy-rock
-    image: ubuntu/s3proxy
-    version: null
-    type: rock
-
-  - name: script-exporter-rock
-    image: ubuntu/script-exporter
-    version: null
+    version: 1.18-24.04
     type: rock
 
   - name: sloth-rock
     image: ubuntu/sloth
-    version: null
+    version: 0.15-24.04
     type: rock
 
   - name: tempo-rock
@@ -180,7 +165,7 @@ artifacts:
 
   - name: traefik-rock
     image: ubuntu/traefik
-    version: null
+    version: 2.10.6-24.04
     type: rock
 
   - name: xk6-rock
