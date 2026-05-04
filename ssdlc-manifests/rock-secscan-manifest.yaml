@@ -10,6 +10,16 @@ artifacts:
     version: 0-24.04
     type: rock
 
+  - name: blackbox-exporter-rock
+    image: ubuntu/blackbox-exporter
+    version: 0.28-24.04
+    type: rock
+
+  - name: git-sync-rock
+    image: ubuntu/git-sync
+    version: 4.6-24.04
+    type: rock
+
   - name: grafana-agent-rock
     image: ubuntu/grafana-agent
     version: 0-24.04
@@ -95,6 +105,21 @@ artifacts:
     version: 2-24.04
     type: rock
 
+  - name: nginx-prometheus-exporter-rock
+    image: ubuntu/nginx-prometheus-exporter
+    version: 1.5-24.04
+    type: rock
+
+  - name: nginx-rock
+    image: ubuntu/nginx
+    version: 1.24-24.04
+    type: rock
+
+  - name: node-exporter-rock
+    image: ubuntu/node-exporter
+    version: 1.9-24.04
+    type: rock
+
   - name: opentelemetry-collector-rock
     image: ubuntu/opentelemetry-collector
     version: 0-24.04
@@ -113,6 +138,16 @@ artifacts:
   - name: prometheus-rock
     image: ubuntu/prometheus
     version: 2-24.04
+    type: rock
+
+  - name: pyroscope-rock
+    image: ubuntu/pyroscope
+    version: 1.18-24.04
+    type: rock
+
+  - name: sloth-rock
+    image: ubuntu/sloth
+    version: 0.15-24.04
     type: rock
 
   - name: tempo-rock
