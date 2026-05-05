@@ -117,22 +117,22 @@ artifacts:
 
   - name: istio-ingress-k8s
     channel: 2/edge
-    base: ubuntu@22.04
+    base: ubuntu@24.04
     type: charm
 
   - name: istio-ingress-k8s
     channel: dev/edge
-    base: ubuntu@22.04
+    base: ubuntu@24.04
     type: charm
 
   - name: istio-k8s
     channel: 2/edge
-    base: ubuntu@22.04
+    base: ubuntu@24.04
     type: charm
 
   - name: istio-k8s
     channel: dev/edge
-    base: ubuntu@22.04
+    base: ubuntu@24.04
     type: charm
 
   - name: litmus-auth-k8s
@@ -231,7 +231,7 @@ artifacts:
     type: charm
 
   - name: opentelemetry-collector-integrator
-    channel: dev/edge
+    channel: latest/edge
     base: ubuntu@24.04
     type: charm
 
@@ -268,12 +268,12 @@ artifacts:
 
   - name: parca-scrape-target
     channel: 2/edge
-    base: ubuntu@22.04
+    base: ubuntu@24.04
     type: charm
 
   - name: parca-scrape-target
     channel: dev/edge
-    base: ubuntu@22.04
+    base: ubuntu@24.04
     type: charm
 
   - name: polar-signals-cloud-integrator
@@ -357,7 +357,7 @@ artifacts:
     type: charm
 
   - name: sloth-k8s
-    channel: dev/edge
+    channel: latest/edge
     base: ubuntu@24.04
     type: charm
 
