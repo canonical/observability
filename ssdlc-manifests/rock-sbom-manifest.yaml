@@ -18,11 +18,6 @@ artifacts:
     version: 0.28-24.04
     type: rock
 
-  - name: git-sync-rock
-    image: ubuntu/git-sync
-    version: 4.6-24.04
-    type: rock
-
   - name: grafana-agent-rock
     image: ubuntu/grafana-agent
     version: 0-24.04
@@ -113,11 +108,6 @@ artifacts:
     version: 1.5-24.04
     type: rock
 
-  - name: nginx-rock
-    image: ubuntu/nginx
-    version: 1.24-24.04
-    type: rock
-
   - name: node-exporter-rock
     image: ubuntu/node-exporter
     version: 1.9-24.04
@@ -145,7 +135,7 @@ artifacts:
 
   - name: pyroscope-rock
     image: ubuntu/pyroscope
-    version: 1.18-24.04
+    version: 1.14-24.04_edge
     type: rock
 
   - name: sloth-rock
