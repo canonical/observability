@@ -26,7 +26,7 @@ artifacts:
     type: charm
 
   - name: blackbox-exporter
-    channel: dev/edge
+    channel: latest/edge
     base: ubuntu@22.04
     type: charm
 
@@ -92,11 +92,6 @@ artifacts:
 
   - name: grafana-cloud-integrator
     channel: 2/edge
-    base: ubuntu@24.04
-    type: charm
-
-  - name: grafana-cloud-integrator
-    channel: dev/edge
     base: ubuntu@24.04
     type: charm
 
@@ -175,11 +170,6 @@ artifacts:
     base: ubuntu@24.04
     type: charm
 
-  - name: litmuss
-    channel: dev/edge
-    base: ubuntu@24.04
-    type: charm
-
   - name: loki-coordinator-k8s
     channel: 2/edge
     base: ubuntu@24.04
@@ -228,11 +218,6 @@ artifacts:
   - name: mimir-worker-k8s
     channel: dev/edge
     base: ubuntu@22.04
-    type: charm
-
-  - name: o11y-tester
-    channel: dev/edge
-    base: ubuntu@24.04
     type: charm
 
   - name: opentelemetry-collector
@@ -369,6 +354,11 @@ artifacts:
   - name: script-exporter
     channel: dev/edge
     base: ubuntu@22.04
+    type: charm
+
+  - name: sloth-k8s
+    channel: dev/edge
+    base: ubuntu@24.04
     type: charm
 
   - name: snmp-exporter
