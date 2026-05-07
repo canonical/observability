@@ -6,6 +6,7 @@ Use a blueprint by copying the files into a new repository, then keep centralize
 
 ## Available blueprints
 
+- `charms`: Shared files and workflows for Observability charm repositories. See [charms/README.md](charms/README.md).
 - `rocks`: Shared files and workflows for Observability rock repositories. See [rocks/README.md](rocks/README.md).
 
 
