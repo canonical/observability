@@ -12,11 +12,14 @@ default:
 changelog ref:
     #!/usr/bin/env bash
     set -euo pipefail
+    # Sanitize the ref so that either a branch or a commit is valid
     resolved="{{ ref }}"
     if ! git rev-parse --verify "${resolved}" >/dev/null 2>&1; then
         resolved="origin/{{ ref }}"
     fi
+    # Find the merge-base 
     base=$(git merge-base HEAD "${resolved}")
+    # Parse all commit messages into a "conventional commits" category
     breaking=""
     features=""
     fixes=""
@@ -32,6 +35,7 @@ changelog ref:
             others="${others}- ${msg}"$'\n'
         fi
     done < <(git log --format=%s "${base}..HEAD")
+    # Print the commits in a Markdown changelog format
     if [ -n "${breaking}" ]; then
         echo "## Breaking Changes"
         echo ""
