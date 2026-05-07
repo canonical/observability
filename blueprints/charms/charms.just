@@ -8,9 +8,9 @@ default:
 
 # Find the merge-base between the current branch and `ref`, then print all commits since.
 [group("release")]
+[arg("ref", help="Branch (or generic ref) from to get the changelog from")]
 changelog ref:
     #!/usr/bin/env bash
-    # We should only generate the changelog from the latest track/ branch
     set -euo pipefail
     resolved="{{ ref }}"
     if ! git rev-parse --verify "${resolved}" >/dev/null 2>&1; then
