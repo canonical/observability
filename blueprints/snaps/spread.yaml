@@ -8,6 +8,6 @@ backends:
       - ubuntu-24.04:
 
 suites:
-  tests/spread/integration/:
+  tests/spread/general/:
     summary: Integration tests for the snap
     kill_timeout: 20m
