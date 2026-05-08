@@ -20,6 +20,16 @@ latest_version := `find . -name snapcraft.yaml -printf '%h\n' | sed 's@./@@; s@/
 @latest-version:
   echo "{{latest_version}}"
 
+# Pack a snap locally for a specific version and architecture
+[group("dev")]
+pack version=latest_version build_for="amd64":
+  cd "{{version}}" && snapcraft pack --build-for="{{build_for}}"
+
+# Promote a snap from one channel to another
+[group("release")]
+promote version=latest_version from_channel="" to_channel="":
+  cd "{{version}}" && snapcraft promote {{snap_name}} --from-channel="{{from_channel}}" --to-channel="{{to_channel}}" --yes
+
 # Remote-build, upload and release a snap to the Snap Store
 [group("release")]
 release version=latest_version build_for="amd64":
