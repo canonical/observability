@@ -1,0 +1,13 @@
+project: opentelemetry-collector
+
+backends:
+  craft:
+    type: craft
+    allocate: "false"
+    systems:
+      - ubuntu-24.04:
+
+suites:
+  tests/spread/integration/:
+    summary: Integration tests for the snap
+    kill_timeout: 20m
