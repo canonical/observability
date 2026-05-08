@@ -12,18 +12,19 @@ snap-name
 ├── justfile        # Main justfile: imports 'snaps.just' and allows for overrides
 ├── snaps.just      # (*) Shared snap recipes
 ├── spread.yaml     # (*) Shared spread configuration
-└── snapcraft.yaml  # Snap definition at the repository root
+└── X.Y/            # One folder per major.minor version
+    └── snap/
+        └── snapcraft.yaml
 ```
 
-## Branching & Channels
+## Versioning & Channels
 
-The release channel is derived from the current git branch:
+Each snap version lives in its own `X.Y` folder. The release channel is derived from the folder name:
 
-| Branch | Channel |
-|--------|---------|
-| `main` | `latest/edge` |
-| `track/X.Y` | `X.Y/edge` |
-| `<other>` | `latest/edge/<other>` |
+| Version folder | Channel(s) |
+|----------------|------------|
+| Latest `X.Y`   | `X.Y/edge` + `latest/edge` |
+| Older `X.Y`    | `X.Y/edge` |
 
 To refresh the centralized files, run `just refresh`.
 

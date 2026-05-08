@@ -14,9 +14,48 @@ on:
         required: true
 
 jobs:
-  release:
-    name: Release
+  changes:
+    name: Determine modified snaps
     runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.build-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Find snapcraft.yaml changes
+        id: changed-files
+        uses: tj-actions/changed-files@v46
+        with:
+          files: "**/snapcraft.yaml"
+      - name: Build release matrix from changed versions and platforms
+        id: build-matrix
+        run: |
+          if [[ -z "$CHANGED_FILES" ]]; then
+            echo "matrix={\"include\":[]}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          matrix='{"include":[]}'
+          for file in $CHANGED_FILES; do
+            # Extract the version folder (e.g. "1.2" from "1.2/snap/snapcraft.yaml")
+            version="$(echo "$file" | cut -d'/' -f1)"
+            # Parse platforms from the snapcraft.yaml
+            platforms="$(yq -r '.platforms | keys | .[]' "$file")"
+            for platform in $platforms; do
+              matrix="$(echo "$matrix" | jq -c --arg v "$version" --arg p "$platform" '.include += [{"version": $v, "platform": $p}]')"
+            done
+          done
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+
+  release:
+    name: Release ${{ matrix.version }} (${{ matrix.platform }})
+    runs-on: ubuntu-24.04
+    needs: [changes]
+    if: ${{ fromJSON(needs.changes.outputs.matrix).include[0] != null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.changes.outputs.matrix) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,7 +67,7 @@ jobs:
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
           SNAPCRAFT_LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
-        run: just release
+        run: just release ${{ matrix.version }} ${{ matrix.platform }}
       - name: Open SSH session on failure
         if: ${{ failure() && (runner.debug == '1') }}
         uses: mxschmitt/action-tmate@v3
