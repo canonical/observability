@@ -30,8 +30,20 @@ latest_version := `find . -name snapcraft.yaml -printf '%h\n' | sed 's@./@@; s@/
 pack version=latest_version build_for="amd64":
   cd "{{version}}" && snapcraft pack --build-for="{{build_for}}"
 
+# Test a snap with `snapcraft test`
+[group("dev")]
+test version=latest_version:
+  #!/usr/bin/env bash
+  set -e
+  cp spread.yaml "{{version}}/spread.yaml"
+  test_exit=0; (cd "{{version}}" && snapcraft test) || test_exit=$?
+  rm -f "{{version}}/spread.yaml"
+  if [ "$test_exit" -ne 0 ]; then echo "× snapcraft test failed"; exit "$test_exit"; fi
+  echo "✓ 'snapcraft test' passed."
+
 # Promote a snap to the next risk level (edge→beta→candidate→stable)
 [group("release")]
+[arg("from_risk", pattern="candidate|beta|edge")]
 promote version=latest_version from_risk="edge":
   #!/usr/bin/env bash
   set -e
@@ -47,31 +59,35 @@ promote version=latest_version from_risk="edge":
   snapcraft promote {{snap_name}} --from-channel="$from_channel" --to-channel="$to_channel" --yes
   echo "✓ {{snap_name}} promoted to $to_channel"
 
-# Remote-build, upload and release a snap to the Snap Store
+# Remote-build a snap for a specific version and architecture
 [group("release")]
-release version=latest_version build_for="amd64":
+remote-build version=latest_version build_for="amd64":
   #!/usr/bin/env bash
   set -e
-  channel="{{version}}/edge"
+  cd "{{version}}"
   # snapcraft remote-build requires a git repository to be present
   git init
   echo "Starting remote build for {{snap_name}} {{version}} ({{build_for}}) ..."
-  cd "{{version}}"
   snapcraft remote-build --build-for="{{build_for}}"
-  snap_files=(*.snap)
-  if [[ ${#snap_files[@]} -eq 0 || ! -e "${snap_files[0]}" ]]; then
-    echo "× Error: no snap files found after remote build."
+  echo "✓ Remote build complete. Snap files are in {{version}}/"
+
+# Upload and release a snap to the Snap Store
+[group("release")]
+release snap_file version=latest_version:
+  #!/usr/bin/env bash
+  set -e
+  if [[ ! -f "{{snap_file}}" ]]; then
+    echo "× Error: snap file '{{snap_file}}' not found."
     exit 1
   fi
+  channel="{{version}}/edge"
   channels="$channel"
   if [[ "{{version}}" == "{{latest_version}}" ]]; then
     channels="$channel,latest/edge"
   fi
-  for snap_file in "${snap_files[@]}"; do
-    echo "Uploading and releasing $snap_file to $channels ..."
-    snapcraft upload "$snap_file" --release="$channels"
-    echo "✓ {{snap_name}} ($snap_file) released to $channels"
-  done
+  echo "Uploading and releasing {{snap_file}} to $channels ..."
+  snapcraft upload "{{snap_file}}" --release="$channels"
+  echo "✓ {{snap_name}} ({{snap_file}}) released to $channels"
 
 # Generate a snap for the latest version of the upstream project
 [arg("source_repo", help="Repository of the upstream project in 'org/repo' form")]

@@ -67,7 +67,9 @@ jobs:
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
           SNAPCRAFT_LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
-        run: just release ${{ matrix.version }} ${{ matrix.platform }}
+        run: |
+          just remote-build ${{ matrix.version }} ${{ matrix.platform }}
+          just release ${{ matrix.version }}
       - name: Open SSH session on failure
         if: ${{ failure() && (runner.debug == '1') }}
         uses: mxschmitt/action-tmate@v3

@@ -43,16 +43,11 @@ jobs:
         run: |
           sudo snap install concierge --classic
           sudo concierge prepare -p crafts --extra-snaps=just,yq
-      - name: Print disk utilization
-        if: ${{ (runner.debug == '1') }}
-        run: df -h
       - name: Run tests
         run: |
           for version in ${{ needs.changes.outputs.versions }}; do
             echo "Testing snap version $version ..."
-            cd "$version"
-            snapcraft test
-            cd ..
+            just test "$version"
           done
       - name: Open SSH session on failure
         if: ${{ failure() && (runner.debug == '1') }}
