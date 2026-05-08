@@ -20,15 +20,32 @@ latest_version := `find . -name snapcraft.yaml -printf '%h\n' | sed 's@./@@; s@/
 @latest-version:
   echo "{{latest_version}}"
 
+# Print comma-separated list of platforms from snapcraft.yaml
+[group("info")]
+@platforms version=latest_version:
+  yq -r '[.platforms | keys[]] | join(",")' "{{version}}/snap/snapcraft.yaml"
+
 # Pack a snap locally for a specific version and architecture
 [group("dev")]
 pack version=latest_version build_for="amd64":
   cd "{{version}}" && snapcraft pack --build-for="{{build_for}}"
 
-# Promote a snap from one channel to another
+# Promote a snap to the next risk level (edge→beta→candidate→stable)
 [group("release")]
-promote version=latest_version from_channel="" to_channel="":
-  cd "{{version}}" && snapcraft promote {{snap_name}} --from-channel="{{from_channel}}" --to-channel="{{to_channel}}" --yes
+promote version=latest_version from_risk="edge":
+  #!/usr/bin/env bash
+  set -e
+  case "{{from_risk}}" in
+    edge)      to_risk="beta" ;;
+    beta)      to_risk="candidate" ;;
+    candidate) to_risk="stable" ;;
+    *) echo "× Error: invalid risk '{{from_risk}}'. Must be one of: edge, beta, candidate." && exit 1 ;;
+  esac
+  from_channel="{{version}}/${from_risk}"
+  to_channel="{{version}}/${to_risk}"
+  echo "Promoting {{snap_name}} from $from_channel → $to_channel ..."
+  snapcraft promote {{snap_name}} --from-channel="$from_channel" --to-channel="$to_channel" --yes
+  echo "✓ {{snap_name}} promoted to $to_channel"
 
 # Remote-build, upload and release a snap to the Snap Store
 [group("release")]
