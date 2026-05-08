@@ -59,16 +59,11 @@ release version=latest_version build_for="amd64":
 # Generate a snap for the latest version of the upstream project
 [arg("source_repo", help="Repository of the upstream project in 'org/repo' form")]
 [group("maintenance")]
-update source_repo release_tag="":
+update source_repo:
   #!/usr/bin/env bash
   set -e
-  if [[ -z "{{release_tag}}" ]]; then
-    latest_release="$(gh release list --repo {{source_repo}} --exclude-pre-releases --limit=1 --json tagName --jq '.[0].tagName')"
-    echo "Latest release for {{source_repo}} is $latest_release"
-  else
-    latest_release="{{release_tag}}"
-    echo "Release version manually set to $latest_release"
-  fi
+  latest_release="$(gh release list --repo {{source_repo}} --exclude-pre-releases --limit=1 --json tagName --jq '.[0].tagName')"
+  echo "Latest release for {{source_repo}} is $latest_release"
   version="${latest_release}"
   version="${version#v}"  # Strip generic v- prefix
   # Use only major.minor for the folder name
@@ -81,7 +76,7 @@ update source_repo release_tag="":
   if [[ -d "$version" ]]; then echo "Folder $version already exists, nothing to do" && exit 0; fi
   # Create the folder for the new version and update the snapcraft.yaml
   cp -r "{{latest_version}}" "$version"
-  latest_release="$latest_release" version="$version" yq -i \
+  version="$version" yq -i \
     '.version = strenv(version)' \
     "./$version/snap/snapcraft.yaml"
   echo "✓ Created snap for version $version"
