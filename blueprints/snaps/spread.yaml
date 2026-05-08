@@ -1,4 +1,4 @@
-project: snap
+project: opentelemetry-collector
 
 backends:
   craft:
