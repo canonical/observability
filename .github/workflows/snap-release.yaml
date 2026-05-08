@@ -1,0 +1,37 @@
+name: Release Snap
+
+on:
+  workflow_call:
+    secrets:
+      # Snapcraft Store credentials for uploading and releasing snaps.
+      # Generate at https://snapcraft.io/docs/registering-your-app
+      # Export with: snapcraft export-login --snaps=<snap-name> --channels=<channels> -
+      SNAPCRAFT_STORE_CREDENTIALS:
+        required: true
+      # Launchpad credential token, needed by `snapcraft remote-build`.
+      # See https://launchpad.net/+apidoc for token generation.
+      LAUNCHPAD_TOKEN:
+        required: true
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install concierge --classic
+          sudo concierge prepare -p crafts --extra-snaps=just,yq
+      - name: Build and release snap
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          SNAPCRAFT_LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
+        run: just release
+      - name: Open SSH session on failure
+        if: ${{ failure() && (runner.debug == '1') }}
+        uses: mxschmitt/action-tmate@v3
+        with:
+          timeout-minutes: 30
+          limit-access-to-actor: true
