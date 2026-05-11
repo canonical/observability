@@ -48,13 +48,25 @@ jobs:
         run: |
           sudo snap install concierge --classic
           cat > concierge.yaml << EOF
-          preset: crafts
+          juju:
+            disable: true
+          providers:
+            lxd:
+              enable: true
+              bootstrap: true
           host:
+            packages:
+              - gnome-keyring
+              - python3-pip
+              - python3-venv
             snaps:
+              charmcraft:
+              jq:
+              yq:
               rockcraft:
                 channel: latest/edge
+              snapcraft:
               just:
-              yq:
               docker:
           EOF
           sudo concierge prepare -c concierge.yaml
