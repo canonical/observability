@@ -19,11 +19,19 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
     - name: Install dependencies
-      env:
-        CONCIERGE_ROCKCRAFT_CHANNEL: "latest/edge"
       run: |
         sudo snap install concierge --classic
-        sudo concierge prepare -p crafts --extra-snaps=just,yq,syft
+        cat > concierge.yaml << EOF
+        preset: crafts
+        host:
+          snaps:
+            rockcraft:
+              channel: latest/edge
+            just:
+            yq:
+            syft:
+        EOF
+        sudo concierge prepare -c concierge.yaml
     - name: Build rock and release to GHCR
       id: build-and-release
       env:

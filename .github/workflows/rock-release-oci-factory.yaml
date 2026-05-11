@@ -60,11 +60,18 @@ jobs:
 
       - name: Install dependencies
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
-        env:
-          CONCIERGE_ROCKCRAFT_CHANNEL: "latest/edge"
         run: |
           sudo snap install concierge --classic
-          sudo concierge prepare -p crafts --extra-snaps=just,yq
+          cat > concierge.yaml << EOF
+          preset: crafts
+          host:
+            snaps:
+              rockcraft:
+                channel: latest/edge
+              just:
+              yq:
+          EOF
+          sudo concierge prepare -c concierge.yaml
           sudo snap install astral-uv --classic  # used to run noctua
       - name: Pack the rocks
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
