@@ -45,6 +45,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Install dependencies
+        env:
+          CONCIERGE_ROCKCRAFT_CHANNEL: "latest/edge"
         run: |
           sudo snap install concierge --classic
           sudo concierge prepare -p crafts --extra-snaps=just,yq,docker
