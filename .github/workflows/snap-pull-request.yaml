@@ -2,6 +2,12 @@ name: Pull Request
 
 on:
   workflow_call:
+    inputs:
+      snap-path:
+        description: "Optional path to the snap(s) directory to operate in"
+        required: false
+        default: "."
+        type: string
 
 jobs:
   changes:
@@ -16,6 +22,7 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@v46
         with:
+          path: ${{ inputs.snap-path }}
           files: "**/snapcraft.yaml"
       - name: Extract the versions
         id: changed-versions
@@ -24,7 +31,7 @@ jobs:
         run: |
           versions=""
           for file in $CHANGED_FILES; do
-            version="$(echo "$file" | cut -d'/' -f1)"
+            version="${file%%/snap/snapcraft.yaml}"
             versions="$versions $version"
           done
           versions="$(echo "$versions" | xargs -n1 | sort -uV | xargs)"
@@ -45,6 +52,7 @@ jobs:
           sudo concierge prepare -p crafts --extra-snaps=just,yq
       - name: Run tests
         run: |
+          cd "${{ inputs.snap-path }}"
           for version in ${{ needs.changes.outputs.versions }}; do
             echo "Testing snap version $version ..."
             just test "$version"

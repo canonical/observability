@@ -7,6 +7,11 @@ concurrency:
 on:
   workflow_call:
     inputs:
+      snap-path:
+        description: "Optional path to the snap(s) directory to operate in"
+        required: false
+        default: "."
+        type: string
       source-repo:
         description: "Repository of the source application in 'org/repo' form"
         required: true
@@ -80,8 +85,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
         run: |
+          cd "${{ inputs.snap-path }}"
           just update ${{ inputs.source-repo }}
-          new_version="$(git status --short | grep '^??' | awk '{print $2}' | sed 's@/$@@')"
+          new_version="$(git status --short -- . | grep '^??' | awk '{print $2}' | sed 's@/$@@')"
           echo "snap_name=$(just name)" >> "$GITHUB_OUTPUT"
           echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
 

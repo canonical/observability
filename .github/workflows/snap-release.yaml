@@ -2,6 +2,12 @@ name: Release Snap
 
 on:
   workflow_call:
+    inputs:
+      snap-path:
+        description: "Optional path to the snap(s) directory to operate in"
+        required: false
+        default: "."
+        type: string
     secrets:
       # Snapcraft Store credentials for uploading and releasing snaps.
       # Generate at https://snapcraft.io/docs/registering-your-app
@@ -26,6 +32,7 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@v46
         with:
+          path: ${{ inputs.snap-path }}
           files: "**/snapcraft.yaml"
       - name: Build release matrix from changed versions and platforms
         id: build-matrix
@@ -37,9 +44,11 @@ jobs:
           matrix='{"include":[]}'
           for file in $CHANGED_FILES; do
             # Extract the version folder (e.g. "1.2" from "1.2/snap/snapcraft.yaml")
-            version="$(echo "$file" | cut -d'/' -f1)"
+            version="${file%%/snap/snapcraft.yaml}"
+            snap_path="${{ inputs.snap-path }}"
+            snapcraft_file="${snap_path%/}/$file"
             # Parse platforms from the snapcraft.yaml
-            platforms="$(yq -r '.platforms | keys | .[]' "$file")"
+            platforms="$(yq -r '.platforms | keys | .[]' "$snapcraft_file")"
             for platform in $platforms; do
               matrix="$(echo "$matrix" | jq -c --arg v "$version" --arg p "$platform" '.include += [{"version": $v, "platform": $p}]')"
             done
@@ -68,6 +77,7 @@ jobs:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
           SNAPCRAFT_LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
         run: |
+          cd "${{ inputs.snap-path }}"
           just remote-build ${{ matrix.version }} ${{ matrix.platform }}
           just release ${{ matrix.version }}
       - name: Open SSH session on failure
