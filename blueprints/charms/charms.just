@@ -36,6 +36,8 @@ changelog ref:
         fi
     done < <(git log --format=%s "${base}..HEAD")
     # Print the commits in a Markdown changelog format
+    echo "# Changelog"
+    echo ""
     if [ -n "${breaking}" ]; then
         echo "## Breaking Changes"
         echo ""
@@ -66,6 +68,6 @@ refresh:
     api_path="repos/canonical/observability/contents/$refresh_folder"
     for file in charms.just; do
       echo "Fetching latest '$file' from canonical/observability ..."
-      gh api "$api_path/$file?ref=feat/charms-blueprints" --jq '.content' | base64 --decode > "$file"
+      gh api "$api_path/$file" --jq '.content' | base64 --decode > "$file"
       echo "✓ $file updated"
     done
