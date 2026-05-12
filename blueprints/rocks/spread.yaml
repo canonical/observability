@@ -25,9 +25,7 @@ suites:
       sudo snap install --classic rockcraft
 
       # Wait for docker daemon to come online
-      sudo apt install --yes retry
-      retry --times=10 --delay 2 -- docker run hello-world
-      sudo apt remove --yes retry
+      for i in $(seq 1 10); do docker info >/dev/null 2>&1 && break || sleep 2; done
 
       # Load the rock into docker
       sudo rockcraft.skopeo --insecure-policy copy "oci-archive:$CRAFT_ARTIFACT" docker-daemon:rockcraft-test:latest
