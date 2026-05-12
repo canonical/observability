@@ -1,0 +1,65 @@
+name: Pull Request
+
+on:
+  workflow_call:
+    inputs:
+      snap-path:
+        description: "Optional path to the snap(s) directory to operate in"
+        required: false
+        default: "."
+        type: string
+
+jobs:
+  changes:
+    name: Determine modified snaps
+    runs-on: ubuntu-24.04
+    outputs:
+      versions: ${{ steps.changed-versions.outputs.versions }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Find snapcraft.yaml changes
+        id: changed-files
+        uses: tj-actions/changed-files@v46
+        with:
+          path: ${{ inputs.snap-path }}
+          files: "**/snapcraft.yaml"
+      - name: Extract the versions
+        id: changed-versions
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          versions=""
+          for file in $CHANGED_FILES; do
+            version="${file%%/snap/snapcraft.yaml}"
+            versions="$versions $version"
+          done
+          versions="$(echo "$versions" | xargs -n1 | sort -uV | xargs)"
+          echo "versions=$versions"
+          echo "versions=$versions" >> "$GITHUB_OUTPUT"
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-24.04
+    needs: [changes]
+    if: needs.changes.outputs.versions != ''
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install concierge --classic
+          sudo concierge prepare -p crafts --extra-snaps=just,yq
+      - name: Run tests
+        run: |
+          cd "${{ inputs.snap-path }}"
+          for version in ${{ needs.changes.outputs.versions }}; do
+            echo "Testing snap version $version ..."
+            just test "$version"
+          done
+      - name: Open SSH session on failure
+        if: ${{ failure() && (runner.debug == '1') }}
+        uses: mxschmitt/action-tmate@v3
+        with:
+          timeout-minutes: 30
+          limit-access-to-actor: true

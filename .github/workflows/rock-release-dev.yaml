@@ -21,7 +21,28 @@ jobs:
     - name: Install dependencies
       run: |
         sudo snap install concierge --classic
-        sudo concierge prepare -p crafts --extra-snaps=just,yq,syft
+        cat > concierge.yaml << EOF
+        juju:
+          disable: true
+        providers:
+          lxd:
+            enable: true
+        host:
+          packages:
+            - gnome-keyring
+            - python3-pip
+            - python3-venv
+          snaps:
+            charmcraft:
+            jq:
+            yq:
+            rockcraft:
+              channel: latest/edge
+            snapcraft:
+            just:
+            syft:
+        EOF
+        sudo concierge prepare -c concierge.yaml
     - name: Build rock and release to GHCR
       id: build-and-release
       env:

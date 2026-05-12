@@ -169,7 +169,11 @@ release-oci-factory version=latest_version support="minor" risk="stable":
   if [ ! -e {{version}}/*.rock ]; then echo "× Error: rock not found. Please run 'just pack {{version}}' first."; exit 2; fi
   repository="$(git remote get-url origin | sed -E 's#(git@[^:]+:|https?://[^/]+/)##; s/\.git$//')"
   # Extract the base from the rockcraft.yaml (e.g. "ubuntu@24.04" -> "24.04")
+  # For bare-based rocks, fall back to build-base (e.g. "ubuntu@26.04" -> "26.04")
   rock_base="$(yq -r '.base' "{{version}}/rockcraft.yaml" | sed 's/.*@//')"
+  if [[ "$rock_base" == "bare" ]]; then
+    rock_base="$(yq -r '.["build-base"]' "{{version}}/rockcraft.yaml" | sed 's/.*@//')"
+  fi
   echo "Detected base: $rock_base"
   # Clone the oci-factory and push data to it
   gh repo sync --force observability-noctua-bot/oci-factory

@@ -47,7 +47,28 @@ jobs:
       - name: Install dependencies
         run: |
           sudo snap install concierge --classic
-          sudo concierge prepare -p crafts --extra-snaps=just,yq,docker
+          cat > concierge.yaml << EOF
+          juju:
+            disable: true
+          providers:
+            lxd:
+              enable: true
+          host:
+            packages:
+              - gnome-keyring
+              - python3-pip
+              - python3-venv
+            snaps:
+              charmcraft:
+              jq:
+              yq:
+              rockcraft:
+                channel: latest/edge
+              snapcraft:
+              just:
+              docker:
+          EOF
+          sudo concierge prepare -c concierge.yaml
       - name: Print disk utilization
         if: ${{ (runner.debug == '1') }}
         run: df -h

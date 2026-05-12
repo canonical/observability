@@ -1,0 +1,128 @@
+name: Update Snap on new releases of its source
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_call:
+    inputs:
+      snap-path:
+        description: "Optional path to the snap(s) directory to operate in"
+        required: false
+        default: "."
+        type: string
+      source-repo:
+        description: "Repository of the source application in 'org/repo' form"
+        required: true
+        type: string
+      commit-username:
+        description: "The username to use for committing the updates"
+        default: 'Noctua'
+        required: false
+        type: string
+      commit-email:
+        description: "The email address to use for committing the updates"
+        default: 'webops+observability-noctua-bot@canonical.com'
+        required: false
+        type: string
+
+    secrets:
+      OBSERVABILITY_NOCTUA_TOKEN:
+        required: true
+      NOCTUA_GPG_PASSPHRASE:
+        required: true
+      NOCTUA_GPG_PRIVATE:
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge-pr:
+    name: Merge previous green PRs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Merge any pre-existing PRs from the automatically generated "chore/update-version" branch if the CI is green
+        run: |
+          # If a PR from "chore/update-version" is open and CI checks are passing, merge it
+          is_pr_open="$(gh pr list --head chore/update-version --state open --json id --jq 'length')"
+          if [[ "$is_pr_open" == "1" ]]; then
+            if gh pr checks chore/update-version; then
+              echo "CI checks are passing, merging the chore/update-version PR"
+              gh pr merge chore/update-version --admin --squash --delete-branch
+            else
+              echo "CI checks are not passing for the existing chore/update-version PR, adding a comment."
+              gh pr comment chore/update-version --body "This PR cannot be automatically merged because CI checks are not passing. Please check the CI results, resolve any issues, and merge the PR manually."
+            fi
+          elif [[ "$is_pr_open" != "0" ]]; then
+            # The number of open PRs should always be either 0 or 1
+            echo "There's two PRs from the same branch; this should never happen!"
+            exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
+  update:
+    name: Update the snap for new upstream releases
+    runs-on: ubuntu-latest
+    needs:
+      - merge-pr
+    steps:
+      - name: Checkout the snap source
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo snap install just --classic
+          sudo snap install jq
+          sudo snap install yq
+      - name: Check for new upstream releases and update the snap if needed
+        id: check-and-update
+        env:
+          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
+        run: |
+          cd "${{ inputs.snap-path }}"
+
+          # Capture update output to parse the new version
+          update_output="$(just update ${{ inputs.source-repo }})"
+          echo "$update_output"
+
+          # Extract new version from the update output
+          new_version="$(echo "$update_output" | grep '^new_version=' | cut -d= -f2)"
+
+          # Check if any files were modified (not new folders, but modified files)
+          has_changes="$(git status --short -- . | grep -v '^??' | wc -l)"
+          if [[ "$has_changes" -eq 0 ]]; then
+            echo "No changes detected"
+            new_version=""
+          fi
+
+          echo "snap_name=$(just name)" >> "$GITHUB_OUTPUT"
+          echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
+
+      - name: Import and configure the GPG key for Noctua
+        if: steps.check-and-update.outputs.new_version != ''
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.NOCTUA_GPG_PRIVATE }}
+          passphrase: ${{ secrets.NOCTUA_GPG_PASSPHRASE }}
+          git_config_global: true
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Create a PR
+        if: steps.check-and-update.outputs.new_version != ''
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
+          commit-message: "chore(deps): bump ${{ steps.check-and-update.outputs.snap_name }} to ${{ steps.check-and-update.outputs.new_version }}"
+          committer: "${{ inputs.commit-username }} <${{ inputs.commit-email }}>"
+          author: "${{ inputs.commit-username }} <${{ inputs.commit-email }}>"
+          title: "chore: update ${{ steps.check-and-update.outputs.snap_name }} to ${{ steps.check-and-update.outputs.new_version }}"
+          body: Automated update to follow upstream [release](https://github.com/${{ inputs.source-repo }}/releases/tag/v${{ steps.check-and-update.outputs.new_version }}) of ${{ steps.check-and-update.outputs.snap_name }}.
+          branch: "chore/update-version"
+          delete-branch: true
