@@ -2,7 +2,6 @@
 set shell := ["bash", "-uc"]
 
 snap_name := `echo ${PWD##*/} | sed 's/-snap$//'`  # Get the snap name from the folder name
-latest_version := `find . -name snapcraft.yaml -printf '%h\n' | sed 's@./@@; s@/snap@@' | sort -V | tail -n1`
 
 [private]
 @default:
@@ -15,24 +14,19 @@ latest_version := `find . -name snapcraft.yaml -printf '%h\n' | sed 's@./@@; s@/
 @name:
   echo "{{snap_name}}"
 
-# Print the latest snap version
-[group("info")]
-@latest-version:
-  echo "{{latest_version}}"
-
 # Print comma-separated list of platforms from snapcraft.yaml
 [group("info")]
-@platforms version=latest_version:
+@platforms version="latest":
   yq -r '[.platforms | keys[]] | join(",")' "{{version}}/snap/snapcraft.yaml"
 
 # Pack a snap locally for a specific version and architecture
 [group("dev")]
-pack version=latest_version build_for="amd64":
+pack version="latest" build_for="amd64":
   cd "{{version}}" && snapcraft pack --build-for="{{build_for}}"
 
 # Test a snap with `snapcraft test`
 [group("dev")]
-test version=latest_version:
+test version="latest":
   #!/usr/bin/env bash
   set -e
   cp spread.yaml "{{version}}/spread.yaml"
@@ -44,7 +38,7 @@ test version=latest_version:
 # Promote a snap to the next risk level (edge→beta→candidate→stable)
 [group("release")]
 [arg("from_risk", pattern="candidate|beta|edge")]
-promote version=latest_version from_risk="edge":
+promote version="latest" from_risk="edge":
   #!/usr/bin/env bash
   set -e
   case "{{from_risk}}" in
@@ -61,7 +55,7 @@ promote version=latest_version from_risk="edge":
 
 # Remote-build a snap for a specific version and architecture
 [group("release")]
-remote-build version=latest_version build_for="amd64":
+remote-build version="latest" build_for="amd64":
   #!/usr/bin/env bash
   set -e
   cd "{{version}}"
@@ -71,48 +65,81 @@ remote-build version=latest_version build_for="amd64":
   snapcraft remote-build --build-for="{{build_for}}"
   echo "✓ Remote build complete. Snap files are in {{version}}/"
 
-# Upload and release a snap to the Snap Store
+# Upload and release all snap files in the version folder to the Snap Store
 [group("release")]
-release snap_file version=latest_version:
+release version="latest":
   #!/usr/bin/env bash
   set -e
-  if [[ ! -f "{{snap_file}}" ]]; then
-    echo "× Error: snap file '{{snap_file}}' not found."
+  cd "{{version}}"
+  snap_files=(*.snap)
+  if [[ ${#snap_files[@]} -eq 0 || ! -e "${snap_files[0]}" ]]; then
+    echo "× Error: no snap files found in {{version}}/"
     exit 1
   fi
   channel="{{version}}/edge"
-  channels="$channel"
-  if [[ "{{version}}" == "{{latest_version}}" ]]; then
-    channels="$channel,latest/edge"
-  fi
-  echo "Uploading and releasing {{snap_file}} to $channels ..."
-  snapcraft upload "{{snap_file}}" --release="$channels"
-  echo "✓ {{snap_name}} ({{snap_file}}) released to $channels"
+  for snap_file in "${snap_files[@]}"; do
+    echo "Uploading and releasing $snap_file to $channel ..."
+    snapcraft upload "$snap_file" --release="$channel"
+    echo "✓ {{snap_name}} ($snap_file) released to $channel"
+  done
 
-# Generate a snap for the latest version of the upstream project
+# Update the snap to the latest upstream version
 [arg("source_repo", help="Repository of the upstream project in 'org/repo' form")]
 [group("maintenance")]
 update source_repo:
   #!/usr/bin/env bash
   set -e
+
+  # Fetch the latest upstream release
   latest_release="$(gh release list --repo {{source_repo}} --exclude-pre-releases --limit=1 --json tagName --jq '.[0].tagName')"
   echo "Latest release for {{source_repo}} is $latest_release"
-  version="${latest_release}"
-  version="${version#v}"  # Strip generic v- prefix
-  # Use only major.minor for the folder name
-  version="$(echo "$version" | grep -oP '^\d+\.\d+')"
-  if [[ -z "$version" ]]; then
-    echo "× Error: could not parse major.minor version from '$latest_release'"
+
+  # Parse full semver (X.Y.Z) and major.minor (X.Y)
+  full_version="${latest_release#v}"  # Strip v- prefix
+  major_minor="$(echo "$full_version" | grep -oP '^\d+\.\d+')"
+  if [[ -z "$major_minor" ]]; then
+    echo "× Error: could not parse version from '$latest_release'"
     exit 1
   fi
-  # If the version already exists, exit here
-  if [[ -d "$version" ]]; then echo "Folder $version already exists, nothing to do" && exit 0; fi
-  # Create the folder for the new version and update the snapcraft.yaml
-  cp -r "{{latest_version}}" "$version"
-  version="$version" yq -i \
-    '.version = strenv(version)' \
-    "./$version/snap/snapcraft.yaml"
-  echo "✓ Created snap for version $version"
+
+  # Get current version from latest/ folder
+  if [[ ! -f "latest/snap/snapcraft.yaml" ]]; then
+    echo "× Error: latest/snap/snapcraft.yaml not found"
+    exit 1
+  fi
+  current_version="$(yq -r '.version' latest/snap/snapcraft.yaml)"
+
+  # Compare versions using sort -V (version sort)
+  newer_version="$(printf '%s\n%s' "$current_version" "$full_version" | sort -V | tail -n1)"
+  if [[ "$newer_version" == "$current_version" && "$full_version" != "$current_version" ]]; then
+    echo "Current version ($current_version) is newer than or equal to upstream ($full_version), nothing to do"
+    exit 0
+  fi
+  if [[ "$full_version" == "$current_version" ]]; then
+    echo "Already at version $full_version, nothing to do"
+    exit 0
+  fi
+
+  updated_folders=""
+
+  # Update the latest/ folder
+  echo "Updating latest/ folder to version $full_version ..."
+  full_version="$full_version" yq -i '.version = strenv(full_version)' "latest/snap/snapcraft.yaml"
+  updated_folders="latest"
+  echo "✓ Updated latest/ to $full_version"
+
+  # Update the X.Y/ folder if it exists (no auto-creation)
+  if [[ -d "$major_minor" ]]; then
+    echo "Updating $major_minor/ folder to version $full_version ..."
+    full_version="$full_version" yq -i '.version = strenv(full_version)' "$major_minor/snap/snapcraft.yaml"
+    updated_folders="$updated_folders $major_minor"
+    echo "✓ Updated $major_minor/ to $full_version"
+  else
+    echo "No $major_minor/ folder exists, skipping track-specific update"
+  fi
+
+  echo "updated_folders=$updated_folders"
+  echo "new_version=$full_version"
 
 # Fetch centralized files from canonical/observability
 [group("maintenance")]

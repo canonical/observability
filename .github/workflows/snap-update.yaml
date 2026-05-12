@@ -48,17 +48,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Merge any pre-existing PRs from the automatically generated "chore/add-version" branch if the CI is green
+      - name: Merge any pre-existing PRs from the automatically generated "chore/update-version" branch if the CI is green
         run: |
-          # If a PR from "chore/add-version" is open and CI checks are passing, merge it
-          is_pr_open="$(gh pr list --head chore/add-version --state open --json id --jq 'length')"
+          # If a PR from "chore/update-version" is open and CI checks are passing, merge it
+          is_pr_open="$(gh pr list --head chore/update-version --state open --json id --jq 'length')"
           if [[ "$is_pr_open" == "1" ]]; then
-            if gh pr checks chore/add-version; then
-              echo "CI checks are passing, merging the chore/add-version PR"
-              gh pr merge chore/add-version --admin --squash --delete-branch
+            if gh pr checks chore/update-version; then
+              echo "CI checks are passing, merging the chore/update-version PR"
+              gh pr merge chore/update-version --admin --squash --delete-branch
             else
-              echo "CI checks are not passing for the existing chore/add-version PR, adding a comment."
-              gh pr comment chore/add-version --body "This PR cannot be automatically merged because CI checks are not passing. Please check the CI results, resolve any issues, and merge the PR manually."
+              echo "CI checks are not passing for the existing chore/update-version PR, adding a comment."
+              gh pr comment chore/update-version --body "This PR cannot be automatically merged because CI checks are not passing. Please check the CI results, resolve any issues, and merge the PR manually."
             fi
           elif [[ "$is_pr_open" != "0" ]]; then
             # The number of open PRs should always be either 0 or 1
@@ -80,14 +80,27 @@ jobs:
           sudo snap install just --classic
           sudo snap install jq
           sudo snap install yq
-      - name: Check for new upstream releases and create the snap if needed
+      - name: Check for new upstream releases and update the snap if needed
         id: check-and-update
         env:
           GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
         run: |
           cd "${{ inputs.snap-path }}"
-          just update ${{ inputs.source-repo }}
-          new_version="$(git status --short -- . | grep '^??' | awk '{print $2}' | sed 's@/$@@')"
+
+          # Capture update output to parse the new version
+          update_output="$(just update ${{ inputs.source-repo }})"
+          echo "$update_output"
+
+          # Extract new version from the update output
+          new_version="$(echo "$update_output" | grep '^new_version=' | cut -d= -f2)"
+
+          # Check if any files were modified (not new folders, but modified files)
+          has_changes="$(git status --short -- . | grep -v '^??' | wc -l)"
+          if [[ "$has_changes" -eq 0 ]]; then
+            echo "No changes detected"
+            new_version=""
+          fi
+
           echo "snap_name=$(just name)" >> "$GITHUB_OUTPUT"
           echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
 
@@ -106,10 +119,10 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
-          commit-message: "chore(deps): bump ${{ steps.check-and-update.outputs.snap_name }} version to ${{ steps.check-and-update.outputs.new_version }}"
+          commit-message: "chore(deps): bump ${{ steps.check-and-update.outputs.snap_name }} to ${{ steps.check-and-update.outputs.new_version }}"
           committer: "${{ inputs.commit-username }} <${{ inputs.commit-email }}>"
           author: "${{ inputs.commit-username }} <${{ inputs.commit-email }}>"
-          title: "chore: add snap for ${{ steps.check-and-update.outputs.snap_name }} ${{ steps.check-and-update.outputs.new_version }}"
-          body: Automated update to follow upstream [release](https://github.com/${{ inputs.source-repo }}/releases/tag/${{ steps.check-and-update.outputs.new_version }}) of ${{ steps.check-and-update.outputs.snap_name }}.
-          branch: "chore/add-version"
+          title: "chore: update ${{ steps.check-and-update.outputs.snap_name }} to ${{ steps.check-and-update.outputs.new_version }}"
+          body: Automated update to follow upstream [release](https://github.com/${{ inputs.source-repo }}/releases/tag/v${{ steps.check-and-update.outputs.new_version }}) of ${{ steps.check-and-update.outputs.snap_name }}.
+          branch: "chore/update-version"
           delete-branch: true
