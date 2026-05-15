@@ -249,7 +249,7 @@ jobs:
     needs:
       - release-charm
     if: github.ref_name != 'main' && startsWith(github.ref_name, 'track/')
-    uses: ./.github/workflows/terraform-release.yaml
+    uses: canonical/observability/.github/workflows/terraform-release.yaml@v2
     permissions:
       contents: write
     with:
