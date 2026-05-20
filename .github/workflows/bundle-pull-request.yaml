@@ -69,6 +69,13 @@ jobs:
       - ci-ignore
     if: needs.ci-ignore.outputs.any_modified == 'true'
     uses: canonical/observability/.github/workflows/_charm-codeql-analysis.yml@v0
+    permissions:
+      # required for all workflows
+      security-events: write
+
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
     with:
       charm-path: "${{ inputs.bundle-path }}"
 
