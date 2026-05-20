@@ -38,10 +38,6 @@ on:
       NOCTUA_GPG_PRIVATE:
         required: true
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   update-lib:
     name: Check libraries

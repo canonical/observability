@@ -79,7 +79,9 @@ on:
         required: true
       LAUNCHPAD_TOKEN:
         required: false
-      
+      OBSERVABILITY_NOCTUA_TOKEN:
+        required: true
+
 
 concurrency:
   group: release${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
@@ -194,11 +196,10 @@ jobs:
       - define-matrix
       - quality-checks
     uses: canonical/observability/.github/workflows/_charm-release.yaml@v2
-    permissions:
-      contents: write
     secrets:
       CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
       LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
+      OBSERVABILITY_NOCTUA_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
     with:
       release-channel: "${{ needs.define-matrix.outputs.release-channel }}"
       charm-path: "${{ inputs.charm-path }}"
@@ -250,8 +251,8 @@ jobs:
       - release-charm
     if: github.ref_name != 'main' && startsWith(github.ref_name, 'track/')
     uses: canonical/observability/.github/workflows/terraform-release.yaml@v2
-    permissions:
-      contents: write
+    secrets:
+      OBSERVABILITY_NOCTUA_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
     with:
       terraform-tag-prefix: "${{ inputs.terraform-tag-prefix }}"
       terraform-tag-suffix: "${{ inputs.terraform-tag-suffix }}"

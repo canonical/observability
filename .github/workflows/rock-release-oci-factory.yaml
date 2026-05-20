@@ -27,10 +27,6 @@ on:
       OBSERVABILITY_NOCTUA_TOKEN:
         required: true
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   release-oci-factory:
     name: Add the new rock

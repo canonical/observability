@@ -35,10 +35,6 @@ on:
       NOCTUA_GPG_PRIVATE:
         required: true
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   merge-pr:
     name: Merge previous green PRs

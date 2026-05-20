@@ -18,9 +18,9 @@ on:
         default: 'terraform'
         required: false
         type: string
-
-permissions:
-  contents: write
+    secrets:
+      OBSERVABILITY_NOCTUA_TOKEN:
+        required: true
 
 jobs:
   release:
@@ -62,6 +62,7 @@ jobs:
           TAG_PREFIX: ${{ inputs.terraform-tag-prefix }}
           TAG_SUFFIX: ${{ inputs.terraform-tag-suffix }}
           GIT_BRANCH: ${{ github.ref_name }}
+          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
         run: |
           # Extract semantic version from the track branch name
           track_version="${GIT_BRANCH#track/}"
@@ -72,9 +73,10 @@ jobs:
           # Build the tag
           tag="${TAG_PREFIX}${track_version}.${patch}${TAG_SUFFIX}"
           echo "Creating tag: $tag"
-          # Configure git with noctua bot identity
+          # Configure git with Noctua identity and token for push
           git config --global user.email "webops+observability-noctua-bot@canonical.com"
           git config --global user.name "Noctua"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
           # Create and push the annotated tag
           git log -1 --pretty=%B > tag-message
           git tag --annotate "$tag" --file=tag-message
