@@ -62,7 +62,7 @@ remote-build version="latest" build_for="amd64":
   # snapcraft remote-build requires a git repository to be present
   git init
   echo "Starting remote build for {{snap_name}} {{version}} ({{build_for}}) ..."
-  snapcraft remote-build --build-for="{{build_for}}"
+  snapcraft remote-build --build-for="{{build_for}}" --launchpad-accept-public-upload
   echo "✓ Remote build complete. Snap files are in {{version}}/"
 
 # Upload and release all snap files in the version folder to the Snap Store
