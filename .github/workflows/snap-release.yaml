@@ -66,6 +66,9 @@ jobs:
     if: ${{ fromJSON(needs.changes.outputs.matrix).include[0] != null }}
     strategy:
       fail-fast: false
+      # Launchpad remote-build uses a shared git repo per snap, so parallel builds
+      # for different architectures race and fail. Run one at a time.
+      max-parallel: 1
       matrix: ${{ fromJSON(needs.changes.outputs.matrix) }}
     steps:
       - name: Checkout repository
