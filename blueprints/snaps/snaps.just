@@ -116,7 +116,7 @@ update source_repo:
     exit 0
   fi
   if [[ "$full_version" == "$current_version" ]]; then
-    echo "Already at version $full_version, nothing to do"
+    echo "→ Already at version $full_version, nothing to do"
     exit 0
   fi
 
@@ -135,11 +135,8 @@ update source_repo:
     updated_folders="$updated_folders $major_minor"
     echo "✓ Updated $major_minor/ to $full_version"
   else
-    echo "No $major_minor/ folder exists, skipping track-specific update"
+    echo "→ No $major_minor/ folder exists, skipping track-specific update"
   fi
-
-  echo "updated_folders=$updated_folders"
-  echo "new_version=$full_version"
 
 # Fetch centralized files from canonical/observability
 [group("maintenance")]
