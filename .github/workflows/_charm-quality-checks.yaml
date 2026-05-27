@@ -181,7 +181,7 @@ jobs:
       - name: Setup LXD
         uses: canonical/setup-lxd@main
       - name: Install charmcraft
-        run: sudo snap install charmcraft --classic
+        run: sudo snap install charmcraft --classic --channel=${{ inputs.charmcraft-channel }}
       - name: Cache wheels
         uses: actions/cache@v4
         with:
@@ -217,10 +217,10 @@ jobs:
           sudo snap install concierge --classic
           case "$PROVIDER" in
             machine)
-              sudo concierge prepare -p machine --extra-snaps=astral-uv,terraform
+              sudo concierge prepare -p machine --extra-snaps=astral-uv,terraform --charmcraft-channel=${{ inputs.charmcraft-channel }}
               ;;
             microk8s)
-              sudo concierge prepare -p microk8s --extra-snaps=astral-uv,terraform
+              sudo concierge prepare -p microk8s --extra-snaps=astral-uv,terraform --charmcraft-channel=${{ inputs.charmcraft-channel }}
               ;;
             k8s)
               cat > concierge.yaml << 'EOF'
@@ -316,10 +316,10 @@ jobs:
           sudo snap install concierge --classic
           case "$PROVIDER" in
             machine)
-              sudo concierge prepare -p machine --extra-snaps=astral-uv,terraform
+              sudo concierge prepare -p machine --extra-snaps=astral-uv,terraform --charmcraft-channel=${{ inputs.charmcraft-channel }}
               ;;
             microk8s)
-              sudo concierge prepare -p microk8s --extra-snaps=astral-uv,terraform
+              sudo concierge prepare -p microk8s --extra-snaps=astral-uv,terraform --charmcraft-channel=${{ inputs.charmcraft-channel }}
               ;;
             k8s)
               cat > concierge.yaml << 'EOF'
