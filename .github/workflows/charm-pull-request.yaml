@@ -124,7 +124,7 @@ jobs:
     needs:
       - ci-ignore
     if: needs.ci-ignore.outputs.any_modified == 'true'
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@fix/charm-pull-charmcraft-channel
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@cbfdc5c293e7fb8371a5ef77d53ddc29c0fc5fc2
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}
