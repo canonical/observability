@@ -351,7 +351,39 @@ jobs:
               sudo concierge prepare -p machine --extra-snaps=astral-uv,terraform --charmcraft-channel=${{ inputs.charmcraft-channel }}
               ;;
             microk8s)
-              sudo concierge prepare -p microk8s --extra-snaps=astral-uv,terraform --charmcraft-channel=${{ inputs.charmcraft-channel }}
+              cat > concierge.yaml << 'EOF'
+          juju:
+            channel: ${{ needs.snap-channels.outputs.juju-channel }}
+            model-defaults:
+              test-mode: "true"
+              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
+            extra-bootstrap-args: --config agent-stream=proposed
+          providers:
+            lxd:
+              enable: true
+            microk8s:
+              enable: true
+              bootstrap: true
+              addons:
+                - hostpath-storage
+                - dns
+                - rbac
+                - metallb:10.64.140.43-10.64.140.49
+          host:
+            packages:
+              - gnome-keyring
+              - python3-pip
+              - python3-venv
+            snaps:
+              charmcraft:
+                channel: ${{ inputs.charmcraft-channel }}
+              jq:
+              yq:
+              rockcraft:
+              astral-uv:
+              terraform:
+          EOF
+              sudo concierge prepare -c concierge.yaml
               ;;
             k8s)
               cat > concierge.yaml << 'EOF'
