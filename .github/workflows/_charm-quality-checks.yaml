@@ -213,109 +213,23 @@ jobs:
       - name: Install dependencies
         env:
           PROVIDER: "${{ inputs.provider }}"
+          CONCIERGE_JUJU_CHANNEL: "${{ needs.snap-channels.outputs.juju-channel }}"
+          CONCIERGE_CHARMCRAFT_CHANNEL: "${{ inputs.charmcraft-channel }}"
+          CONCIERGE_EXTRA_SNAPS: "astral-uv,terraform"
         run: |
           sudo snap install concierge --classic
           case "$PROVIDER" in
             machine)
-              cat > concierge.yaml << 'EOF'
-          juju:
-            channel: ${{ needs.snap-channels.outputs.juju-channel }}
-            model-defaults:
-              test-mode: "true"
-              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
-            extra-bootstrap-args: --config agent-stream=proposed
-          providers:
-            lxd:
-              enable: true
-              bootstrap: true
-          host:
-            packages:
-              - gnome-keyring
-              - python3-pip
-              - python3-venv
-            snaps:
-              charmcraft:
-                channel: ${{ inputs.charmcraft-channel }}
-              jq:
-              yq:
-              snapcraft:
-              astral-uv:
-              terraform:
-          EOF
-              sudo concierge prepare -c concierge.yaml
+              sudo -E concierge prepare -p machine
+              juju model-defaults -c lxd automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
             microk8s)
-              cat > concierge.yaml << 'EOF'
-          juju:
-            channel: ${{ needs.snap-channels.outputs.juju-channel }}
-            model-defaults:
-              test-mode: "true"
-              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
-            extra-bootstrap-args: --config agent-stream=proposed
-          providers:
-            lxd:
-              enable: true
-            microk8s:
-              enable: true
-              bootstrap: true
-              addons:
-                - hostpath-storage
-                - dns
-                - rbac
-                - metallb:10.64.140.43-10.64.140.49
-          host:
-            packages:
-              - gnome-keyring
-              - python3-pip
-              - python3-venv
-            snaps:
-              charmcraft:
-                channel: ${{ inputs.charmcraft-channel }}
-              jq:
-              yq:
-              rockcraft:
-              astral-uv:
-              terraform:
-          EOF
-              sudo concierge prepare -c concierge.yaml
+              sudo -E concierge prepare -p microk8s
+              juju model-defaults -c microk8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
             k8s)
-              cat > concierge.yaml << 'EOF'
-          juju:
-            channel: ${{ needs.snap-channels.outputs.juju-channel }}
-            model-defaults:
-              test-mode: "true"
-              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
-            extra-bootstrap-args: --config agent-stream=proposed
-          providers:
-            lxd:
-              enable: true
-            k8s:
-              enable: true
-              bootstrap: true
-              bootstrap-constraints:
-                root-disk: "2G"
-              features:
-                load-balancer:
-                  l2-mode: "true"
-                  cidrs: "10.43.45.0/28"
-                local-storage: {}
-                network: {}
-          host:
-            packages:
-              - gnome-keyring
-              - python3-pip
-              - python3-venv
-            snaps:
-              charmcraft:
-                channel: ${{ inputs.charmcraft-channel }}
-              jq:
-              yq:
-              rockcraft:
-              astral-uv:
-              terraform:
-          EOF
-              sudo concierge prepare -c concierge.yaml
+              sudo -E concierge prepare -p k8s
+              juju model-defaults -c k8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
           esac
       - name: Download charm artifact
@@ -369,109 +283,23 @@ jobs:
       - name: Install dependencies
         env:
           PROVIDER: "${{ inputs.provider }}"
+          CONCIERGE_JUJU_CHANNEL: "${{ needs.snap-channels.outputs.juju-channel }}"
+          CONCIERGE_CHARMCRAFT_CHANNEL: "${{ inputs.charmcraft-channel }}"
+          CONCIERGE_EXTRA_SNAPS: "astral-uv,terraform"
         run: |
           sudo snap install concierge --classic
           case "$PROVIDER" in
             machine)
-              cat > concierge.yaml << 'EOF'
-          juju:
-            channel: ${{ needs.snap-channels.outputs.juju-channel }}
-            model-defaults:
-              test-mode: "true"
-              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
-            extra-bootstrap-args: --config agent-stream=proposed
-          providers:
-            lxd:
-              enable: true
-              bootstrap: true
-          host:
-            packages:
-              - gnome-keyring
-              - python3-pip
-              - python3-venv
-            snaps:
-              charmcraft:
-                channel: ${{ inputs.charmcraft-channel }}
-              jq:
-              yq:
-              snapcraft:
-              astral-uv:
-              terraform:
-          EOF
-              sudo concierge prepare -c concierge.yaml
+              sudo -E concierge prepare -p machine
+              juju model-defaults -c lxd automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
             microk8s)
-              cat > concierge.yaml << 'EOF'
-          juju:
-            channel: ${{ needs.snap-channels.outputs.juju-channel }}
-            model-defaults:
-              test-mode: "true"
-              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
-            extra-bootstrap-args: --config agent-stream=proposed
-          providers:
-            lxd:
-              enable: true
-            microk8s:
-              enable: true
-              bootstrap: true
-              addons:
-                - hostpath-storage
-                - dns
-                - rbac
-                - metallb:10.64.140.43-10.64.140.49
-          host:
-            packages:
-              - gnome-keyring
-              - python3-pip
-              - python3-venv
-            snaps:
-              charmcraft:
-                channel: ${{ inputs.charmcraft-channel }}
-              jq:
-              yq:
-              rockcraft:
-              astral-uv:
-              terraform:
-          EOF
-              sudo concierge prepare -c concierge.yaml
+              sudo -E concierge prepare -p microk8s
+              juju model-defaults -c microk8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
             k8s)
-              cat > concierge.yaml << 'EOF'
-          juju:
-            channel: ${{ needs.snap-channels.outputs.juju-channel }}
-            model-defaults:
-              test-mode: "true"
-              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
-            extra-bootstrap-args: --config agent-stream=proposed
-          providers:
-            lxd:
-              enable: true
-            k8s:
-              enable: true
-              bootstrap: true
-              bootstrap-constraints:
-                root-disk: "2G"
-              features:
-                load-balancer:
-                  l2-mode: "true"
-                  cidrs: "10.43.45.0/28"
-                local-storage: {}
-                network: {}
-          host:
-            packages:
-              - gnome-keyring
-              - python3-pip
-              - python3-venv
-            snaps:
-              charmcraft:
-                channel: ${{ inputs.charmcraft-channel }}
-              jq:
-              yq:
-              rockcraft:
-              astral-uv:
-              terraform:
-          EOF
-              sudo concierge prepare -c concierge.yaml
+              sudo -E concierge prepare -p k8s
+              juju model-defaults -c k8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
           esac
       # FIXME: Remove the below step when runners are configurable. See https://github.com/canonical/observability/issues/408.
