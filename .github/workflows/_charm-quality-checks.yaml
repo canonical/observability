@@ -291,15 +291,15 @@ jobs:
           case "$PROVIDER" in
             machine)
               sudo -E concierge prepare -p machine
-              juju model-defaults -c lxd automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
+              juju model-defaults -c concierge-lxd automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
             microk8s)
               sudo -E concierge prepare -p microk8s
-              juju model-defaults -c microk8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
+              juju model-defaults -c concierge-microk8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
             k8s)
               sudo -E concierge prepare -p k8s
-              juju model-defaults -c k8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
+              juju model-defaults -c concierge-k8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
           esac
       # FIXME: Remove the below step when runners are configurable. See https://github.com/canonical/observability/issues/408.
