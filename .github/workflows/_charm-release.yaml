@@ -136,6 +136,8 @@ jobs:
   release-to-charmhub:
     name: Release to CharmHub
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     needs:
       - build
     strategy:
@@ -171,6 +173,8 @@ jobs:
     name: Release arm64 to CharmHub
     # needs to be run on arm or the oci image will resolve to the amd64 one.
     runs-on: Ubuntu_ARM64_4C_16G_03
+    permissions:
+      contents: write
     needs:
       - build-arm
     strategy:

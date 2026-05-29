@@ -122,6 +122,8 @@ jobs:
     needs:
       - quality-checks
     uses: canonical/observability/.github/workflows/_charm-release.yaml@v0
+    permissions:
+      contents: write
     secrets:
       CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
     with:
