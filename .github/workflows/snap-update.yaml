@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Merge any pre-existing PRs from the automatically generated "chore/update-version" branch if the CI is green
@@ -70,7 +70,7 @@ jobs:
       - merge-pr
     steps:
       - name: Checkout the snap source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install dependencies
         run: |
           sudo snap install just --classic

@@ -18,10 +18,10 @@ jobs:
       versions: ${{ steps.changed-versions.outputs.versions }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Find rockcraft.yaml changes
         id: changed-files
-        uses: tj-actions/changed-files@v46
+        uses: tj-actions/changed-files@v47
         with:
           path: ${{ inputs.rock-path }}
           files: "**/rockcraft.yaml"
@@ -43,7 +43,7 @@ jobs:
     if: needs.changes.outputs.versions != ''
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install dependencies
         run: |
           sudo snap install concierge --classic

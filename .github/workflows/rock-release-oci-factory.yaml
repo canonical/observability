@@ -33,13 +33,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the rock repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: ${{ inputs.rock-path }}
           fetch-depth: 2 # Needed to check modified files
       - name: Find rockcraft.yaml changes
         id: changed-files
-        uses: tj-actions/changed-files@v46
+        uses: tj-actions/changed-files@v47
         with:
           path: ${{ inputs.rock-path }}
           files: "**/rockcraft.yaml"

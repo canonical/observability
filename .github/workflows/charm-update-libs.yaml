@@ -46,7 +46,7 @@ jobs:
       GIT_BRANCH: ${{ inputs.git-branch }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 

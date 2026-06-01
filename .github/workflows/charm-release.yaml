@@ -96,7 +96,7 @@ jobs:
     steps:
       - name: Checkout repository
         if: github.event_name != 'workflow_dispatch'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }} # To be compatible with PRs from forks
           fetch-depth: 0
@@ -104,7 +104,7 @@ jobs:
       - name: Determine changed files in the PR
         if: github.event_name != 'workflow_dispatch'
         id: changed-files
-        uses: tj-actions/changed-files@v46
+        uses: tj-actions/changed-files@v47
         with:
           files_ignore: |
             README.md
@@ -138,7 +138,7 @@ jobs:
       release-channel: ${{ steps.define-channel.outputs.release_channel }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install dependencies
         run: |
           sudo snap install yq
@@ -215,7 +215,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: charm
       - name: Release libraries

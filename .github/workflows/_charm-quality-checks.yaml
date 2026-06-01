@@ -80,7 +80,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Lint
         run: |
           sudo snap install astral-uv --classic
@@ -105,7 +105,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Download promtool and lint rules
         env:
           CHARM_PATH: "${{ inputs.charm-path }}"
@@ -128,7 +128,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install Terraform and validate modules
         env:
           CHARM_PATH: "${{ inputs.charm-path }}"
@@ -148,7 +148,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Static analysis
         run: |
           sudo snap install astral-uv --classic
@@ -160,7 +160,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Unit tests
         run: |
           sudo snap install astral-uv --classic
@@ -177,7 +177,7 @@ jobs:
       - unit-test
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup LXD
         uses: canonical/setup-lxd@main
       - name: Install charmcraft
@@ -209,7 +209,7 @@ jobs:
     needs: [snap-channels, pack-charm]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install dependencies
         env:
           PROVIDER: "${{ inputs.provider }}"
@@ -254,7 +254,7 @@ jobs:
       suites: ${{ steps.suites.outputs.suites }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Generate matrix list
         id: suites
         run: |
@@ -279,7 +279,7 @@ jobs:
         suite: ${{ fromJSON(needs.integration-matrix.outputs.suites) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install dependencies
         env:
           PROVIDER: "${{ inputs.provider }}"
