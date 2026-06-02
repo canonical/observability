@@ -24,7 +24,7 @@ on:
         type: string
       charmcraft-channel:
         type: string
-        default: "3.x/candidate"
+        default: "latest/candidate"
         required: false
         description: |
           The snap channel from which to install Charmcraft.
