@@ -43,20 +43,44 @@ jobs:
             echo "Branch '$GIT_BRANCH' does not match track/<major>.<minor> format. Skipping."
             echo "valid=false" >> "$GITHUB_OUTPUT"
           fi
-      - name: Check for terraform changes
+      - name: Check if tag should be created
         if: steps.validate-branch.outputs.valid == 'true'
         id: check-changes
         env:
           TERRAFORM_PATH: ${{ inputs.terraform-path }}
+          TAG_PREFIX: ${{ inputs.terraform-tag-prefix }}
+          TAG_SUFFIX: ${{ inputs.terraform-tag-suffix }}
+          GIT_BRANCH: ${{ github.ref_name }}
         run: |
-          # Check if the push includes changes to the terraform directory
-          if git diff --name-only HEAD~1..HEAD | grep -q "^${TERRAFORM_PATH}/"; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
+          # Extract major.minor from the track branch name
+          track_version="${GIT_BRANCH#track/}"
+
+          # Build the tag pattern to find existing tags for this major.minor
+          # Pattern: <prefix><major>.<minor>.*<suffix>
+          # e.g., tf-1.0.*-cos or tf-1.0.* (if no suffix)
+          tag_pattern="${TAG_PREFIX}${track_version}.*${TAG_SUFFIX}"
+
+          # Find the latest tag matching this pattern (sorted by version)
+          # Use git tag with version sorting to get the highest patch version
+          latest_tag=$(git tag --list "$tag_pattern" --sort=-version:refname | head -n1)
+
+          if [ -z "$latest_tag" ]; then
+            # No existing tag for this major.minor - first release, should create
+            echo "No existing tag found matching pattern '$tag_pattern'. First release for this version."
+            echo "should_create=true" >> "$GITHUB_OUTPUT"
           else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
+            # Tag exists - check if there are differences in terraform dir
+            echo "Found latest tag: $latest_tag"
+            if git diff --quiet "$latest_tag"..HEAD -- "$TERRAFORM_PATH/"; then
+              echo "No changes in $TERRAFORM_PATH since $latest_tag. Skipping."
+              echo "should_create=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "Changes detected in $TERRAFORM_PATH since $latest_tag."
+              echo "should_create=true" >> "$GITHUB_OUTPUT"
+            fi
           fi
       - name: Create Terraform tag
-        if: steps.validate-branch.outputs.valid == 'true' && steps.check-changes.outputs.changed == 'true'
+        if: steps.validate-branch.outputs.valid == 'true' && steps.check-changes.outputs.should_create == 'true'
         env:
           TERRAFORM_PATH: ${{ inputs.terraform-path }}
           TAG_PREFIX: ${{ inputs.terraform-tag-prefix }}
