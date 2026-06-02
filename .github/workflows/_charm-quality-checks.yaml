@@ -230,6 +230,10 @@ jobs:
             k8s)
               sudo -E concierge prepare -p k8s
               juju model-defaults -c concierge-k8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
+              # Configure Cilium for Istio ambient service mesh compatibility
+              sudo k8s kubectl patch configmap cilium-config -n kube-system --type merge -p '{"data":{"bpf-lb-sock-hostns-only":"true"}}'
+              sudo k8s kubectl rollout restart daemonset/cilium -n kube-system
+              sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=90s
               ;;
           esac
       - name: Download charm artifact
@@ -300,6 +304,10 @@ jobs:
             k8s)
               sudo -E concierge prepare -p k8s
               juju model-defaults -c concierge-k8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
+              # Configure Cilium for Istio ambient service mesh compatibility
+              sudo k8s kubectl patch configmap cilium-config -n kube-system --type merge -p '{"data":{"bpf-lb-sock-hostns-only":"true"}}'
+              sudo k8s kubectl rollout restart daemonset/cilium -n kube-system
+              sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=90s
               ;;
           esac
       # FIXME: Remove the below step when runners are configurable. See https://github.com/canonical/observability/issues/408.
