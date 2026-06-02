@@ -10,12 +10,14 @@ on:
         type: string
     secrets:
       # Snapcraft Store credentials for uploading and releasing snaps.
-      # Generate at https://snapcraft.io/docs/registering-your-app
       # Export with: snapcraft export-login --snaps=<snap-name> --channels=<channels> -
+      # See https://documentation.ubuntu.com/snapcraft/stable/how-to/sign-in/
       SNAPCRAFT_STORE_CREDENTIALS:
         required: true
-      # Launchpad credential token, needed by `snapcraft remote-build`.
-      # See https://launchpad.net/+apidoc for token generation.
+      # Launchpad credentials for `snapcraft remote-build`.
+      # This is the contents of ~/.local/share/snapcraft/launchpad-credentials after
+      # running `snapcraft remote-build` locally and completing the OAuth flow.
+      # See https://documentation.ubuntu.com/snapcraft/stable/explanation/remote-build/
       LAUNCHPAD_TOKEN:
         required: true
 
@@ -27,10 +29,10 @@ jobs:
       matrix: ${{ steps.build-matrix.outputs.matrix }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Find snapcraft.yaml changes
         id: changed-files
-        uses: tj-actions/changed-files@v46
+        uses: tj-actions/changed-files@v47
         with:
           path: ${{ inputs.snap-path }}
           files: "**/snapcraft.yaml"
@@ -64,18 +66,26 @@ jobs:
     if: ${{ fromJSON(needs.changes.outputs.matrix).include[0] != null }}
     strategy:
       fail-fast: false
+      # Launchpad remote-build uses a shared git repo per snap, so parallel builds
+      # for different architectures race and fail. Run one at a time.
+      max-parallel: 1
       matrix: ${{ fromJSON(needs.changes.outputs.matrix) }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install dependencies
         run: |
           sudo snap install concierge --classic
           sudo concierge prepare -p crafts --extra-snaps=just,yq
+      - name: Set up Launchpad credentials
+        env:
+          LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
+        run: |
+          mkdir -p "$HOME/.local/share/snapcraft"
+          echo -e "$LAUNCHPAD_TOKEN" > "$HOME/.local/share/snapcraft/launchpad-credentials"
       - name: Build and release snap
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-          SNAPCRAFT_LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
         run: |
           cd "${{ inputs.snap-path }}"
           just remote-build ${{ matrix.version }} ${{ matrix.platform }}

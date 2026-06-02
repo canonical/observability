@@ -15,7 +15,7 @@ on:
         type: string
       charmcraft-channel:
         type: string
-        default: "3.x/candidate"
+        default: "latest/candidate"
         required: false
         description: |
           The snap channel from which to install Charmcraft.
@@ -62,14 +62,14 @@ jobs:
       any_modified: ${{ steps.echo-changes.outputs.any_modified }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }} # To be compatible with PRs from forks
           fetch-depth: 0
 
       - name: Determine changed files in the PR
         id: changed-files
-        uses: tj-actions/changed-files@v46
+        uses: tj-actions/changed-files@v47
         with:
           files_ignore: |
             README.md
@@ -97,7 +97,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' && needs.ci-ignore.outputs.any_modified == 'true' && github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Install charmcraft

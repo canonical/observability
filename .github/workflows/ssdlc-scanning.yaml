@@ -23,7 +23,7 @@ jobs:
         name: SSDLC scanning - ${{ matrix.type }} - ${{ matrix.artifact }} artifacts
         steps:
           - name: Checkout
-            uses: actions/checkout@v4
+            uses: actions/checkout@v6
           - name: Run sbomber action
             uses: canonical/sbomber/.github/actions/run@main
             with:

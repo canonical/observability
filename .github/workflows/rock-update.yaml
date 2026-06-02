@@ -36,17 +36,13 @@ on:
       NOCTUA_GPG_PRIVATE:
         required: true
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   merge-pr:
     name: Merge previous green PRs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Merge any pre-existing PRs from the automatically generated "chore/add-version" branch if the CI is green
@@ -75,7 +71,7 @@ jobs:
       - merge-pr
     steps:
       - name: Checkout the rock source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install dependencies
         run: |
           sudo snap install just --classic
@@ -94,7 +90,7 @@ jobs:
 
       - name: Import and configure the GPG key for Noctua
         if: steps.check-and-update.outputs.new_version != ''
-        uses: crazy-max/ghaction-import-gpg@v6
+        uses: crazy-max/ghaction-import-gpg@v7
         with:
           gpg_private_key: ${{ secrets.NOCTUA_GPG_PRIVATE }}
           passphrase: ${{ secrets.NOCTUA_GPG_PASSPHRASE }}
@@ -104,7 +100,7 @@ jobs:
 
       - name: Create a PR
         if: steps.check-and-update.outputs.new_version != ''
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
           commit-message: "chore(deps): bump ${{ steps.check-and-update.outputs.rock_name }} version to ${{ steps.check-and-update.outputs.new_version }}"

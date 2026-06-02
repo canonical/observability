@@ -40,9 +40,8 @@ on:
         required: true
       LAUNCHPAD_TOKEN:
         required: false
-
-permissions:
-  contents: write
+      OBSERVABILITY_NOCTUA_TOKEN:
+        required: true
 
 jobs:
   build:
@@ -53,7 +52,7 @@ jobs:
         runner: ${{ fromJSON(inputs.runners) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Install dependencies
@@ -128,7 +127,7 @@ jobs:
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
           CHARM_NAME: ${{ steps.get-charm-name.outputs.charm_name }}
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
           TAG_PREFIX: ${{ inputs.git-tag-prefix }}
           RELEASE_CHANNEL: ${{ inputs.release-channel }}
         run: |
@@ -154,9 +153,11 @@ jobs:
             echo "${CHARM_NAME} has been released to ${RELEASE_CHANNEL}:"
             echo "$pretty_uploaded_charm"
             # Create a git tag and push it
-            ## Configure git
-            git config --global user.email "github-actions[bot]@users.noreply.github.com"
-            git config --global user.name "github-actions[bot]"
+            ## Configure git with Noctua identity
+            git config --global user.email "webops+observability-noctua-bot@canonical.com"
+            git config --global user.name "Noctua"
+            ## Configure git to use the Noctua token for push
+            git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
             ## Use the latest commit message as the tag message
             git log -1 --pretty=%B > tag-message
             revision="$(echo "$uploaded_charm" | jq -rc .revision)"

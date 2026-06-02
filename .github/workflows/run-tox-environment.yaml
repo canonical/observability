@@ -46,7 +46,7 @@ jobs:
     name: Run tox ${{ inputs.tox-env-name }} environment
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Prepare host env
         if: ${{ inputs.prepare-host-env }}
         run: |

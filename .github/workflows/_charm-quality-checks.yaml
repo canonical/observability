@@ -80,7 +80,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Lint
         run: |
           sudo snap install astral-uv --classic
@@ -105,7 +105,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Download promtool and lint rules
         env:
           CHARM_PATH: "${{ inputs.charm-path }}"
@@ -128,7 +128,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install Terraform and validate modules
         env:
           CHARM_PATH: "${{ inputs.charm-path }}"
@@ -148,7 +148,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Static analysis
         run: |
           sudo snap install astral-uv --classic
@@ -160,7 +160,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Unit tests
         run: |
           sudo snap install astral-uv --classic
@@ -177,11 +177,11 @@ jobs:
       - unit-test
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup LXD
         uses: canonical/setup-lxd@main
       - name: Install charmcraft
-        run: sudo snap install charmcraft --classic
+        run: sudo snap install charmcraft --classic --channel=${{ inputs.charmcraft-channel }}
       - name: Cache wheels
         uses: actions/cache@v4
         with:
@@ -209,56 +209,31 @@ jobs:
     needs: [snap-channels, pack-charm]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install dependencies
         env:
           PROVIDER: "${{ inputs.provider }}"
+          CONCIERGE_JUJU_CHANNEL: "${{ needs.snap-channels.outputs.juju-channel }}"
+          CONCIERGE_CHARMCRAFT_CHANNEL: "${{ inputs.charmcraft-channel }}"
+          CONCIERGE_EXTRA_SNAPS: "astral-uv,terraform"
         run: |
           sudo snap install concierge --classic
           case "$PROVIDER" in
             machine)
-              sudo concierge prepare -p machine --extra-snaps=astral-uv,terraform
+              sudo -E concierge prepare -p machine
+              juju model-defaults -c concierge-lxd automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
             microk8s)
-              sudo concierge prepare -p microk8s --extra-snaps=astral-uv,terraform
+              sudo -E concierge prepare -p microk8s
+              juju model-defaults -c concierge-microk8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
             k8s)
-              cat > concierge.yaml << 'EOF'
-          juju:
-            channel: ${{ needs.snap-channels.outputs.juju-channel }}
-            model-defaults:
-              test-mode: "true"
-              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
-            extra-bootstrap-args: --config agent-stream=proposed
-          providers:
-            lxd:
-              enable: true
-            k8s:
-              enable: true
-              bootstrap: true
-              bootstrap-constraints:
-                root-disk: "2G"
-              features:
-                load-balancer:
-                  l2-mode: "true"
-                  cidrs: "10.43.45.0/28"
-                local-storage: {}
-                network: {}
-          host:
-            packages:
-              - gnome-keyring
-              - python3-pip
-              - python3-venv
-            snaps:
-              charmcraft:
-                channel: ${{ inputs.charmcraft-channel }}
-              jq:
-              yq:
-              rockcraft:
-              astral-uv:
-              terraform:
-          EOF
-              sudo concierge prepare -c concierge.yaml
+              sudo -E concierge prepare -p k8s
+              juju model-defaults -c concierge-k8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
+              # Configure Cilium for Istio ambient service mesh compatibility
+              sudo k8s kubectl patch configmap cilium-config -n kube-system --type merge -p '{"data":{"bpf-lb-sock-hostns-only":"true"}}'
+              sudo k8s kubectl rollout restart daemonset/cilium -n kube-system
+              sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=90s
               ;;
           esac
       - name: Download charm artifact
@@ -283,7 +258,7 @@ jobs:
       suites: ${{ steps.suites.outputs.suites }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Generate matrix list
         id: suites
         run: |
@@ -308,56 +283,31 @@ jobs:
         suite: ${{ fromJSON(needs.integration-matrix.outputs.suites) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install dependencies
         env:
           PROVIDER: "${{ inputs.provider }}"
+          CONCIERGE_JUJU_CHANNEL: "${{ needs.snap-channels.outputs.juju-channel }}"
+          CONCIERGE_CHARMCRAFT_CHANNEL: "${{ inputs.charmcraft-channel }}"
+          CONCIERGE_EXTRA_SNAPS: "astral-uv,terraform"
         run: |
           sudo snap install concierge --classic
           case "$PROVIDER" in
             machine)
-              sudo concierge prepare -p machine --extra-snaps=astral-uv,terraform
+              sudo -E concierge prepare -p machine
+              juju model-defaults -c concierge-lxd automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
             microk8s)
-              sudo concierge prepare -p microk8s --extra-snaps=astral-uv,terraform
+              sudo -E concierge prepare -p microk8s
+              juju model-defaults -c concierge-microk8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
             k8s)
-              cat > concierge.yaml << 'EOF'
-          juju:
-            channel: ${{ needs.snap-channels.outputs.juju-channel }}
-            model-defaults:
-              test-mode: "true"
-              automatically-retry-hooks: "${{ inputs.automatically-retry-hooks }}"
-            extra-bootstrap-args: --config agent-stream=proposed
-          providers:
-            lxd:
-              enable: true
-            k8s:
-              enable: true
-              bootstrap: true
-              bootstrap-constraints:
-                root-disk: "2G"
-              features:
-                load-balancer:
-                  l2-mode: "true"
-                  cidrs: "10.43.45.0/28"
-                local-storage: {}
-                network: {}
-          host:
-            packages:
-              - gnome-keyring
-              - python3-pip
-              - python3-venv
-            snaps:
-              charmcraft:
-                channel: ${{ inputs.charmcraft-channel }}
-              jq:
-              yq:
-              rockcraft:
-              astral-uv:
-              terraform:
-          EOF
-              sudo concierge prepare -c concierge.yaml
+              sudo -E concierge prepare -p k8s
+              juju model-defaults -c concierge-k8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
+              # Configure Cilium for Istio ambient service mesh compatibility
+              sudo k8s kubectl patch configmap cilium-config -n kube-system --type merge -p '{"data":{"bpf-lb-sock-hostns-only":"true"}}'
+              sudo k8s kubectl rollout restart daemonset/cilium -n kube-system
+              sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=90s
               ;;
           esac
       # FIXME: Remove the below step when runners are configurable. See https://github.com/canonical/observability/issues/408.

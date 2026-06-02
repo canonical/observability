@@ -15,7 +15,7 @@ on:
         type: string
       charmcraft-channel:
         type: string
-        default: "3.x/candidate"
+        default: "latest/candidate"
         required: false
         description: |
           The snap channel from which to install Charmcraft.
@@ -79,7 +79,9 @@ on:
         required: true
       LAUNCHPAD_TOKEN:
         required: false
-      
+      OBSERVABILITY_NOCTUA_TOKEN:
+        required: true
+
 
 concurrency:
   group: release${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
@@ -94,7 +96,7 @@ jobs:
     steps:
       - name: Checkout repository
         if: github.event_name != 'workflow_dispatch'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }} # To be compatible with PRs from forks
           fetch-depth: 0
@@ -102,7 +104,7 @@ jobs:
       - name: Determine changed files in the PR
         if: github.event_name != 'workflow_dispatch'
         id: changed-files
-        uses: tj-actions/changed-files@v46
+        uses: tj-actions/changed-files@v47
         with:
           files_ignore: |
             README.md
@@ -136,7 +138,7 @@ jobs:
       release-channel: ${{ steps.define-channel.outputs.release_channel }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install dependencies
         run: |
           sudo snap install yq
@@ -194,11 +196,10 @@ jobs:
       - define-matrix
       - quality-checks
     uses: canonical/observability/.github/workflows/_charm-release.yaml@v2
-    permissions:
-      contents: write
     secrets:
       CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
       LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
+      OBSERVABILITY_NOCTUA_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
     with:
       release-channel: "${{ needs.define-matrix.outputs.release-channel }}"
       charm-path: "${{ inputs.charm-path }}"
@@ -214,7 +215,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: charm
       - name: Release libraries
@@ -249,9 +250,9 @@ jobs:
     needs:
       - release-charm
     if: github.ref_name != 'main' && startsWith(github.ref_name, 'track/')
-    uses: ./.github/workflows/terraform-release.yaml
-    permissions:
-      contents: write
+    uses: canonical/observability/.github/workflows/terraform-release.yaml@v2
+    secrets:
+      OBSERVABILITY_NOCTUA_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
     with:
       terraform-tag-prefix: "${{ inputs.terraform-tag-prefix }}"
       terraform-tag-suffix: "${{ inputs.terraform-tag-suffix }}"
