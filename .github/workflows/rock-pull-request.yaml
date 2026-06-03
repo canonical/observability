@@ -10,9 +10,12 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       versions: ${{ steps.changed-versions.outputs.versions }}
+      runners: ${{ steps.changed-versions.outputs.runners }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Install yq
+        run: sudo snap install yq
       - name: Find rockcraft.yaml changes
         id: changed-files
         uses: tj-actions/changed-files@v46
@@ -28,11 +31,28 @@ jobs:
           echo "versions=$versions"
           echo "versions=$versions" >> "$GITHUB_OUTPUT"
 
+          # build runner list from the union of platforms across all changed rocks
+          declare -A runner_set
+          for version in $versions; do
+            while IFS= read -r platform; do
+              case "$platform" in
+                amd64) runner_set["ubuntu-24.04"]=1 ;;
+                arm64) runner_set["ubuntu-24.04-arm"]=1 ;;
+              esac
+            done < <(yq '.platforms | keys | .[]' "${version}/rockcraft.yaml")
+          done
+          runners=$(printf '%s\n' "${!runner_set[@]}" | jq -R . | jq -sc .)
+          echo "runners=$runners"
+          echo "runners=$runners" >> "$GITHUB_OUTPUT"
+
   tests:
-    name: Tests
-    runs-on: ubuntu-24.04
+    name: Tests (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
     needs: [changes]
     if: needs.changes.outputs.versions != ''
+    strategy:
+      matrix:
+        runner: ${{ fromJSON(needs.changes.outputs.runners) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -44,7 +64,7 @@ jobs:
           sudo microk8s enable registry
           # FIXME: install via the goss snap when available
           goss_base_url="https://github.com/goss-org/goss/releases/latest/download"
-          curl -L ${goss_base_url}/goss-linux-amd64 -o /usr/local/bin/goss
+          curl -L ${goss_base_url}/goss-linux-$(dpkg --print-architecture) -o /usr/local/bin/goss
           chmod +rx /usr/local/bin/goss
           curl -L ${goss_base_url}/kgoss -o /usr/local/bin/kgoss
           chmod +rx /usr/local/bin/kgoss
@@ -61,7 +81,12 @@ jobs:
         run: df -h
       - name: Pack and test the rocks
         run: |
+          arch="$(dpkg --print-architecture)"
           for version in ${{ needs.changes.outputs.versions }}; do
+            if ! yq -e ".platforms | has(\"$arch\")" "$version/rockcraft.yaml" > /dev/null 2>&1; then
+              echo "skipping $version: no $arch platform declared"
+              continue
+            fi
             just pack "$version"
             just test "$version"
             just clean "$version"
