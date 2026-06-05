@@ -1,0 +1,95 @@
+name: Resolve Charm Paths
+
+on:
+  workflow_call:
+    inputs:
+      charm-path:
+        description: |
+          Path to the charm. Defaults to the current working directory.
+          If 'charm-paths' is also provided, 'charm-paths' takes precedence.
+        default: '.'
+        required: false
+        type: string
+      charm-paths:
+        description: |
+          JSON list of charm paths (e.g. '["charms/foo", "charms/bar"]').
+          If provided, takes precedence over 'charm-path'.
+        default: ''
+        required: false
+        type: string
+      filter-by-changes:
+        description: |
+          When 'charm-paths' is provided and this is true, only charms with
+          file changes will be included in the matrix (using dorny/paths-filter).
+        required: true
+        type: boolean
+    outputs:
+      charm-paths:
+        description: "JSON list of resolved charm paths"
+        value: ${{ jobs.resolve.outputs.charm-paths }}
+
+jobs:
+  resolve:
+    name: Resolve charm paths
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      charm-paths: ${{ steps.set-paths.outputs.charm-paths }}
+    steps:
+      - name: Checkout repository
+        if: ${{ inputs.filter-by-changes }}
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          fetch-depth: 0
+
+      - name: Resolve effective charm paths
+        id: resolve
+        env:
+          CHARM_PATH: ${{ inputs.charm-path }}
+          CHARM_PATHS: ${{ inputs.charm-paths }}
+        run: |
+          if [[ -n "$CHARM_PATHS" ]]; then
+            echo "all-paths=$CHARM_PATHS" >> "$GITHUB_OUTPUT"
+          else
+            echo "all-paths=[\"$CHARM_PATH\"]" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate path filters config
+        if: ${{ inputs.charm-paths != '' && inputs.filter-by-changes }}
+        id: generate-filters
+        env:
+          CHARM_PATHS: ${{ steps.resolve.outputs.all-paths }}
+        run: |
+          filters=""
+          while IFS= read -r path; do
+            printf -v filters '%s%s:\n  - %s/**\n' "$filters" "$path" "$path"
+          done < <(echo "$CHARM_PATHS" | jq -r '.[]')
+          {
+            echo "filters<<EOF"
+            printf '%s\n' "$filters"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Filter by changes
+        if: ${{ inputs.charm-paths != '' && inputs.filter-by-changes }}
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: ${{ steps.generate-filters.outputs.filters }}
+
+      - name: Set final charm paths
+        id: set-paths
+        env:
+          ALL_PATHS: ${{ steps.resolve.outputs.all-paths }}
+          FILTER_ENABLED: ${{ inputs.charm-paths != '' && inputs.filter-by-changes }}
+          CHANGED_PATHS: ${{ steps.filter.outputs.changes }}
+        run: |
+          if [[ "$FILTER_ENABLED" == "true" && -n "$CHANGED_PATHS" ]]; then
+            echo "charm-paths=$CHANGED_PATHS" >> "$GITHUB_OUTPUT"
+          elif [[ "$FILTER_ENABLED" == "true" ]]; then
+            echo "charm-paths=[]" >> "$GITHUB_OUTPUT"
+          else
+            echo "charm-paths=$ALL_PATHS" >> "$GITHUB_OUTPUT"
+          fi
