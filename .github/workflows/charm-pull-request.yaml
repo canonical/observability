@@ -89,6 +89,9 @@ jobs:
       # only required for workflows in private repositories
       actions: read
       contents: read
+
+      # for adding labels to PRs from checking libraries workflow
+      issues: write
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}
