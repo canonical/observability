@@ -91,7 +91,8 @@ jobs:
           new_version="$(echo "$update_output" | grep '^new_version=' | cut -d= -f2)"
 
           # Check if any files were modified (not new folders, but modified files)
-          has_changes="$(git status --short -- . | grep -cv '^??')"
+          # Note: grep -c returns exit code 1 when count is 0, so we need || true
+          has_changes="$(git status --short -- . | grep -cv '^??' || true)"
           if [[ "$has_changes" -eq 0 ]]; then
             echo "No changes detected"
             new_version=""
