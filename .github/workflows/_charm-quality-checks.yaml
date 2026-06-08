@@ -35,6 +35,12 @@ on:
         required: false
         description: |
           The Python version to use for quality checks.
+      check-library-labels:
+        type: boolean
+        default: true
+        required: false
+        description: |
+          Whether or not to add labels to show the status of the charm libraries.
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -76,6 +82,7 @@ jobs:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           charm-path: "${{ inputs.charm-path }}"
           charmcraft-channel: "${{ inputs.charmcraft-channel }}"
+          use-labels: ${{ inputs.check-library-labels }}
   static-analysis:
     name: Static Analysis
     uses: canonical/observability/.github/workflows/_charm-static-analysis.yaml@v0
