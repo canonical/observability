@@ -131,6 +131,7 @@ jobs:
       charm-path: "${{ inputs.charm-path }}"
       release-tag-prefix: "${{ inputs.release-tag-prefix }}"
       build-for-arm: ${{ inputs.build-for-arm }}
+      charmcraft-channel: ${{ inputs.charmcraft-channel }}
   release-libs:
     name: Release any bumped charm library
     needs:
