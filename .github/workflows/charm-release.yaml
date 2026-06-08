@@ -108,6 +108,9 @@ jobs:
       # only required for workflows in private repositories
       actions: read
       contents: read
+
+      # for adding labels to PRs from checking libraries workflow
+      issues: write
     secrets:
       CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
     with:
