@@ -54,6 +54,12 @@ on:
         required: false
         description: |
           The Python version to use for quality checks.
+      check-library-labels:
+        type: boolean
+        default: true
+        required: false
+        description: |
+          Whether or not to add labels to show the status of the charm libraries.
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -120,6 +126,7 @@ jobs:
       charmcraft-channel: ${{ inputs.charmcraft-channel }}
       juju-channel: ${{ inputs.juju-channel }}
       python-version: ${{ inputs.python-version }}
+      check-library-labels: ${{ inputs.check-library-labels }}
   release-charm:
     name: Release Charm and Libraries
     needs:
