@@ -76,7 +76,7 @@ check: sync format lint unit
     @echo; echo "✓ All checks passed!"
 
 # Sync the virtual environment (.venv)
-[private, group("dev")]
+[group("dev")]
 sync:
     uv sync --all-groups --all-extras
 
