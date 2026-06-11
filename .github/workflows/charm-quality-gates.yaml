@@ -6,7 +6,16 @@ on:
       charm-path:
         description: |
           Path to the charm we want to promote. Defaults to the current working directory.
+          If 'charm-paths' is also provided, 'charm-paths' takes precedence and this input is ignored.
         default: '.'
+        required: false
+        type: string
+      charm-paths:
+        description: |
+          JSON list of charm paths (e.g. '["charms/foo", "charms/bar"]').
+          If provided, takes precedence over 'charm-path'.
+          Each path will be processed as a separate matrix entry.
+        default: ''
         required: false
         type: string
       tracks:
@@ -19,17 +28,25 @@ on:
         required: true
 
 concurrency:
-  group: quality-gates${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+  group: quality-gates-${{ github.ref }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
   cancel-in-progress: true
 
 jobs:
+  resolve-charm-paths:
+    uses: canonical/observability/.github/workflows/_resolve-charm-paths.yaml@v1
+    with:
+      charm-path: ${{ inputs.charm-path }}
+      charm-paths: ${{ inputs.charm-paths }}
+      filter-by-changes: false
+
   quality-gate-edge:
-    name: Quality gate (edge -> beta)
-    if: always()
+    name: Quality gate (edge -> beta) (${{ matrix.charm-path }})
+    needs: [resolve-charm-paths]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        charm-path: ${{ fromJSON(needs.resolve-charm-paths.outputs.charm-paths) }}
         track: ${{ fromJSON(inputs.tracks) }}
     steps:
       - name: Checkout
@@ -41,18 +58,19 @@ jobs:
       - name: Get charm name
         id: get-charm-name
         run: |
-          cd "${{ inputs.charm-path }}"
+          cd "${{ matrix.charm-path }}"
           charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
           echo "charm_name=$charm_name"
           echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
       - name: "Run the quality gates"
         run: |
+            cd "${{ matrix.charm-path }}"
             uvx tox -e qualitygate-beta
       - name: Promote from edge to beta
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
           CHARM_NAME: ${{ steps.get-charm-name.outputs.charm_name }}
-          CHARM_PATH: ${{ inputs.charm-path }}
+          CHARM_PATH: ${{ matrix.charm-path }}
           TRACK: ${{ matrix.track }}
         run: |
           cd "$CHARM_PATH"
@@ -61,12 +79,13 @@ jobs:
           echo "Promoted from edge to beta!"
               
   quality-gate-beta:
-    name: Quality gate (beta -> candidate)
-    if: always()
+    name: Quality gate (beta -> candidate) (${{ matrix.charm-path }})
+    needs: [resolve-charm-paths]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        charm-path: ${{ fromJSON(needs.resolve-charm-paths.outputs.charm-paths) }}
         track: ${{ fromJSON(inputs.tracks) }}
     steps:
       - name: Checkout
@@ -78,18 +97,19 @@ jobs:
       - name: Get charm name
         id: get-charm-name
         run: |
-          cd "${{ inputs.charm-path }}"
+          cd "${{ matrix.charm-path }}"
           charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
           echo "charm_name=$charm_name"
           echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
       - name: "Run the quality gates"
         run: |
+            cd "${{ matrix.charm-path }}"
             uvx tox -e qualitygate-candidate
       - name: Promote from beta to candidate
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
           CHARM_NAME: ${{ steps.get-charm-name.outputs.charm_name }}
-          CHARM_PATH: ${{ inputs.charm-path }}
+          CHARM_PATH: ${{ matrix.charm-path }}
           TRACK: ${{ matrix.track }}
         run: |
           cd "$CHARM_PATH"

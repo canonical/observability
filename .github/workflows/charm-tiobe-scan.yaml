@@ -7,8 +7,18 @@ on:
   workflow_call:
     inputs:
       charm-path:
-        description: "Path to the command runner that runs unit tests and produces coverage. Defaults to the current working directory."
+        description: |
+          Path to the command runner that runs unit tests and produces coverage. Defaults to the current working directory.
+          If 'charm-paths' is also provided, 'charm-paths' takes precedence and this input is ignored.
         default: '.'
+        required: false
+        type: string
+      charm-paths:
+        description: |
+          JSON list of charm paths (e.g. '["charms/foo", "charms/bar"]').
+          If provided, takes precedence over 'charm-path'.
+          Each path will be processed as a separate matrix entry.
+        default: ''
         required: false
         type: string
       lockfile-path:
@@ -28,10 +38,22 @@ on:
         type: string
 
 jobs:
+  resolve-charm-paths:
+    uses: canonical/observability/.github/workflows/_resolve-charm-paths.yaml@v1
+    with:
+      charm-path: ${{ inputs.charm-path }}
+      charm-paths: ${{ inputs.charm-paths }}
+      filter-by-changes: false
+
   scan:
-    name: Scan and upload
+    name: Scan and upload (${{ matrix.charm-path }})
+    needs: [resolve-charm-paths]
     runs-on: [self-hosted, linux, amd64, tiobe, jammy]
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        charm-path: ${{ fromJSON(needs.resolve-charm-paths.outputs.charm-paths) }}
     steps:
       - name: Checkout the project
         uses: actions/checkout@v6
@@ -48,7 +70,7 @@ jobs:
 
       - name: Generate unittest coverage report
         env:
-          CHARM_PATH: ${{ inputs.charm-path }}
+          CHARM_PATH: ${{ matrix.charm-path }}
           COVERAGE_FOLDER: ${{ inputs.coverage-folder }}
         run: |
           base_wd="$(pwd)"
@@ -57,7 +79,7 @@ jobs:
 
       - name: Activate and prepare Python virtual environment
         env:
-          CHARM_PATH: ${{ inputs.charm-path }}
+          CHARM_PATH: ${{ matrix.charm-path }}
           LOCKFILE_PATH: ${{ inputs.lockfile-path }}
         run: |
           # Use LOCKFILE_PATH (if not empty) to create the virtual environment, otherwise use CHARM_PATH

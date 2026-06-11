@@ -3,8 +3,18 @@ on:
   workflow_call:
     inputs:
       charm-path:
-        description: "Path to the charm we want to publish. Defaults to the current working directory."
+        description: |
+          Path to the charm we want to publish. Defaults to the current working directory.
+          If 'charm-paths' is also provided, 'charm-paths' takes precedence and this input is ignored.
         default: "."
+        required: false
+        type: string
+      charm-paths:
+        description: |
+          JSON list of charm paths (e.g. '["charms/foo", "charms/bar"]').
+          If provided, takes precedence over 'charm-path'.
+          Each path will be processed as a separate matrix entry.
+        default: ''
         required: false
         type: string
       git-branch:
@@ -38,12 +48,28 @@ on:
       NOCTUA_GPG_PRIVATE:
         required: true
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
+  resolve-charm-paths:
+    uses: canonical/observability/.github/workflows/_resolve-charm-paths.yaml@v1
+    with:
+      charm-path: ${{ inputs.charm-path }}
+      charm-paths: ${{ inputs.charm-paths }}
+      filter-by-changes: false
+
   update-lib:
-    name: Check libraries
+    name: Check libraries (${{ matrix.charm-path }})
+    needs: [resolve-charm-paths]
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        charm-path: ${{ fromJSON(needs.resolve-charm-paths.outputs.charm-paths) }}
     env:
-      GIT_BRANCH: ${{ inputs.git-branch }}
+      GIT_BRANCH: ${{ inputs.git-branch }}/${{ matrix.charm-path }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -70,7 +96,7 @@ jobs:
       - name: Check for major library updates
         run: |
           sudo snap install charmcraft --classic --channel "${{ inputs.charmcraft-channel }}"
-          cd "$GITHUB_WORKSPACE/${{ inputs.charm-path }}"
+          cd "$GITHUB_WORKSPACE/${{ matrix.charm-path }}"
           # Get the charm name
           charm_name=$( (yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml) | tr - _)
           if [[ $charm_name = "" ]]; then echo "Error: can't extract the charm name." && exit 1; fi
@@ -121,7 +147,7 @@ jobs:
       - name: Fetch charm libraries
         run: |
           git pull
-          cd "$GITHUB_WORKSPACE/${{ inputs.charm-path }}"
+          cd "$GITHUB_WORKSPACE/${{ matrix.charm-path }}"
           charmcraft fetch-lib
         env:
           CHARMCRAFT_AUTH: "${{ secrets.CHARMHUB_TOKEN }}"
