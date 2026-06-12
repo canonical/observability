@@ -35,7 +35,7 @@ refresh:
     which -s gh || { echo "gh not found"; exit 1; }
     refresh_folder="blueprints/charms"
     api_path="repos/canonical/observability/contents/$refresh_folder"
-    for file in charms.just; do
+    for file in charms.just .tfdocs.yaml; do
       echo "Fetching latest '$file' from canonical/observability ..."
       gh api "$api_path/$file" --jq '.content' | base64 --decode > "$file"
       echo "✓ $file updated"
