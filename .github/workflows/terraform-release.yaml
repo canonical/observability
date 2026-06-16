@@ -18,6 +18,18 @@ on:
         default: 'terraform'
         required: false
         type: string
+      track:
+        description: |
+          Explicit track (e.g. '1.0') to release the Terraform module for.
+          When set, takes precedence over the branch-derived track:
+          the branch name is not inspected, and the tag's major.minor is taken
+          from this value. Must match '<major>.<minor>' (numeric); otherwise
+          the Terraform release is skipped. The patch number is computed as
+          (highest existing 'tf-<major>.<minor>.*' tag patch) + 1, or 0 if
+          no such tag exists.
+        default: ''
+        required: false
+        type: string
     secrets:
       OBSERVABILITY_NOCTUA_TOKEN:
         required: true
@@ -31,16 +43,35 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Validate branch format
+      - name: Validate track / branch format
         id: validate-branch
         env:
           GIT_BRANCH: ${{ github.ref_name }}
+          EXPLICIT_TRACK: ${{ inputs.track }}
         run: |
-          # Only allow tagging on branches matching track/<major>.<minor>
-          if [[ "$GIT_BRANCH" =~ ^track/[0-9]+\.[0-9]+$ ]]; then
+          # Determine the track version, prioritizing the explicit input.
+          # Only versioned tracks (<major>.<minor>) are eligible for a
+          # Terraform release; non-versioned tracks like 'dev' or 'latest'
+          # are skipped.
+          if [[ -n "$EXPLICIT_TRACK" ]]; then
+            track_version="$EXPLICIT_TRACK"
+            source="input"
+          else
+            track_version="${GIT_BRANCH#track/}"
+            source="branch '$GIT_BRANCH'"
+            if [[ "${GIT_BRANCH%/*}" != "track" ]]; then
+              echo "Branch '$GIT_BRANCH' is not a 'track/*' branch and no 'track' input provided. Skipping."
+              echo "valid=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          if [[ "$track_version" =~ ^[0-9]+\.[0-9]+$ ]]; then
+            echo "Track version '$track_version' (from $source) is valid."
+            echo "track_version=$track_version" >> "$GITHUB_OUTPUT"
             echo "valid=true" >> "$GITHUB_OUTPUT"
           else
-            echo "Branch '$GIT_BRANCH' does not match track/<major>.<minor> format. Skipping."
+            echo "Track version '$track_version' (from $source) does not match <major>.<minor> format. Skipping."
             echo "valid=false" >> "$GITHUB_OUTPUT"
           fi
       - name: Check if tag should be created
@@ -50,10 +81,9 @@ jobs:
           TERRAFORM_PATH: ${{ inputs.terraform-path }}
           TAG_PREFIX: ${{ inputs.terraform-tag-prefix }}
           TAG_SUFFIX: ${{ inputs.terraform-tag-suffix }}
-          GIT_BRANCH: ${{ github.ref_name }}
+          TRACK_VERSION: ${{ steps.validate-branch.outputs.track_version }}
         run: |
-          # Extract major.minor from the track branch name
-          track_version="${GIT_BRANCH#track/}"
+          track_version="$TRACK_VERSION"
 
           # Build the tag pattern to find existing tags for this major.minor
           # Pattern: <prefix><major>.<minor>.*<suffix>
@@ -85,15 +115,31 @@ jobs:
           TERRAFORM_PATH: ${{ inputs.terraform-path }}
           TAG_PREFIX: ${{ inputs.terraform-tag-prefix }}
           TAG_SUFFIX: ${{ inputs.terraform-tag-suffix }}
-          GIT_BRANCH: ${{ github.ref_name }}
+          TRACK_VERSION: ${{ steps.validate-branch.outputs.track_version }}
+          EXPLICIT_TRACK: ${{ inputs.track }}
           GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
         run: |
-          # Extract semantic version from the track branch name
-          track_version="${GIT_BRANCH#track/}"
-          # Calculate patch version: number of commits touching terraform dir since diverging from main
-          git fetch origin main
-          merge_base=$(git merge-base HEAD origin/main)
-          patch=$(git rev-list --count "$merge_base"..HEAD -- "$TERRAFORM_PATH/")
+          track_version="$TRACK_VERSION"
+          if [[ -n "$EXPLICIT_TRACK" ]]; then
+            # Patch derived from existing tags: (highest existing patch) + 1, or 0 if none.
+            # This is robust regardless of branch topology (e.g. running from main).
+            tag_pattern="${TAG_PREFIX}${track_version}.*${TAG_SUFFIX}"
+            latest_tag=$(git tag --list "$tag_pattern" --sort=-version:refname | head -n1)
+            if [ -z "$latest_tag" ]; then
+              patch=0
+            else
+              # Strip prefix and suffix to isolate '<major>.<minor>.<patch>', then take the patch.
+              version="${latest_tag#"$TAG_PREFIX"}"
+              version="${version%"$TAG_SUFFIX"}"
+              last_patch="${version##*.}"
+              patch=$((last_patch + 1))
+            fi
+          else
+            # Branch-based: patch = commits on this track branch touching terraform/ since diverging from main.
+            git fetch origin main
+            merge_base=$(git merge-base HEAD origin/main)
+            patch=$(git rev-list --count "$merge_base"..HEAD -- "$TERRAFORM_PATH/")
+          fi
           # Build the tag
           tag="${TAG_PREFIX}${track_version}.${patch}${TAG_SUFFIX}"
           echo "Creating tag: $tag"
