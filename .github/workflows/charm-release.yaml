@@ -33,6 +33,15 @@ on:
           If the push happens to a branch named 'track/X', the charm will be
           released to the channel 'X/edge'.
         default: "latest"  # TODO: replace with 1 when we have a guardrail
+      track:
+        type: string
+        required: false
+        default: ''
+        description: |
+          Explicit track to release to (on the 'edge' risk).
+          When set, this takes precedence over any branch-based inference:
+          the branch name is not inspected and the charm is released to
+          '<track>/edge' unconditionally.
       git-tag-prefix:
         description: "Tag prefix to use for the tag of the GitHub release."
         default: ''
@@ -167,8 +176,11 @@ jobs:
         env:
           GIT_BRANCH: ${{ github.ref_name }}  # branch name as shown in GitHub
           DEFAULT_TRACK: ${{ inputs.default-track }}
+          EXPLICIT_TRACK: ${{ inputs.track }}
         run: |
-          if [[ "$GIT_BRANCH" == "main" ]]; then
+          if [[ -n "$EXPLICIT_TRACK" ]]; then
+            release_channel="${EXPLICIT_TRACK}/edge"
+          elif [[ "$GIT_BRANCH" == "main" ]]; then
             release_channel="${DEFAULT_TRACK}/edge"
           elif [[ "${GIT_BRANCH%/*}" == "track" ]]; then
             release_channel="${GIT_BRANCH#track/}/edge"
@@ -249,7 +261,7 @@ jobs:
     name: Release the Terraform module
     needs:
       - release-charm
-    if: github.ref_name != 'main' && startsWith(github.ref_name, 'track/')
+    if: inputs.track != '' || (github.ref_name != 'main' && startsWith(github.ref_name, 'track/'))
     uses: canonical/observability/.github/workflows/terraform-release.yaml@v2
     secrets:
       OBSERVABILITY_NOCTUA_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
@@ -257,3 +269,4 @@ jobs:
       terraform-tag-prefix: "${{ inputs.terraform-tag-prefix }}"
       terraform-tag-suffix: "${{ inputs.terraform-tag-suffix }}"
       terraform-path: "${{ inputs.charm-path }}/terraform"
+      track: "${{ inputs.track }}"
