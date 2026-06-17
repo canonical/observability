@@ -175,9 +175,22 @@ jobs:
       - linting-rules
       - static-analysis
       - unit-test
+    outputs:
+      artifact-name: ${{ steps.artifact-name.outputs.name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Compute artifact name
+        id: artifact-name
+        env:
+          CHARM_PATH: "${{ inputs.charm-path }}"
+        run: |
+          if [[ "$CHARM_PATH" != "." && -n "$CHARM_PATH" ]]; then
+            suffix="${CHARM_PATH//\//-}"
+            echo "name=charms-tests-${suffix}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=charms-tests" >> "$GITHUB_OUTPUT"
+          fi
       - name: Setup LXD
         uses: canonical/setup-lxd@main
       - name: Install charmcraft
@@ -199,7 +212,7 @@ jobs:
       - name: Upload charm artifact
         uses: actions/upload-artifact@v4
         with:
-          name: charms-tests${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          name: ${{ steps.artifact-name.outputs.name }}
           path: ${{ inputs.charm-path }}/*.charm
 
   integration-mono:
@@ -239,7 +252,7 @@ jobs:
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
-          name: charms-tests${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          name: ${{ needs.pack-charm.outputs.artifact-name }}
           path: ${{ inputs.charm-path }}
       - name: Run integration tests
         run: |
@@ -332,7 +345,7 @@ jobs:
       - name: Download charm artifact
         uses: actions/download-artifact@v4
         with:
-          name: charms-tests${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          name: ${{ needs.pack-charm.outputs.artifact-name }}
           path: ${{ inputs.charm-path }}
       - name: Run integration tests
         run: |
