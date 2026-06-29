@@ -25,13 +25,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the rock repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: rock
           fetch-depth: 2 # Needed to check modified files
       - name: Get the changed rockcraft.yaml files
         id: changed-files
-        uses: tj-actions/changed-files@2f7c5bfce28377bc069a65ba478de0a74aa0ca32 # Version 46.0.1
+        uses: tj-actions/changed-files@v47
         with:
           path: rock
           files: '**/rockcraft.yaml'
@@ -44,7 +44,7 @@ jobs:
       - name: Clone the fork
         id: fork-clone
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: oci-factory
           repository: observability-noctua-bot/oci-factory

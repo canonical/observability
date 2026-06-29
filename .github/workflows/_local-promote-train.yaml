@@ -44,7 +44,7 @@ jobs:
           - traefik-k8s-operator
     steps:
       - name: Checkout the charm repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: canonical/${{ matrix.charm-repo }}
       - name: Read the charm path from the Promote workflow
