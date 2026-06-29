@@ -80,6 +80,11 @@ jobs:
             icon.svg
             .gitignore
             .github/**
+            CHANGELOG.md
+            # FIXME: Remove this after the charm blueprint PRs go through
+            charms.just
+            justfile
+            .tfdocs.yaml
 
       - name: Echo changed files
         id: echo-changes
