@@ -16,6 +16,67 @@ export PYTHONPATH := ".:./lib:./src"
 @name:
   echo "{{charm_name}}"
 
+# List all track branches in chronological order (oldest first)
+[group("info")]
+tracks:
+    #!/usr/bin/env python3
+    import subprocess
+
+    def git(*args):
+        r = subprocess.run(["git", *args], capture_output=True, text=True)
+        return r.stdout.strip() if r.returncode == 0 else None
+
+    branches = git("branch", "-r", "--list", "origin/track/*")
+    if not branches:
+        exit(0)
+
+    dated = []
+    for line in branches.splitlines():
+        branch = line.strip().removeprefix("origin/")
+        merge_base = git("merge-base", f"origin/{branch}", "origin/main")
+        if not merge_base:
+            continue
+        first = git("rev-list", "--ancestry-path", f"{merge_base}..origin/{branch}", "--reverse")
+        commit = first.splitlines()[0] if first else merge_base
+        date = git("log", "-1", "--format=%at", commit)
+        dated.append((int(date), branch))
+
+    for _, branch in sorted(dated):
+        print(branch)
+
+# Get the previous track branch relative to the current branch
+[group("info")]
+previous-track:
+    #!/usr/bin/env python3
+    import subprocess
+    import sys
+
+    def git(*args):
+        return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout.strip()
+
+    def just(*args):
+        r = subprocess.run(["just", *args], capture_output=True, text=True)
+        if r.returncode != 0:
+            sys.exit(r.returncode)
+        return r.stdout.strip()
+
+    current = git("rev-parse", "--abbrev-ref", "HEAD")
+    tracks = just("tracks").splitlines() if just("tracks") else []
+
+    if not tracks:
+        print("No track branches found", file=sys.stderr)
+        sys.exit(1)
+
+    if current == "main":
+        print(tracks[-1])
+    elif current in tracks:
+        idx = tracks.index(current)
+        if idx > 0:
+            print(tracks[idx - 1])
+    else:
+        print(f"Cannot determine previous track from branch '{current}'", file=sys.stderr)
+        print("Specify ref explicitly: just changelog <ref>", file=sys.stderr)
+        sys.exit(1)
 
 # Update uv.lock dependencies
 [group("maintenance")]
@@ -190,30 +251,44 @@ release charm_file channel:
     charmcraft release "{{ charm_name }}" --revision="$charm_revision" --channel="{{ channel }}" $resource_args
     echo "✓ Released {{ charm_name }} revision $charm_revision to {{ channel }}"
 
-# Print all commits between two refs (defaults to current branch for target_ref)
+# Print all commits between two refs (auto-deduces refs when on main or track branches)
 [group("release")]
-[arg("ref", help="Branch (or generic ref) to get the changelog from")]
+[arg("ref", help="Branch (or generic ref) to compare from (defaults to previous track)")]
 [arg("target_ref", help="Branch (or generic ref) to compare to (defaults to current branch)")]
-changelog ref target_ref="":
+changelog ref="" target_ref="":
     #!/usr/bin/env python3
     import re
     import subprocess
+    import sys
 
     def git(*args):
         return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout.strip()
+
+    def just(*args):
+        result = subprocess.run(["just", *args], capture_output=True, text=True)
+        if result.returncode != 0:
+            print(result.stderr, file=sys.stderr, end="")
+            sys.exit(result.returncode)
+        return result.stdout.strip()
 
     # Get repo path from remote URL
     remote_url = git("remote", "get-url", "origin")
     match = re.search(r"github\.com[:/]([^/]+/[^/.]+)", remote_url)
     repo_path = match.group(1) if match else ""
 
-    # Resolve refs
+    # Resolve ref (auto-deduce if empty)
     ref = "{{ ref }}"
+    if not ref:
+        ref = just("previous-track")
+        if not ref:
+            print("No previous track to compare against", file=sys.stderr)
+            sys.exit(1)
     try:
         git("rev-parse", "--verify", ref)
     except subprocess.CalledProcessError:
         ref = f"origin/{ref}"
 
+    # Resolve target_ref (default to current branch)
     target_ref = "{{ target_ref }}" or git("rev-parse", "--abbrev-ref", "HEAD")
     try:
         git("rev-parse", "--verify", target_ref)
@@ -260,7 +335,7 @@ changelog ref target_ref="":
     # Print changelog
     short_base = base[:7]
     print("# Changelog\n")
-    print(f"Changes on `{target_ref}` since diverging from `{ref}` (merge-base: `{short_base}`).\n")
+    print(f"Changes on `{target_ref}` since the common ancestor with `{ref}` (`{short_base}`).\n")
     sections = [("Breaking Changes", "breaking"), ("Features", "features"), ("Fixes", "fixes"), ("Others", "others")]
     for title, key in sections:
         if categories[key]:
