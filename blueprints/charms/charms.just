@@ -19,46 +19,64 @@ export PYTHONPATH := ".:./lib:./src"
 # List all track branches in chronological order (oldest first)
 [group("info")]
 tracks:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    git branch -r --list 'origin/track/*' | while read -r branch; do
-        branch="${branch#origin/}"
-        branch="${branch// /}"
-        merge_base=$(git merge-base "origin/$branch" origin/main 2>/dev/null) || continue
-        first_commit=$(git rev-list --ancestry-path "$merge_base..origin/$branch" --reverse 2>/dev/null | head -1)
-        # If no commits after merge-base, use the merge-base itself
-        commit="${first_commit:-$merge_base}"
-        date=$(git log -1 --format='%at' "$commit")
-        echo "$date $branch"
-    done | sort -n | cut -d' ' -f2-
+    #!/usr/bin/env python3
+    import subprocess
+
+    def git(*args):
+        r = subprocess.run(["git", *args], capture_output=True, text=True)
+        return r.stdout.strip() if r.returncode == 0 else None
+
+    branches = git("branch", "-r", "--list", "origin/track/*")
+    if not branches:
+        exit(0)
+
+    dated = []
+    for line in branches.splitlines():
+        branch = line.strip().removeprefix("origin/")
+        merge_base = git("merge-base", f"origin/{branch}", "origin/main")
+        if not merge_base:
+            continue
+        first = git("rev-list", "--ancestry-path", f"{merge_base}..origin/{branch}", "--reverse")
+        commit = first.splitlines()[0] if first else merge_base
+        date = git("log", "-1", "--format=%at", commit)
+        dated.append((int(date), branch))
+
+    for _, branch in sorted(dated):
+        print(branch)
 
 # Get the previous track branch relative to the current branch
 [group("info")]
 previous-track:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    current=$(git rev-parse --abbrev-ref HEAD)
-    mapfile -t tracks < <(just tracks)
-    if [ ${#tracks[@]} -eq 0 ]; then
-        echo "No track branches found" >&2
-        exit 1
-    fi
-    if [ "$current" = "main" ]; then
-        echo "${tracks[-1]}"
-        exit 0
-    fi
-    for i in "${!tracks[@]}"; do
-        if [ "${tracks[$i]}" = "$current" ]; then
-            if [ "$i" -eq 0 ]; then
-                exit 0
-            fi
-            echo "${tracks[$((i - 1))]}"
-            exit 0
-        fi
-    done
-    echo "Cannot determine previous track from branch '$current'" >&2
-    echo "Specify ref explicitly: just changelog <ref>" >&2
-    exit 1
+    #!/usr/bin/env python3
+    import subprocess
+    import sys
+
+    def git(*args):
+        return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout.strip()
+
+    def just(*args):
+        r = subprocess.run(["just", *args], capture_output=True, text=True)
+        if r.returncode != 0:
+            sys.exit(r.returncode)
+        return r.stdout.strip()
+
+    current = git("rev-parse", "--abbrev-ref", "HEAD")
+    tracks = just("tracks").splitlines() if just("tracks") else []
+
+    if not tracks:
+        print("No track branches found", file=sys.stderr)
+        sys.exit(1)
+
+    if current == "main":
+        print(tracks[-1])
+    elif current in tracks:
+        idx = tracks.index(current)
+        if idx > 0:
+            print(tracks[idx - 1])
+    else:
+        print(f"Cannot determine previous track from branch '{current}'", file=sys.stderr)
+        print("Specify ref explicitly: just changelog <ref>", file=sys.stderr)
+        sys.exit(1)
 
 # Update uv.lock dependencies
 [group("maintenance")]
@@ -317,7 +335,7 @@ changelog ref="" target_ref="":
     # Print changelog
     short_base = base[:7]
     print("# Changelog\n")
-    print(f"Changes on `{target_ref}` since diverging from `{ref}` (merge-base: `{short_base}`).\n")
+    print(f"Changes on `{target_ref}` since the common ancestor with `{ref}` (`{short_base}`).\n")
     sections = [("Breaking Changes", "breaking"), ("Features", "features"), ("Fixes", "fixes"), ("Others", "others")]
     for title, key in sections:
         if categories[key]:
