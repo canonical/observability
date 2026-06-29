@@ -65,7 +65,7 @@ jobs:
           echo "release=$TAG" >> $GITHUB_OUTPUT
 
       - name: Checkout the rock source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: main
 
@@ -90,7 +90,7 @@ jobs:
 
       - name: Checkout application source for the Go version check
         if: inputs.check-go && steps.check.outputs.release != ''
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ inputs.source-repo }}
           ref: ${{ steps.check.outputs.release }}

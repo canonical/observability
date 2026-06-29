@@ -41,7 +41,7 @@ jobs:
       charms: ${{ steps.builder.outputs.charms }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Setup LXD
@@ -81,7 +81,7 @@ jobs:
       charms: ${{ steps.builder.outputs.charms }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Download Artifact
@@ -145,7 +145,7 @@ jobs:
         path: ${{ fromjson(needs.build.outputs.charms) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Select charmhub channel
@@ -183,7 +183,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Select charmhub channel
