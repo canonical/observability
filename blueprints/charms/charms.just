@@ -194,53 +194,66 @@ release charm_file channel:
 [group("release")]
 [arg("ref", help="Branch (or generic ref) from to get the changelog from")]
 changelog ref:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    # Sanitize the ref so that either a branch or a commit is valid
-    resolved="{{ ref }}"
-    if ! git rev-parse --verify "${resolved}" >/dev/null 2>&1; then
-        resolved="origin/{{ ref }}"
-    fi
-    # Find the merge-base 
-    base=$(git merge-base HEAD "${resolved}")
-    # Parse all commit messages into a "conventional commits" category
-    breaking=""
-    features=""
-    fixes=""
-    others=""
-    while IFS= read -r msg; do
-        if echo "${msg}" | grep -qE '^[a-z]+(\(.+\))?!:'; then
-            breaking="${breaking}- ${msg}"$'\n'
-        elif echo "${msg}" | grep -qE '^feat(\(.+\))?:'; then
-            features="${features}- ${msg}"$'\n'
-        elif echo "${msg}" | grep -qE '^fix(\(.+\))?:'; then
-            fixes="${fixes}- ${msg}"$'\n'
-        else
-            others="${others}- ${msg}"$'\n'
-        fi
-    done < <(git log --format=%s "${base}..HEAD")
-    # Print the commits in a Markdown changelog format
-    echo "# Changelog"
-    echo ""
-    if [ -n "${breaking}" ]; then
-        echo "## Breaking Changes"
-        echo ""
-        echo "${breaking}"
-    fi
-    if [ -n "${features}" ]; then
-        echo "## Features"
-        echo ""
-        echo "${features}"
-    fi
-    if [ -n "${fixes}" ]; then
-        echo "## Fixes"
-        echo ""
-        echo "${fixes}"
-    fi
-    if [ -n "${others}" ]; then
-        echo "## Others"
-        echo ""
-        echo "${others}"
-    fi
+    #!/usr/bin/env python3
+    import re
+    import subprocess
+
+    def git(*args):
+        return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout.strip()
+
+    # Get repo path from remote URL
+    remote_url = git("remote", "get-url", "origin")
+    match = re.search(r"github\.com[:/]([^/]+/[^/.]+)", remote_url)
+    repo_path = match.group(1) if match else ""
+
+    # Resolve ref
+    ref = "{{ ref }}"
+    try:
+        git("rev-parse", "--verify", ref)
+    except subprocess.CalledProcessError:
+        ref = f"origin/{ref}"
+
+    # Get merge-base and commits
+    base = git("merge-base", "HEAD", ref)
+    log_output = git("log", f"--format=%H\t%s", f"{base}..HEAD")
+
+    # Categorize commits
+    categories = {"breaking": [], "features": [], "fixes": [], "others": []}
+
+    for line in log_output.splitlines():
+        if not line:
+            continue
+        hash, msg = line.split("\t", 1)
+        short_hash = hash[:7]
+
+        # Format line with links
+        pr_match = re.search(r"\(#(\d+)\)", msg)
+        if pr_match and repo_path:
+            pr_num = pr_match.group(1)
+            formatted = f"- {msg.replace(f'(#{pr_num})', f'([#{pr_num}](https://github.com/{repo_path}/pull/{pr_num}))')}"
+        elif repo_path:
+            formatted = f"- {msg} ([{short_hash}](https://github.com/{repo_path}/commit/{hash}))"
+        else:
+            formatted = f"- {msg} ({short_hash})"
+
+        # Categorize
+        if re.match(r"^[a-z]+(\(.+\))?!:", msg):
+            categories["breaking"].append(formatted)
+        elif re.match(r"^feat(\(.+\))?:", msg):
+            categories["features"].append(formatted)
+        elif re.match(r"^fix(\(.+\))?:", msg):
+            categories["fixes"].append(formatted)
+        else:
+            categories["others"].append(formatted)
+
+    # Print changelog
+    print("# Changelog\n")
+    sections = [("Breaking Changes", "breaking"), ("Features", "features"), ("Fixes", "fixes"), ("Others", "others")]
+    for title, key in sections:
+        if categories[key]:
+            print(f"## {title}\n")
+            print("\n".join(categories[key]))
+            print()
+
 
 
