@@ -16,6 +16,49 @@ export PYTHONPATH := ".:./lib:./src"
 @name:
   echo "{{charm_name}}"
 
+# List all track branches in chronological order (oldest first)
+[group("info")]
+tracks:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    git branch -r --list 'origin/track/*' | while read -r branch; do
+        branch="${branch#origin/}"
+        branch="${branch// /}"
+        merge_base=$(git merge-base "origin/$branch" origin/main 2>/dev/null) || continue
+        first_commit=$(git rev-list --ancestry-path "$merge_base..origin/$branch" --reverse 2>/dev/null | head -1)
+        # If no commits after merge-base, use the merge-base itself
+        commit="${first_commit:-$merge_base}"
+        date=$(git log -1 --format='%at' "$commit")
+        echo "$date $branch"
+    done | sort -n | cut -d' ' -f2-
+
+# Get the previous track branch relative to the current branch
+[group("info")]
+previous-track:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    current=$(git rev-parse --abbrev-ref HEAD)
+    mapfile -t tracks < <(just tracks)
+    if [ ${#tracks[@]} -eq 0 ]; then
+        echo "No track branches found" >&2
+        exit 1
+    fi
+    if [ "$current" = "main" ]; then
+        echo "${tracks[-1]}"
+        exit 0
+    fi
+    for i in "${!tracks[@]}"; do
+        if [ "${tracks[$i]}" = "$current" ]; then
+            if [ "$i" -eq 0 ]; then
+                exit 0
+            fi
+            echo "${tracks[$((i - 1))]}"
+            exit 0
+        fi
+    done
+    echo "Cannot determine previous track from branch '$current'" >&2
+    echo "Specify ref explicitly: just changelog <ref>" >&2
+    exit 1
 
 # Update uv.lock dependencies
 [group("maintenance")]
@@ -190,30 +233,44 @@ release charm_file channel:
     charmcraft release "{{ charm_name }}" --revision="$charm_revision" --channel="{{ channel }}" $resource_args
     echo "✓ Released {{ charm_name }} revision $charm_revision to {{ channel }}"
 
-# Print all commits between two refs (defaults to current branch for target_ref)
+# Print all commits between two refs (auto-deduces refs when on main or track branches)
 [group("release")]
-[arg("ref", help="Branch (or generic ref) to get the changelog from")]
+[arg("ref", help="Branch (or generic ref) to compare from (defaults to previous track)")]
 [arg("target_ref", help="Branch (or generic ref) to compare to (defaults to current branch)")]
-changelog ref target_ref="":
+changelog ref="" target_ref="":
     #!/usr/bin/env python3
     import re
     import subprocess
+    import sys
 
     def git(*args):
         return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout.strip()
+
+    def just(*args):
+        result = subprocess.run(["just", *args], capture_output=True, text=True)
+        if result.returncode != 0:
+            print(result.stderr, file=sys.stderr, end="")
+            sys.exit(result.returncode)
+        return result.stdout.strip()
 
     # Get repo path from remote URL
     remote_url = git("remote", "get-url", "origin")
     match = re.search(r"github\.com[:/]([^/]+/[^/.]+)", remote_url)
     repo_path = match.group(1) if match else ""
 
-    # Resolve refs
+    # Resolve ref (auto-deduce if empty)
     ref = "{{ ref }}"
+    if not ref:
+        ref = just("previous-track")
+        if not ref:
+            print("No previous track to compare against", file=sys.stderr)
+            sys.exit(1)
     try:
         git("rev-parse", "--verify", ref)
     except subprocess.CalledProcessError:
         ref = f"origin/{ref}"
 
+    # Resolve target_ref (default to current branch)
     target_ref = "{{ target_ref }}" or git("rev-parse", "--abbrev-ref", "HEAD")
     try:
         git("rev-parse", "--verify", target_ref)
