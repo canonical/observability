@@ -64,6 +64,7 @@ list-charms:
     "polar-signals-cloud-integrator"
     "pyroscope-coordinator-k8s"
     "pyroscope-worker-k8s"
+    "sloth-k8s"
     "tempo-coordinator-k8s"
     "tempo-worker-k8s"
 
