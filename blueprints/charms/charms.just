@@ -224,6 +224,10 @@ changelog ref:
         if not line:
             continue
         hash, msg = line.split("\t", 1)
+
+        # Skip changelog update commits
+        if msg.startswith("chore(changelog)"):
+            continue
         short_hash = hash[:7]
 
         # Format line with links
