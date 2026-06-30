@@ -120,6 +120,7 @@ jobs:
       provider: "${{ inputs.provider }}"
       ip-range: ${{ inputs.ip-range }}
       charmcraft-channel: ${{ inputs.charmcraft-channel }}
+      python-version: ${{ inputs.python-version }}
       juju-channel: ${{ inputs.juju-channel }}
   codeql:
     name: CodeQL analysis
