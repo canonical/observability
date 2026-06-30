@@ -124,6 +124,7 @@ jobs:
             icon.svg
             .gitignore
             .github/**
+            CHANGELOG.md
 
       - name: Echo changed files
         id: echo-changes
