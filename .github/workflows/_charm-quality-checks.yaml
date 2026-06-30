@@ -121,6 +121,7 @@ jobs:
       ip-range: ${{ inputs.ip-range }}
       charmcraft-channel: ${{ inputs.charmcraft-channel }}
       juju-channel: ${{ inputs.juju-channel }}
+      python-version: ${{ inputs.python-version }}
   codeql:
     name: CodeQL analysis
     needs:
