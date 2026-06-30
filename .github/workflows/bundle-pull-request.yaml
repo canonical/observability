@@ -101,3 +101,4 @@ jobs:
       charm-path: "${{ inputs.bundle-path }}"
       provider: "${{ inputs.provider }}"
       ip-range: ${{ inputs.ip-range }}
+      python-version: ${{ inputs.python-version }}
