@@ -122,6 +122,7 @@ jobs:
       charmcraft-channel: ${{ inputs.charmcraft-channel }}
       python-version: ${{ inputs.python-version }}
       juju-channel: ${{ inputs.juju-channel }}
+      python-version: ${{ inputs.python-version }}
   codeql:
     name: CodeQL analysis
     needs:
