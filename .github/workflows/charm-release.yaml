@@ -83,6 +83,16 @@ on:
         default: ''
         required: false
         type: string
+      terraform-path:
+        description: |
+          Path to the Terraform module, relative to the repository root.
+          When empty (the default), this is derived as '<charm-path>/terraform'.
+          Set this explicitly for repos whose Terraform module does not live
+          under the charm directory (e.g. a root-level 'terraform/' while the
+          charm lives under 'charm/').
+        default: ''
+        required: false
+        type: string
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -269,5 +279,5 @@ jobs:
     with:
       terraform-tag-prefix: "${{ inputs.terraform-tag-prefix }}"
       terraform-tag-suffix: "${{ inputs.terraform-tag-suffix }}"
-      terraform-path: "${{ inputs.charm-path }}/terraform"
+      terraform-path: "${{ inputs.terraform-path != '' && inputs.terraform-path || format('{0}/terraform', inputs.charm-path) }}"
       track: "${{ inputs.track }}"
