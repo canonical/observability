@@ -16,6 +16,8 @@ on:
         description: |
           Json matrix of the runners to use to build and release the charm.
           Example: ["ubuntu-latest","Ubuntu_ARM64_4C_16G_03"]
+          Ignored when `pack-using-remote-build` is true; in that case the
+          matrix is derived from `.platforms` in `charmcraft.yaml`.
         type: string
         required: false
         default: '["ubuntu-latest"]'
@@ -44,12 +46,52 @@ on:
         required: true
 
 jobs:
+  define-matrix:
+    name: Define build matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.build-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install dependencies
+        run: sudo snap install yq
+      - name: Define build matrix
+        id: build-matrix
+        env:
+          CHARM_PATH: ${{ inputs.charm-path }}
+          PACK_REMOTE: ${{ inputs.pack-using-remote-build }}
+          RUNNERS: ${{ inputs.runners }}
+        run: |
+          if [[ "$PACK_REMOTE" == "true" ]]; then
+            # Fan out one matrix leg per `platforms:` entry in charmcraft.yaml,
+            # all on ubuntu-latest (the actual build happens on Launchpad).
+            # `charmcraft` has no --build-for flag, so each leg later strips
+            # charmcraft.yaml down to just its `platform` before packing.
+            matrix="$(
+              yq -o=json -I=0 '.platforms | keys' "$CHARM_PATH/charmcraft.yaml" \
+                | jq -c '{"include": map({"runner": "ubuntu-latest", "platform": .})}'
+            )"
+          else
+            # Local build: preserve the previous behavior of one leg per
+            # caller-supplied runner, with no per-platform filtering.
+            matrix="$(echo "$RUNNERS" | jq -c '{"include": map({"runner": ., "platform": ""})}')"
+          fi
+          echo "matrix=$matrix"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
   build:
-    name: Release the charm
+    name: Release the charm${{ matrix.platform && format(' ({0})', matrix.platform) || '' }}
+    needs: [define-matrix]
     runs-on: ${{ matrix.runner }}
     strategy:
-      matrix:
-        runner: ${{ fromJSON(inputs.runners) }}
+      fail-fast: false
+      # Launchpad remote-build uses a shared git repo per charm, so parallel
+      # builds for different architectures race and fail. Serialize when
+      # remote-building; local builds fan out across distinct runners so the
+      # high cap is effectively "no limit".
+      max-parallel: ${{ inputs.pack-using-remote-build && 1 || 256 }}
+      matrix: ${{ fromJSON(needs.define-matrix.outputs.matrix) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -75,6 +117,7 @@ jobs:
           # Install other snaps
           sudo snap install charmcraft --classic --channel="$CHARMCRAFT_CHANNEL"
           sudo snap install astral-uv --classic
+          sudo snap install yq
       - name: Get charm name
         id: get-charm-name
         run: |
@@ -105,13 +148,16 @@ jobs:
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
           LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
+          PLATFORM: ${{ matrix.platform }}
         run: |
           cd "${{ inputs.charm-path }}"
           # Set up Launchpad credentials for remote-build
           mkdir -p ~/.local/share/charmcraft
           printf '%s\n' "${LAUNCHPAD_TOKEN}" > ~/.local/share/charmcraft/launchpad-credentials
           chmod 600 ~/.local/share/charmcraft/launchpad-credentials
-          # Use charmcraft remote-build for all platforms
+          # `charmcraft` has no --build-for flag, so strip charmcraft.yaml down
+          # to just this matrix leg's platform before packing.
+          yq -i '.platforms |= with_entries(select(.key == strenv(PLATFORM)))' charmcraft.yaml
           charmcraft remote-build --launchpad-accept-public-upload
           # Set output with list of built charms
           charms="$(basename -a ./*.charm | jq -R -s -c 'split("\n")[:-1]')"
@@ -120,7 +166,10 @@ jobs:
       - name: Store charm(s)
         uses: actions/upload-artifact@v4
         with:
-          name: charms-${{ runner.arch }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          # For local builds keep the historic `runner.arch` suffix; for remote
+          # builds use `matrix.platform` so parallel legs (all on ubuntu-latest)
+          # don't overwrite each other's artifact.
+          name: charms-${{ matrix.platform || runner.arch }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           path: ${{ inputs.charm-path }}/*.charm
       - name: Release charm to Charmhub and GitHub
         id: upload

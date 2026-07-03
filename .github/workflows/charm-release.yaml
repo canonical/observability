@@ -93,7 +93,11 @@ on:
 
 
 concurrency:
-  group: release${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+  # Include the branch name (github.ref_name) so releases for `main` and each
+  # `track/*` branch have distinct groups: consecutive merges to the SAME
+  # branch still cancel each other, but a merge to `main` never cancels a
+  # concurrent release on a track branch (or vice versa).
+  group: release-${{ github.ref_name }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
   cancel-in-progress: true
 
 jobs:
