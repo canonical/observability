@@ -196,7 +196,7 @@ jobs:
       - name: Install charmcraft
         run: sudo snap install charmcraft --classic --channel=${{ inputs.charmcraft-channel }}
       - name: Cache wheels
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /home/runner/snap/charmcraft/common/cache/charmcraft
           key: ${{ runner.os }}-wheel-cache-${{ hashFiles('./uv.lock') }}
@@ -210,7 +210,7 @@ jobs:
           cd "${{ inputs.charm-path }}"
           charmcraft pack -v
       - name: Upload charm artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ steps.artifact-name.outputs.name }}
           path: ${{ inputs.charm-path }}/*.charm
@@ -250,7 +250,7 @@ jobs:
               ;;
           esac
       - name: Download charm artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ needs.pack-charm.outputs.artifact-name }}
           path: ${{ inputs.charm-path }}
@@ -343,7 +343,7 @@ jobs:
           sudo docker image prune --all --force
           sudo docker builder prune -a
       - name: Download charm artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ needs.pack-charm.outputs.artifact-name }}
           path: ${{ inputs.charm-path }}

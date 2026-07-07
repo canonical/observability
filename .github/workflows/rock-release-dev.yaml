@@ -59,12 +59,12 @@ jobs:
         just sbom
         echo rock_name="$(just name)" >> "$GITHUB_OUTPUT"
     - name: Upload SBOM
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ steps.create-sbom.outputs.rock_name }}-rock-sbom
         path: "${{ inputs.rock-path }}/${{ steps.build-and-release.outputs.latest_version }}/rock.sbom.json"
     - name: Upload locally built rock artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: dev.rock
         path: "${{ inputs.rock-path }}/${{ steps.build-and-release.outputs.latest_version }}/*.rock"

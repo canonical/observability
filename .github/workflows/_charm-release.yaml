@@ -126,7 +126,7 @@ jobs:
           charm_name=$(yq .name metadata.yaml 2>/dev/null || yq .name charmcraft.yaml)
           echo "charm_name=$charm_name" >> "$GITHUB_OUTPUT"
       - name: Cache wheels
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /home/runner/snap/charmcraft/common/cache/charmcraft
           key: ${{ runner.os }}-wheel-cache-${{ hashFiles('./uv.lock') }}
@@ -163,13 +163,33 @@ jobs:
           charms="$(basename -a ./*.charm | jq -R -s -c 'split("\n")[:-1]')"
           echo "charms=$charms"
           echo "charms=$charms" >> "$GITHUB_OUTPUT"
+      - name: Compute artifact name
+        id: artifact-name
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          RUNNER_ARCH: ${{ runner.arch }}
+        run: |
+          # GitHub artifact names cannot contain any of :"/\<>|*? (NTFS-unsafe).
+          # For remote-build legs the matrix carries the charmcraft platform key
+          # (e.g. `ubuntu@20.04:amd64`), which contains a forbidden `:`. Replace
+          # every forbidden character with `-` so the artifact upload succeeds
+          # while still keeping the platform identifiable in the artifact name.
+          if [[ -n "$PLATFORM" ]]; then
+            suffix="$(printf '%s' "$PLATFORM" | tr ':"/\\<>|*?' '-')"
+          else
+            suffix="$RUNNER_ARCH"
+          fi
+          echo "suffix=$suffix"
+          echo "suffix=$suffix" >> "$GITHUB_OUTPUT"
       - name: Store charm(s)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           # For local builds keep the historic `runner.arch` suffix; for remote
           # builds use `matrix.platform` so parallel legs (all on ubuntu-latest)
-          # don't overwrite each other's artifact.
-          name: charms-${{ matrix.platform || runner.arch }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          # don't overwrite each other's artifact. GitHub artifact names cannot
+          # contain `:` (and a few other chars), so `matrix.platform` values
+          # like `ubuntu@20.04:amd64` are sanitized in `Compute artifact name`.
+          name: charms-${{ steps.artifact-name.outputs.suffix }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
           path: ${{ inputs.charm-path }}/*.charm
       - name: Release charm to Charmhub and GitHub
         id: upload
