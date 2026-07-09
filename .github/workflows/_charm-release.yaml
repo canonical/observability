@@ -168,6 +168,7 @@ jobs:
         env:
           PLATFORM: ${{ matrix.platform }}
           RUNNER_ARCH: ${{ runner.arch }}
+          CHARM_PATH: ${{ inputs.charm-path }}
         run: |
           # GitHub artifact names cannot contain any of :"/\<>|*? (NTFS-unsafe).
           # For remote-build legs the matrix carries the charmcraft platform key
@@ -181,6 +182,15 @@ jobs:
           fi
           echo "suffix=$suffix"
           echo "suffix=$suffix" >> "$GITHUB_OUTPUT"
+          # Sanitize charm-path for use in the artifact name (slashes are
+          # forbidden in artifact names).
+          if [[ -n "$CHARM_PATH" && "$CHARM_PATH" != "." ]]; then
+            sanitized_path="$(printf '%s' "$CHARM_PATH" | tr '/' '-')"
+          else
+            sanitized_path=""
+          fi
+          echo "charm-path=$sanitized_path"
+          echo "charm-path=$sanitized_path" >> "$GITHUB_OUTPUT"
       - name: Store charm(s)
         uses: actions/upload-artifact@v6
         with:
@@ -189,7 +199,7 @@ jobs:
           # don't overwrite each other's artifact. GitHub artifact names cannot
           # contain `:` (and a few other chars), so `matrix.platform` values
           # like `ubuntu@20.04:amd64` are sanitized in `Compute artifact name`.
-          name: charms-${{ steps.artifact-name.outputs.suffix }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
+          name: charms-${{ steps.artifact-name.outputs.suffix }}${{ steps.artifact-name.outputs.charm-path && format('-{0}', steps.artifact-name.outputs.charm-path) || '' }}
           path: ${{ inputs.charm-path }}/*.charm
       - name: Release charm to Charmhub and GitHub
         id: upload
