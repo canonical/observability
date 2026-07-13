@@ -249,6 +249,22 @@ jobs:
               sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=90s
               ;;
           esac
+      - name: Patch MetalLB speaker RBAC (microk8s-core-addons RBAC/version-skew workaround)
+        # The microk8s metallb addon's bundled RBAC is generated from an older
+        # upstream MetalLB manifest than the image tag it deploys, so the
+        # speaker ClusterRole is missing permissions on newer CRDs
+        # (configurationstates, servicebgpstatuses) that the speaker binary
+        # watches on startup. Without this, speaker CrashLoopBackOffs via a
+        # cache-sync timeout, preventing any LoadBalancer Service from getting
+        # an external IP. Remove once fixed upstream:
+        # https://github.com/canonical/microk8s-core-addons/issues/405
+        if: ${{ inputs.provider == 'microk8s' }}
+        run: |
+          kubectl patch clusterrole metallb-system:speaker --type=json -p='[
+            {"op":"add","path":"/rules/-","value":{"apiGroups":["metallb.io"],"resources":["configurationstates"],"verbs":["get","list","watch"]}},
+            {"op":"add","path":"/rules/-","value":{"apiGroups":["metallb.io"],"resources":["servicebgpstatuses"],"verbs":["get","list","watch"]}}
+          ]'
+          kubectl rollout status daemonset/speaker -n metallb-system --timeout=60s
       - name: Download charm artifact
         uses: actions/download-artifact@v7
         with:
@@ -323,6 +339,22 @@ jobs:
               sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=90s
               ;;
           esac
+      - name: Patch MetalLB speaker RBAC (microk8s-core-addons RBAC/version-skew workaround)
+        # The microk8s metallb addon's bundled RBAC is generated from an older
+        # upstream MetalLB manifest than the image tag it deploys, so the
+        # speaker ClusterRole is missing permissions on newer CRDs
+        # (configurationstates, servicebgpstatuses) that the speaker binary
+        # watches on startup. Without this, speaker CrashLoopBackOffs via a
+        # cache-sync timeout, preventing any LoadBalancer Service from getting
+        # an external IP. Remove once fixed upstream:
+        # https://github.com/canonical/microk8s-core-addons/issues/405
+        if: ${{ inputs.provider == 'microk8s' }}
+        run: |
+          kubectl patch clusterrole metallb-system:speaker --type=json -p='[
+            {"op":"add","path":"/rules/-","value":{"apiGroups":["metallb.io"],"resources":["configurationstates"],"verbs":["get","list","watch"]}},
+            {"op":"add","path":"/rules/-","value":{"apiGroups":["metallb.io"],"resources":["servicebgpstatuses"],"verbs":["get","list","watch"]}}
+          ]'
+          kubectl rollout status daemonset/speaker -n metallb-system --timeout=60s
       # FIXME: Remove the below step when runners are configurable. See https://github.com/canonical/observability/issues/408.
       - name: Clean worker caches
         run: |
