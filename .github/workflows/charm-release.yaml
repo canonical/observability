@@ -195,7 +195,7 @@ jobs:
 
   quality-checks:
     name: Quality Checks
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v2
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@metallb-fix
     needs: [define-matrix]
     secrets: inherit
     with:
