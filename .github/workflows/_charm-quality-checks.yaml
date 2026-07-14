@@ -249,6 +249,34 @@ jobs:
               sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=90s
               ;;
           esac
+      - name: Patch MetalLB RBAC (microk8s-core-addons RBAC/version-skew workaround)
+        # The microk8s metallb addon's bundled RBAC is generated from an older
+        # upstream MetalLB manifest than the image tag it deploys, so both the
+        # controller and speaker ClusterRoles are missing permissions on newer
+        # CRDs (configurationstates, servicebgpstatuses). Without this, the
+        # controller cannot assign IPs (missing configurationstates informer)
+        # and the speaker CrashLoopBackOffs via cache-sync timeout. Remove
+        # once fixed upstream:
+        # https://github.com/canonical/microk8s-core-addons/issues/405
+        if: ${{ inputs.provider == 'microk8s' }}
+        run: |
+          # Patch controller ClusterRole — needs configurationstates to start
+          # its informer cache and assign IPs to LoadBalancer Services
+          kubectl patch clusterrole metallb-system:controller --type=json -p='[
+            {"op":"add","path":"/rules/-","value":{"apiGroups":["metallb.io"],"resources":["configurationstates"],"verbs":["create","delete","get","list","patch","update","watch"]}},
+            {"op":"add","path":"/rules/-","value":{"apiGroups":["metallb.io"],"resources":["configurationstates/status"],"verbs":["get","patch","update"]}}
+          ]'
+          # Patch speaker ClusterRole — needs configurationstates and
+          # servicebgpstatuses to sync its cache on startup
+          kubectl patch clusterrole metallb-system:speaker --type=json -p='[
+            {"op":"add","path":"/rules/-","value":{"apiGroups":["metallb.io"],"resources":["configurationstates","configurationstates/status"],"verbs":["*"]}},
+            {"op":"add","path":"/rules/-","value":{"apiGroups":["metallb.io"],"resources":["servicebgpstatuses"],"verbs":["get","list","watch"]}}
+          ]'
+          # Restart both components so they pick up the new permissions
+          kubectl rollout restart deployment/controller -n metallb-system
+          kubectl rollout restart daemonset/speaker -n metallb-system
+          kubectl rollout status deployment/controller -n metallb-system --timeout=90s
+          kubectl rollout status daemonset/speaker -n metallb-system --timeout=90s
       - name: Download charm artifact
         uses: actions/download-artifact@v7
         with:
@@ -323,6 +351,34 @@ jobs:
               sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=90s
               ;;
           esac
+      - name: Patch MetalLB RBAC (microk8s-core-addons RBAC/version-skew workaround)
+        # The microk8s metallb addon's bundled RBAC is generated from an older
+        # upstream MetalLB manifest than the image tag it deploys, so both the
+        # controller and speaker ClusterRoles are missing permissions on newer
+        # CRDs (configurationstates, servicebgpstatuses). Without this, the
+        # controller cannot assign IPs (missing configurationstates informer)
+        # and the speaker CrashLoopBackOffs via cache-sync timeout. Remove
+        # once fixed upstream:
+        # https://github.com/canonical/microk8s-core-addons/issues/405
+        if: ${{ inputs.provider == 'microk8s' }}
+        run: |
+          # Patch controller ClusterRole — needs configurationstates to start
+          # its informer cache and assign IPs to LoadBalancer Services
+          kubectl patch clusterrole metallb-system:controller --type=json -p='[
+            {"op":"add","path":"/rules/-","value":{"apiGroups":["metallb.io"],"resources":["configurationstates"],"verbs":["create","delete","get","list","patch","update","watch"]}},
+            {"op":"add","path":"/rules/-","value":{"apiGroups":["metallb.io"],"resources":["configurationstates/status"],"verbs":["get","patch","update"]}}
+          ]'
+          # Patch speaker ClusterRole — needs configurationstates and
+          # servicebgpstatuses to sync its cache on startup
+          kubectl patch clusterrole metallb-system:speaker --type=json -p='[
+            {"op":"add","path":"/rules/-","value":{"apiGroups":["metallb.io"],"resources":["configurationstates","configurationstates/status"],"verbs":["*"]}},
+            {"op":"add","path":"/rules/-","value":{"apiGroups":["metallb.io"],"resources":["servicebgpstatuses"],"verbs":["get","list","watch"]}}
+          ]'
+          # Restart both components so they pick up the new permissions
+          kubectl rollout restart deployment/controller -n metallb-system
+          kubectl rollout restart daemonset/speaker -n metallb-system
+          kubectl rollout status deployment/controller -n metallb-system --timeout=90s
+          kubectl rollout status daemonset/speaker -n metallb-system --timeout=90s
       # FIXME: Remove the below step when runners are configurable. See https://github.com/canonical/observability/issues/408.
       - name: Clean worker caches
         run: |
