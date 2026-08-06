@@ -129,16 +129,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Install dependencies
+        run: |
+          sudo snap install just --classic
+          sudo snap install terraform --classic
+          sudo snap install terraform-docs
       - name: Install Terraform and validate modules
         env:
           CHARM_PATH: "${{ inputs.charm-path }}"
         run: |
-          sudo snap install opentofu --classic
-          tofu fmt -check -recursive -diff
+          cd "$CHARM_PATH"
           if [ -d "$CHARM_PATH/terraform" ]; then
-            cd "$CHARM_PATH/terraform"
-            tofu init
-            tofu validate
+            just terraform-lint
           else
             echo "Terraform directory ($CHARM_PATH/terraform) does not exist. Skipping validation."
           fi
@@ -147,8 +149,7 @@ jobs:
           CHARM_PATH: "${{ inputs.charm-path }}"
         run: |
           if [ -d "$CHARM_PATH/terraform" ]; then
-            sudo snap install terraform-docs --classic
-            terraform-docs --config "$CHARM_PATH/.tfdocs.yaml" "$CHARM_PATH/terraform"
+            just terraform-docs
             git diff --exit-code "$CHARM_PATH/terraform" || {
               echo "::error::Terraform docs are out of date. Run 'just terraform-docs' and commit."
               exit 1
