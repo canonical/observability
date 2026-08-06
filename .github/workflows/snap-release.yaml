@@ -32,6 +32,7 @@ jobs:
         uses: actions/checkout@v6
       - name: Find snapcraft.yaml changes
         id: changed-files
+        if: github.event_name != 'workflow_dispatch'
         uses: tj-actions/changed-files@v47
         with:
           path: ${{ inputs.snap-path }}
@@ -39,15 +40,27 @@ jobs:
       - name: Build release matrix from changed versions and platforms
         id: build-matrix
         run: |
-          if [[ -z "$CHANGED_FILES" ]]; then
+          snap_path="${{ inputs.snap-path }}"
+          # On manual dispatch, release every version regardless of changes.
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "Manual dispatch detected, releasing all versions"
+            FILES=""
+            for snapcraft_file in "${snap_path%/}"/*/snap/snapcraft.yaml; do
+              [[ -f "$snapcraft_file" ]] || continue
+              FILES+="${snapcraft_file#"${snap_path%/}"/}"$'\n'
+            done
+          else
+            FILES="$CHANGED_FILES"
+          fi
+
+          if [[ -z "${FILES//[[:space:]]/}" ]]; then
             echo "matrix={\"include\":[]}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           matrix='{"include":[]}'
-          for file in $CHANGED_FILES; do
+          for file in $FILES; do
             # Extract the version folder (e.g. "1.2" from "1.2/snap/snapcraft.yaml")
             version="${file%%/snap/snapcraft.yaml}"
-            snap_path="${{ inputs.snap-path }}"
             snapcraft_file="${snap_path%/}/$file"
             # Parse platforms from the snapcraft.yaml
             platforms="$(yq -r '.platforms | keys | .[]' "$snapcraft_file")"
