@@ -1,5 +1,5 @@
-# run secscan using the sbomber tool on all our charms
-# this manifest is used in `.github/workflows/charm-sbom.yaml`
+# run sbom using the sbomber tool on all our charms
+# this manifest is used in `.github/workflows/ssdlc-scanning.yaml`
 
 clients:
   sbom:
@@ -9,108 +9,108 @@ clients:
 
 artifacts:
   - name: alertmanager-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: 0.31/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: alertmanager-k8s
     channel: dev/edge
-    base: ubuntu@24.04
+    base: ubuntu@26.04
     type: charm
 
   - name: avalanche-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: 0.7/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: avalanche-k8s
     channel: dev/edge
+    base: ubuntu@26.04
+    type: charm
+
+  - name: blackbox-exporter
+    channel: 0.28/edge
     base: ubuntu@24.04
     type: charm
 
   - name: blackbox-exporter
-    channel: latest/edge
-    base: ubuntu@22.04
+    channel: dev/edge
+    base: ubuntu@24.04
     type: charm
 
   - name: blackbox-exporter-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
+    channel: 0.28/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: blackbox-exporter-k8s
     channel: dev/edge
-    base: ubuntu@22.04
+    base: ubuntu@26.04
     type: charm
 
   - name: catalogue-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: 3.0/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: catalogue-k8s
     channel: dev/edge
-    base: ubuntu@24.04
+    base: ubuntu@26.04
     type: charm
 
   - name: cos-configuration-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: 3.0/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: cos-configuration-k8s
     channel: dev/edge
+    base: ubuntu@26.04
+    type: charm
+
+  - name: cos-proxy
+    channel: 3.0/edge
     base: ubuntu@24.04
     type: charm
 
   - name: cos-proxy
-    channel: 2/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: cos-proxy
     channel: dev/edge
-    base: ubuntu@22.04
+    base: ubuntu@24.04
     type: charm
 
   - name: grafana-agent
-    channel: 2/edge
-    base: ubuntu@22.04
+    channel: 0.44/edge
+    base: ubuntu@24.04
     type: charm
 
   - name: grafana-agent
     channel: dev/edge
-    base: ubuntu@22.04
+    base: ubuntu@24.04
     type: charm
 
   - name: grafana-agent-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
+    channel: 0.40/edge
+    base: ubuntu@24.04
     type: charm
 
   - name: grafana-agent-k8s
     channel: dev/edge
-    base: ubuntu@22.04
+    base: ubuntu@24.04
     type: charm
 
   - name: grafana-cloud-integrator
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: 3.0/edge
+    base: ubuntu@22.04
     type: charm
 
   - name: grafana-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: 12.4/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: grafana-k8s
     channel: dev/edge
-    base: ubuntu@24.04
-    type: charm
-
-  - name: istio-beacon-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
+    base: ubuntu@26.04
     type: charm
 
   - name: istio-beacon-k8s
@@ -119,17 +119,7 @@ artifacts:
     type: charm
 
   - name: istio-ingress-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
-    type: charm
-
-  - name: istio-ingress-k8s
     channel: dev/edge
-    base: ubuntu@24.04
-    type: charm
-
-  - name: istio-k8s
-    channel: 2/edge
     base: ubuntu@24.04
     type: charm
 
@@ -139,23 +129,23 @@ artifacts:
     type: charm
 
   - name: kiali-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: latest/edge
+    base: ubuntu@22.04
     type: charm
 
   - name: litmus-auth-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: 3.29/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: litmus-auth-k8s
     channel: dev/edge
-    base: ubuntu@24.04
+    base: ubuntu@26.04
     type: charm
 
   - name: litmus-backend-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: 3.29/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: litmus-backend-k8s
@@ -164,13 +154,13 @@ artifacts:
     type: charm
 
   - name: litmus-chaoscenter-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: 3.29/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: litmus-chaoscenter-k8s
     channel: dev/edge
-    base: ubuntu@24.04
+    base: ubuntu@26.04
     type: charm
 
   - name: litmus-infrastructure-k8s
@@ -179,78 +169,83 @@ artifacts:
     type: charm
 
   - name: loki-coordinator-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: 3.7/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: loki-coordinator-k8s
     channel: dev/edge
-    base: ubuntu@24.04
+    base: ubuntu@26.04
     type: charm
 
   - name: loki-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: 3.7/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: loki-k8s
     channel: dev/edge
+    base: ubuntu@26.04
+    type: charm
+
+  - name: loki-worker-k8s
+    channel: 3.7/edge
+    base: ubuntu@26.04
+    type: charm
+
+  - name: loki-worker-k8s
+    channel: dev/edge
+    base: ubuntu@26.04
+    type: charm
+
+  - name: mimir-coordinator-k8s
+    channel: 2.17/edge
+    base: ubuntu@26.04
+    type: charm
+
+  - name: mimir-coordinator-k8s
+    channel: dev/edge
+    base: ubuntu@26.04
+    type: charm
+
+  - name: mimir-worker-k8s
+    channel: 2.17/edge
+    base: ubuntu@26.04
+    type: charm
+
+  - name: mimir-worker-k8s
+    channel: dev/edge
+    base: ubuntu@26.04
+    type: charm
+
+  - name: opentelemetry-collector
+    channel: 0.130/edge
     base: ubuntu@24.04
-    type: charm
-
-  - name: loki-worker-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: loki-worker-k8s
-    channel: dev/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: mimir-coordinator-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: mimir-coordinator-k8s
-    channel: dev/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: mimir-worker-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: mimir-worker-k8s
-    channel: dev/edge
-    base: ubuntu@22.04
     type: charm
 
   - name: opentelemetry-collector
     channel: dev/edge
-    base: ubuntu@24.04
-    type: charm
-
-  - name: opentelemetry-collector
-    channel: 2/edge
     base: ubuntu@24.04
     type: charm
 
   - name: opentelemetry-collector-integrator
-    channel: latest/edge
-    base: ubuntu@24.04
+    channel: 3.0/edge
+    base: ubuntu@26.04
+    type: charm
+
+  - name: opentelemetry-collector-integrator
+    channel: dev/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: opentelemetry-collector-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: 0.130/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: opentelemetry-collector-k8s
     channel: dev/edge
-    base: ubuntu@24.04
+    base: ubuntu@26.04
     type: charm
 
   - name: otel-ebpf-profiler
@@ -259,23 +254,27 @@ artifacts:
     type: charm
 
   - name: parca-agent
-    channel: 2/edge
+    channel: 0.35/edge
+    base: ubuntu@24.04
     type: charm
 
   - name: parca-agent
     channel: dev/edge
+    base: ubuntu@22.04
     type: charm
 
   - name: parca-k8s
-    channel: 2/edge
+    channel: 0.27/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: parca-k8s
     channel: dev/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: parca-scrape-target
-    channel: 2/edge
+    channel: 3.0/edge
     base: ubuntu@24.04
     type: charm
 
@@ -285,83 +284,83 @@ artifacts:
     type: charm
 
   - name: polar-signals-cloud-integrator
-    channel: 2/edge
-    base: ubuntu@22.04
+    channel: 3.0/edge
+    base: ubuntu@24.04
     type: charm
 
   - name: polar-signals-cloud-integrator
     channel: dev/edge
-    base: ubuntu@22.04
-    type: charm
-
-  - name: prometheus-k8s
-    channel: 2/edge
     base: ubuntu@24.04
     type: charm
 
   - name: prometheus-k8s
+    channel: 3.11/edge
+    base: ubuntu@26.04
+    type: charm
+
+  - name: prometheus-k8s
     channel: dev/edge
-    base: ubuntu@24.04
+    base: ubuntu@26.04
     type: charm
 
   - name: prometheus-pushgateway-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
+    channel: 1.11/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: prometheus-pushgateway-k8s
     channel: dev/edge
-    base: ubuntu@22.04
+    base: ubuntu@26.04
     type: charm
 
   - name: prometheus-scrape-config-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: 3.0/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: prometheus-scrape-config-k8s
     channel: dev/edge
-    base: ubuntu@24.04
+    base: ubuntu@26.04
     type: charm
 
   - name: prometheus-scrape-target-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: 3.0/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: prometheus-scrape-target-k8s
     channel: dev/edge
-    base: ubuntu@24.04
+    base: ubuntu@26.04
     type: charm
 
   - name: pyroscope-coordinator-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: 1.18/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: pyroscope-coordinator-k8s
     channel: dev/edge
-    base: ubuntu@24.04
+    base: ubuntu@26.04
     type: charm
 
   - name: pyroscope-worker-k8s
-    channel: 2/edge
-    base: ubuntu@24.04
+    channel: 1.18/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: pyroscope-worker-k8s
     channel: dev/edge
-    base: ubuntu@24.04
+    base: ubuntu@26.04
     type: charm
 
   - name: script-exporter
-    channel: 2/edge
-    base: ubuntu@22.04
+    channel: 3.2/edge
+    base: ubuntu@20.04
     type: charm
 
   - name: script-exporter
     channel: dev/edge
-    base: ubuntu@22.04
+    base: ubuntu@20.04
     type: charm
 
   - name: sloth-k8s
@@ -370,31 +369,31 @@ artifacts:
     type: charm
 
   - name: snmp-exporter
-    channel: 2/edge
-    base: ubuntu@22.04
+    channel: 0.24/edge
+    base: ubuntu@24.04
     type: charm
 
   - name: snmp-exporter
     channel: dev/edge
-    base: ubuntu@22.04
+    base: ubuntu@24.04
     type: charm
 
   - name: tempo-coordinator-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
+    channel: 2.10/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: tempo-coordinator-k8s
     channel: dev/edge
-    base: ubuntu@22.04
+    base: ubuntu@26.04
     type: charm
 
   - name: tempo-worker-k8s
-    channel: 2/edge
-    base: ubuntu@22.04
+    channel: 2.10/edge
+    base: ubuntu@26.04
     type: charm
 
   - name: tempo-worker-k8s
     channel: dev/edge
-    base: ubuntu@22.04
+    base: ubuntu@26.04
     type: charm
