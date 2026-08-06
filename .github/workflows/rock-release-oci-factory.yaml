@@ -35,7 +35,6 @@ jobs:
       - name: Checkout the rock repository
         uses: actions/checkout@v6
         with:
-          path: ${{ inputs.rock-path }}
           fetch-depth: 2 # Needed to check modified files
       - name: Find rockcraft.yaml changes
         id: changed-files
@@ -85,6 +84,7 @@ jobs:
         env:
           versions: ${{ steps.changed-versions.outputs.versions }}
         run: |
+          cd "${{ inputs.rock-path }}"
           for version in $versions; do
             just pack "$version"
           done
@@ -94,6 +94,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
           versions: ${{ steps.changed-versions.outputs.versions }}
         run: |
+          cd "${{ inputs.rock-path }}"
           for version in $versions; do
             echo "Releasing version $version to OCI Factory on track ${{ inputs.risk-track }}"
             just release-oci-factory "$version" ${{ inputs.rock-support }} ${{ inputs.risk-track }}
