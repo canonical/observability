@@ -101,13 +101,17 @@ jobs:
         env:
           CONCIERGE_CHARMCRAFT_CHANNEL: ${{ inputs.charmcraft-channel }}
           CONCIERGE_EXTRA_SNAPS: "astral-uv,yq"
+          # Pin LXD to latest/stable so runners already tracking an older
+          # channel (e.g. 5.21/stable) actually move to a version that can pack
+          # newer bases. The 26.04 buildd base needs the systemd-resolved-in-
+          # container fix, which only landed in LXD 6.x (latest), not 5.21.
+          CONCIERGE_LXD_CHANNEL: latest/stable
         run: |
           # Use concierge (crafts preset) to set up LXD and charmcraft. The
           # crafts preset installs lxd + charmcraft without bootstrapping juju,
-          # which the release job never uses. It also refreshes LXD to a version
-          # that can pack newer bases (e.g. the 26.04 buildd base that needs the
-          # systemd-resolved-in-container fix from LXD 6.9), which a plain
-          # `snap install lxd` no-ops on runners that already have an older LXD.
+          # which the release job never uses. concierge refreshes an already-
+          # installed LXD (a plain `snap install lxd` no-ops), and the pinned
+          # channel above ensures the refresh crosses over to a fixed version.
           sudo snap install concierge --classic
           sudo -E concierge prepare -p crafts
       - name: Get charm name
