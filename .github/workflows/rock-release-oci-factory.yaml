@@ -1,7 +1,7 @@
 name: Open a PR to OCI Factory when a new rock is merged to main
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}${{ (inputs.rock-path && inputs.rock-path != '.') && format('-{0}', inputs.rock-path) || '' }}
   cancel-in-progress: true
 
 on:
