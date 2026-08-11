@@ -73,6 +73,16 @@ on:
         default: false
         required: false
         type: boolean
+      pack-using-self-hosted-runners:
+        description: |
+          When packing the charm for release, fan out one native build per
+          architecture onto self-hosted runners (GitHub-hosted for amd64,
+          the Ubuntu_ARM64 runner for arm64, and self-hosted runners for
+          s390x/ppc64el). Each leg packs all Ubuntu bases present in
+          `charmcraft.yaml` for its architecture.
+        default: false
+        required: false
+        type: boolean
       terraform-tag-prefix:
         description: "Tag prefix to use for the Terraform release tag."
         default: 'tf-'
@@ -161,8 +171,10 @@ jobs:
         run: |
           cd "${{ inputs.charm-path }}"
 
-          if [ "${{ inputs.pack-using-remote-build }}" = "true" ]; then
-            # If using remote build, just use ubuntu-latest
+          if [ "${{ inputs.pack-using-remote-build }}" = "true" ] || [ "${{ inputs.pack-using-self-hosted-runners }}" = "true" ]; then
+            # Remote-build and self-hosted per-arch builds derive their own
+            # matrix from charmcraft.yaml inside _charm-release.yaml, so the
+            # runners list here is unused; emit a harmless placeholder.
             runners='["ubuntu-latest"]'
           else
             # Normal logic: get runners from charmcraft.yaml
@@ -195,7 +207,7 @@ jobs:
 
   quality-checks:
     name: Quality Checks
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v2
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@feat/self-hosted-runners
     needs: [define-matrix]
     secrets: inherit
     with:
@@ -212,7 +224,7 @@ jobs:
     needs:
       - define-matrix
       - quality-checks
-    uses: canonical/observability/.github/workflows/_charm-release.yaml@v2
+    uses: canonical/observability/.github/workflows/_charm-release.yaml@feat/self-hosted-runners
     secrets:
       CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
       LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
@@ -224,6 +236,7 @@ jobs:
       charmcraft-channel: "${{ inputs.charmcraft-channel }}"
       git-tag-prefix: "${{ inputs.git-tag-prefix }}"
       pack-using-remote-build: ${{ inputs.pack-using-remote-build }}
+      pack-using-self-hosted-runners: ${{ inputs.pack-using-self-hosted-runners }}
       
   release-libs:
     name: Release any bumped charm library
@@ -267,7 +280,7 @@ jobs:
     needs:
       - release-charm
     if: inputs.track != '' || (github.ref_name != 'main' && startsWith(github.ref_name, 'track/'))
-    uses: canonical/observability/.github/workflows/terraform-release.yaml@v2
+    uses: canonical/observability/.github/workflows/terraform-release.yaml@feat/self-hosted-runners
     secrets:
       OBSERVABILITY_NOCTUA_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
     with:
