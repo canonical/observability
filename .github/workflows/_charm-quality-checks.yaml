@@ -139,7 +139,7 @@ jobs:
           CHARM_PATH: "${{ inputs.charm-path }}"
         run: |
           cd "$CHARM_PATH"
-          if [ -d "$CHARM_PATH/terraform" ]; then
+          if [ -d terraform ]; then
             just terraform-lint
           else
             echo "Terraform directory ($CHARM_PATH/terraform) does not exist. Skipping validation."
@@ -148,9 +148,10 @@ jobs:
         env:
           CHARM_PATH: "${{ inputs.charm-path }}"
         run: |
-          if [ -d "$CHARM_PATH/terraform" ]; then
+          cd "$CHARM_PATH"
+          if [ -d terraform ]; then
             just terraform-docs
-            git diff --exit-code "$CHARM_PATH/terraform" || {
+            git diff --exit-code terraform || {
               echo "::error::Terraform docs are out of date. Run 'just terraform-docs' and commit."
               exit 1
             }
