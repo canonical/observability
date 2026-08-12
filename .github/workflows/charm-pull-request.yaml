@@ -126,7 +126,7 @@ jobs:
       - ci-ignore
     if: needs.ci-ignore.outputs.any_modified == 'true'
     permissions:
-      contents: write
+      contents: read
       actions: read
       security-events: write
     uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v2
