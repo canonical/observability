@@ -12,15 +12,6 @@ on:
         type: string
         required: false
         default: .
-      runners:
-        description: |
-          Json matrix of the runners to use to build and release the charm.
-          Example: ["ubuntu-latest","Ubuntu_ARM64_4C_16G_03"]
-          Ignored when `pack-using-remote-build` is true; in that case the
-          matrix is derived from `.platforms` in `charmcraft.yaml`.
-        type: string
-        required: false
-        default: '["ubuntu-latest"]'
       charmcraft-channel:
         type: string
         required: true
@@ -34,15 +25,6 @@ on:
         description: |
           When packing the charm for release, use remote-build.
           Remote-building is useful when you want to pack and release a charm for archs such as S390x or PPC64EL.
-        default: false
-        required: false
-        type: boolean
-      pack-using-self-hosted-runners:
-        description: |
-          When packing the charm for release, fan out one native build per
-          architecture onto self-hosted runners (and GitHub-hosted runners for
-          amd64). Each leg packs all the Ubuntu bases present in
-          `charmcraft.yaml` for its architecture.
         default: false
         required: false
         type: boolean
@@ -70,8 +52,6 @@ jobs:
         env:
           CHARM_PATH: ${{ inputs.charm-path }}
           PACK_REMOTE: ${{ inputs.pack-using-remote-build }}
-          PACK_SELF_HOSTED: ${{ inputs.pack-using-self-hosted-runners }}
-          RUNNERS: ${{ inputs.runners }}
         run: |
           if [[ "$PACK_REMOTE" == "true" ]]; then
             # Fan out one matrix leg per `platforms:` entry in charmcraft.yaml,
@@ -82,12 +62,14 @@ jobs:
               yq -o=json -I=0 '.platforms | keys' "$CHARM_PATH/charmcraft.yaml" \
                 | jq -c '{"include": map({"runner": "ubuntu-latest", "platform": .})}'
             )"
-          elif [[ "$PACK_SELF_HOSTED" == "true" ]]; then
-            # Native build: fan out one leg per architecture found in
+          else
+            # Native build (default): fan out one leg per architecture found in
             # charmcraft.yaml. Each leg packs all Ubuntu bases for its arch on
-            # a runner matching that arch (GitHub-hosted for amd64, self-hosted
-            # otherwise). The `arch` value is used later to strip charmcraft.yaml
-            # down to just that architecture's platforms before packing.
+            # a runner matching that arch (GitHub-hosted for amd64, the dedicated
+            # Ubuntu_ARM64 runner for arm64, and self-hosted runners for the
+            # remaining architectures such as s390x/ppc64el). The `arch` value is
+            # used later to strip charmcraft.yaml down to just that
+            # architecture's platforms before packing.
             #
             # Platform keys may be either a bare arch (e.g. `amd64`) or an
             # `ubuntu@<ver>:<arch>` form; extract the arch from either shape.
@@ -104,10 +86,6 @@ jobs:
                     | {"include": map({"runner": runner_for(.), "arch": ., "platform": ""})}
                   '
             )"
-          else
-            # Local build: preserve the previous behavior of one leg per
-            # caller-supplied runner, with no per-platform filtering.
-            matrix="$(echo "$RUNNERS" | jq -c '{"include": map({"runner": ., "platform": "", "arch": ""})}')"
           fi
           echo "matrix=$matrix"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
@@ -165,16 +143,8 @@ jobs:
           # portion of the dependencies, and restore-keys can partially match a cache.
           restore-keys: |
             ${{ runner.os }}-wheel-cache-
-      - name: Pack charm(s) locally
-        if: ${{ !inputs.pack-using-remote-build && !inputs.pack-using-self-hosted-runners }}
-        run: |
-          cd "${{ inputs.charm-path }}"
-          charmcraft pack -v
-          charms="$(basename -a ./*.charm | jq -R -s -c 'split("\n")[:-1]')"
-          echo "charms=$charms"
-          echo "charms=$charms" >> "$GITHUB_OUTPUT"
       - name: Pack charm(s) natively per architecture
-        if: ${{ inputs.pack-using-self-hosted-runners }}
+        if: ${{ !inputs.pack-using-remote-build }}
         env:
           ARCH: ${{ matrix.arch }}
         run: |

@@ -73,16 +73,6 @@ on:
         default: false
         required: false
         type: boolean
-      pack-using-self-hosted-runners:
-        description: |
-          When packing the charm for release, fan out one native build per
-          architecture onto self-hosted runners (GitHub-hosted for amd64,
-          the Ubuntu_ARM64 runner for arm64, and self-hosted runners for
-          s390x/ppc64el). Each leg packs all Ubuntu bases present in
-          `charmcraft.yaml` for its architecture.
-        default: false
-        required: false
-        type: boolean
       terraform-tag-prefix:
         description: "Tag prefix to use for the Terraform release tag."
         default: 'tf-'
@@ -158,7 +148,6 @@ jobs:
     needs: [ci-ignore]
     if: needs.ci-ignore.outputs.any_modified == 'true'
     outputs:
-      runners: ${{ steps.build-matrix.outputs.runners }}
       release-channel: ${{ steps.define-channel.outputs.release_channel }}
     steps:
       - name: Checkout
@@ -166,28 +155,6 @@ jobs:
       - name: Install dependencies
         run: |
           sudo snap install yq
-      - name: Define build matrix
-        id: build-matrix
-        run: |
-          cd "${{ inputs.charm-path }}"
-
-          if [ "${{ inputs.pack-using-remote-build }}" = "true" ] || [ "${{ inputs.pack-using-self-hosted-runners }}" = "true" ]; then
-            # Remote-build and self-hosted per-arch builds derive their own
-            # matrix from charmcraft.yaml inside _charm-release.yaml, so the
-            # runners list here is unused; emit a harmless placeholder.
-            runners='["ubuntu-latest"]'
-          else
-            # Normal logic: get runners from charmcraft.yaml
-            runners="$( \
-              yq -o json '.platforms | to_entries | map(.key)' charmcraft.yaml | \
-              sed 's/".*amd64.*"/"ubuntu-latest"/' | \
-              sed 's/".*arm64.*"/"Ubuntu_ARM64_4C_16G_03"/' | \
-              jq -rc 'unique' \
-            )"
-          fi
-
-          echo "runners=$runners"
-          echo "runners=$runners" >> "$GITHUB_OUTPUT"
       - name: Define release channel
         id: define-channel
         env:
@@ -232,11 +199,9 @@ jobs:
     with:
       release-channel: "${{ needs.define-matrix.outputs.release-channel }}"
       charm-path: "${{ inputs.charm-path }}"
-      runners: "${{ needs.define-matrix.outputs.runners }}"
       charmcraft-channel: "${{ inputs.charmcraft-channel }}"
       git-tag-prefix: "${{ inputs.git-tag-prefix }}"
       pack-using-remote-build: ${{ inputs.pack-using-remote-build }}
-      pack-using-self-hosted-runners: ${{ inputs.pack-using-self-hosted-runners }}
       
   release-libs:
     name: Release any bumped charm library
