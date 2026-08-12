@@ -15,7 +15,7 @@ on:
         type: string
       charmcraft-channel:
         type: string
-        default: "latest/candidate"
+        default: "latest/stable"
         required: false
         description: |
           The snap channel from which to install Charmcraft.
@@ -174,7 +174,7 @@ jobs:
 
   quality-checks:
     name: Quality Checks
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@feat/self-hosted-runners
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v2
     needs: [define-matrix]
     secrets: inherit
     with:
@@ -191,7 +191,7 @@ jobs:
     needs:
       - define-matrix
       - quality-checks
-    uses: canonical/observability/.github/workflows/_charm-release.yaml@feat/self-hosted-runners
+    uses: canonical/observability/.github/workflows/_charm-release.yaml@v2
     secrets:
       CHARMHUB_TOKEN: ${{ secrets.CHARMHUB_TOKEN }}
       LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
@@ -245,7 +245,7 @@ jobs:
     needs:
       - release-charm
     if: inputs.track != '' || (github.ref_name != 'main' && startsWith(github.ref_name, 'track/'))
-    uses: canonical/observability/.github/workflows/terraform-release.yaml@feat/self-hosted-runners
+    uses: canonical/observability/.github/workflows/terraform-release.yaml@v2
     secrets:
       OBSERVABILITY_NOCTUA_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
     with:
