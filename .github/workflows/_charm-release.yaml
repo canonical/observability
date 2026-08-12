@@ -12,15 +12,6 @@ on:
         type: string
         required: false
         default: .
-      runners:
-        description: |
-          Json matrix of the runners to use to build and release the charm.
-          Example: ["ubuntu-latest","Ubuntu_ARM64_4C_16G_03"]
-          Ignored when `pack-using-remote-build` is true; in that case the
-          matrix is derived from `.platforms` in `charmcraft.yaml`.
-        type: string
-        required: false
-        default: '["ubuntu-latest"]'
       charmcraft-channel:
         type: string
         required: true
@@ -61,7 +52,6 @@ jobs:
         env:
           CHARM_PATH: ${{ inputs.charm-path }}
           PACK_REMOTE: ${{ inputs.pack-using-remote-build }}
-          RUNNERS: ${{ inputs.runners }}
         run: |
           if [[ "$PACK_REMOTE" == "true" ]]; then
             # Fan out one matrix leg per `platforms:` entry in charmcraft.yaml,
@@ -73,15 +63,35 @@ jobs:
                 | jq -c '{"include": map({"runner": "ubuntu-latest", "platform": .})}'
             )"
           else
-            # Local build: preserve the previous behavior of one leg per
-            # caller-supplied runner, with no per-platform filtering.
-            matrix="$(echo "$RUNNERS" | jq -c '{"include": map({"runner": ., "platform": ""})}')"
+            # Native build (default): fan out one leg per architecture found in
+            # charmcraft.yaml. Each leg packs all Ubuntu bases for its arch on
+            # a runner matching that arch (GitHub-hosted for amd64, the dedicated
+            # Ubuntu_ARM64 runner for arm64, and self-hosted runners for the
+            # remaining architectures such as s390x/ppc64el). The `arch` value is
+            # used later to strip charmcraft.yaml down to just that
+            # architecture's platforms before packing.
+            #
+            # Platform keys may be either a bare arch (e.g. `amd64`) or an
+            # `ubuntu@<ver>:<arch>` form; extract the arch from either shape.
+            matrix="$(
+              yq -o=json -I=0 '.platforms | keys' "$CHARM_PATH/charmcraft.yaml" \
+                | jq -c '
+                    def arch_of: sub(".*:"; "");
+                    def runner_for(a):
+                      if a == "amd64" then "ubuntu-latest"
+                      elif a == "arm64" then "Ubuntu_ARM64_4C_16G_03"
+                      else "self-hosted-linux-" + a + "-resolute-medium"
+                      end;
+                    map(arch_of) | unique
+                    | {"include": map({"runner": runner_for(.), "arch": ., "platform": ""})}
+                  '
+            )"
           fi
           echo "matrix=$matrix"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
 
   build:
-    name: Release the charm${{ matrix.platform && format(' ({0})', matrix.platform) || '' }}
+    name: Release the charm${{ matrix.platform && format(' ({0})', matrix.platform) || matrix.arch && format(' ({0})', matrix.arch) || '' }}
     needs: [define-matrix]
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -107,6 +117,15 @@ jobs:
         run: |
           sudo snap install concierge --classic
           sudo -E concierge prepare -p crafts
+      - name: Ensure uv is available
+        # The astral-uv snap has no s390x/ppc64el builds, so concierge silently
+        # skips it on those runners and `uvx` is missing. Install uv via the
+        # official standalone installer as a fallback when it isn't present.
+        run: |
+          if ! command -v uvx >/dev/null 2>&1; then
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          fi
       - name: Get charm name
         id: get-charm-name
         run: |
@@ -124,10 +143,16 @@ jobs:
           # portion of the dependencies, and restore-keys can partially match a cache.
           restore-keys: |
             ${{ runner.os }}-wheel-cache-
-      - name: Pack charm(s) locally
+      - name: Pack charm(s) natively per architecture
         if: ${{ !inputs.pack-using-remote-build }}
+        env:
+          ARCH: ${{ matrix.arch }}
         run: |
           cd "${{ inputs.charm-path }}"
+          # Keep only this architecture's platforms so a single native runner
+          # packs every Ubuntu base for its arch (and nothing for other archs).
+          # Platform keys are either a bare arch (`amd64`) or `ubuntu@<ver>:<arch>`.
+          yq -i '.platforms |= with_entries(select(.key == strenv(ARCH) or (.key | test(":" + strenv(ARCH) + "$"))))' charmcraft.yaml
           charmcraft pack -v
           charms="$(basename -a ./*.charm | jq -R -s -c 'split("\n")[:-1]')"
           echo "charms=$charms"
@@ -156,6 +181,7 @@ jobs:
         id: artifact-name
         env:
           PLATFORM: ${{ matrix.platform }}
+          ARCH: ${{ matrix.arch }}
           RUNNER_ARCH: ${{ runner.arch }}
           CHARM_PATH: ${{ inputs.charm-path }}
         run: |
@@ -166,6 +192,11 @@ jobs:
           # while still keeping the platform identifiable in the artifact name.
           if [[ -n "$PLATFORM" ]]; then
             suffix="$(printf '%s' "$PLATFORM" | tr ':"/\\<>|*?' '-')"
+          elif [[ -n "$ARCH" ]]; then
+            # Self-hosted per-arch legs: `runner.arch` reports GitHub's coarse
+            # value (e.g. X64) and cannot express s390x/ppc64el, so use the
+            # matrix arch to keep parallel legs' artifacts distinct.
+            suffix="$ARCH"
           else
             suffix="$RUNNER_ARCH"
           fi

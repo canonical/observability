@@ -15,7 +15,7 @@ on:
         type: string
       charmcraft-channel:
         type: string
-        default: "latest/candidate"
+        default: "latest/stable"
         required: false
         description: |
           The snap channel from which to install Charmcraft.
@@ -148,7 +148,6 @@ jobs:
     needs: [ci-ignore]
     if: needs.ci-ignore.outputs.any_modified == 'true'
     outputs:
-      runners: ${{ steps.build-matrix.outputs.runners }}
       release-channel: ${{ steps.define-channel.outputs.release_channel }}
     steps:
       - name: Checkout
@@ -156,26 +155,6 @@ jobs:
       - name: Install dependencies
         run: |
           sudo snap install yq
-      - name: Define build matrix
-        id: build-matrix
-        run: |
-          cd "${{ inputs.charm-path }}"
-
-          if [ "${{ inputs.pack-using-remote-build }}" = "true" ]; then
-            # If using remote build, just use ubuntu-latest
-            runners='["ubuntu-latest"]'
-          else
-            # Normal logic: get runners from charmcraft.yaml
-            runners="$( \
-              yq -o json '.platforms | to_entries | map(.key)' charmcraft.yaml | \
-              sed 's/".*amd64.*"/"ubuntu-latest"/' | \
-              sed 's/".*arm64.*"/"Ubuntu_ARM64_4C_16G_03"/' | \
-              jq -rc 'unique' \
-            )"
-          fi
-
-          echo "runners=$runners"
-          echo "runners=$runners" >> "$GITHUB_OUTPUT"
       - name: Define release channel
         id: define-channel
         env:
@@ -220,7 +199,6 @@ jobs:
     with:
       release-channel: "${{ needs.define-matrix.outputs.release-channel }}"
       charm-path: "${{ inputs.charm-path }}"
-      runners: "${{ needs.define-matrix.outputs.runners }}"
       charmcraft-channel: "${{ inputs.charmcraft-channel }}"
       git-tag-prefix: "${{ inputs.git-tag-prefix }}"
       pack-using-remote-build: ${{ inputs.pack-using-remote-build }}

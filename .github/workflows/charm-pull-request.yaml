@@ -15,7 +15,7 @@ on:
         type: string
       charmcraft-channel:
         type: string
-        default: "latest/candidate"
+        default: "latest/stable"
         required: false
         description: |
           The snap channel from which to install Charmcraft.
@@ -125,6 +125,10 @@ jobs:
     needs:
       - ci-ignore
     if: needs.ci-ignore.outputs.any_modified == 'true'
+    permissions:
+      contents: write
+      actions: read
+      security-events: write
     uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v2
     secrets: inherit
     with:
