@@ -1,7 +1,11 @@
 name: Pull Request
 
 on:
-  workflow_call:
+  permissions:
+    contents: write
+    actions: read
+    security-events: write
+
     inputs:
       charm-path:
         description: "Path to the charm we want to publish. Defaults to the current working directory."
