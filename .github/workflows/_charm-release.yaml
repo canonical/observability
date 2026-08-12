@@ -139,6 +139,15 @@ jobs:
         run: |
           sudo snap install concierge --classic
           sudo -E concierge prepare -p crafts
+      - name: Ensure uv is available
+        # The astral-uv snap has no s390x/ppc64el builds, so concierge silently
+        # skips it on those runners and `uvx` is missing. Install uv via the
+        # official standalone installer as a fallback when it isn't present.
+        run: |
+          if ! command -v uvx >/dev/null 2>&1; then
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          fi
       - name: Get charm name
         id: get-charm-name
         run: |
