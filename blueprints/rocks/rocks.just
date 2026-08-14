@@ -2,12 +2,18 @@
 set shell := ["bash", "-uc"]
 
 rock_name := `echo ${PWD##*/} | sed 's/-rock$//'`  # Get the rock name from the folder name
-latest_version := `find . -name rockcraft.yaml -printf '%h\n' | sort -V | tail -n1 | sed 's@./@@'`
+
+# Latest maintained version, i.e. the newest major.minor folder
+latest_version := `find . -maxdepth 1 -type d -regextype posix-extended -regex '\./[0-9]+\.[0-9]+' -printf '%f\n' | sort -V | tail -n1`
 
 # LTS end-of-life overrides. Override this variable in the local 'justfile'.
 # Define mappings from LTS minor versions to their EOL date in YYYY-MM-DD format.
 # Example: lts_releases := '{"2.14": "2026-12-31", "2.12": "2025-06-30"}'
 lts_releases := '{}'
+
+# Upstream project repository in 'org/repo' form. Override this variable in the local 'justfile'.
+# Example: source_repo := 'prometheus/alertmanager'
+source_repo := ''
 
 [private]
 @default:
@@ -15,31 +21,31 @@ lts_releases := '{}'
   echo "{{rock_name}}"
   echo "For help with a specific recipe, run: just --usage <recipe>"
 
-# Push an OCI image to a local registry
-[private]
-@push-to-registry version=latest_version:
-  which -s docker || { echo "docker not found"; exit 1; }
-  test -f "{{version}}/{{rock_name}}_{{version}}_amd64.rock" || rockcraft pack
-  echo "Pushing {{version}} to local docker registry"
-  cd {{version}}; sudo rockcraft.skopeo --insecure-policy copy --dest-tls-verify=false "oci-archive:{{rock_name}}_{{version}}_amd64.rock" docker-daemon:rockcraft-test:latest
-  echo "✓ Rock pushed to local registry under 'rockcraft-test:latest'"
-
 # Print the rock name
 [group("info")]
 @name:
   echo "{{rock_name}}"
 
-# Print the latest rock version
+# Print the latest major.minor version
 [group("info")]
 @latest-version:
   echo "{{latest_version}}"
 
-# Pack a rock of a specific component and version
+# Push an OCI image to a local registry
+[private]
+@push-to-registry version=latest_version:
+  which -s docker || { echo "× docker not found"; exit 1; }
+  test -f "{{version}}"/*.rock || (cd "{{version}}" && rockcraft pack)
+  echo "Pushing {{version}} to local docker registry"
+  cd {{version}}; sudo rockcraft.skopeo --insecure-policy copy --dest-tls-verify=false "oci-archive:$(ls *.rock)" docker-daemon:rockcraft-test:latest
+  echo "✓ Rock pushed to local registry under 'rockcraft-test:latest'"
+
+# Pack a rock of a specific version (major.minor folder)
 [group("dev")]
 pack version=latest_version:
   cd "{{version}}" && rockcraft pack
 
-# `rockcraft clean` for a specific component and version
+# `rockcraft clean` for a specific version (major.minor folder)
 [group("dev")]
 clean version=latest_version:
   cd "{{version}}" && rockcraft clean
@@ -47,7 +53,7 @@ clean version=latest_version:
 # Run a rock and open a shell into it with `docker`
 [group("dev")]
 run version=latest_version: (push-to-registry version)
-  which -s dgoss || { echo "dgoss not found"; exit 1; }
+  which -s dgoss || { echo "× dgoss not found"; exit 1; }
   dgoss edit rockcraft-test:latest || true
 
 # Test a rock with `rockcraft test`
@@ -68,7 +74,7 @@ sbom version=latest_version:
   syft {{version}}/*.rock -o "spdx-json={{version}}/rock.sbom.json"
   @echo "✓ SBOM saved to {{version}}/rock.sbom.json"
 
-# Perform a securiy scan
+# Perform a security scan
 [group("security")]
 scan version=latest_version: (sbom version)
   uvx --from=trivy-py trivy sbom "{{version}}/rock.sbom.json"
@@ -76,14 +82,16 @@ scan version=latest_version: (sbom version)
 
 # Check whether CVEs affect the upstream project
 [group("security")]
-govulncheck source_repo version=latest_version:
+govulncheck version=latest_version:
   #!/usr/bin/env bash
   set -e
-  echo "Cloning {{source_repo}}"
+  [[ -z "{{source_repo}}" ]] && { echo "× Set 'source_repo' in the local justfile"; exit 1; }
+  # Resolve the real upstream tag from the rockcraft.yaml (folder name is not the version)
+  source_tag="$(yq -r '.parts.{{rock_name}}["source-tag"]' "{{version}}/rockcraft.yaml")"
+  echo "Cloning {{source_repo}} at $source_tag"
   which -s govulncheck || { echo "govulncheck not found; install it with:  go install golang.org/x/vuln/cmd/govulncheck@latest"; exit 1; }
   TMP_DIR="$(mktemp -d)"
-  gh repo clone "{{source_repo}}" "$TMP_DIR/{{source_repo}}" -- --branch "{{version}}" --depth 1 2>/dev/null \
-    || gh repo clone "{{source_repo}}" "$TMP_DIR/{{source_repo}}" -- --branch "v{{version}}" --depth 1
+  gh repo clone "{{source_repo}}" "$TMP_DIR/{{source_repo}}" -- --branch "$source_tag" --depth 1
   if [[ ! -f "$TMP_DIR/{{source_repo}}/go.mod" ]]; then
     echo "⨯ {{source_repo}} is not a Go project (go.mod is missing)"
     exit 2
@@ -94,43 +102,75 @@ govulncheck source_repo version=latest_version:
   if [ "$vuln_exit" -ne 0 ]; then echo "⨯ 'govulncheck' failed"; exit "$vuln_exit"; fi
   echo "✓ 'govulncheck' passed."
 
-# Generate a rock for the latest version of the upstream project
-[arg("source_repo", help="Repository of the upstream project in 'org/repo' form")]
-[group("maintenance")]
-update source_repo release_tag="":
+# Print "<version> <tag>" for the newest upstream release on a major.minor line
+[private]
+@resolve-tag major_minor:
+  gh release list --repo {{source_repo}} --exclude-pre-releases --limit=200 --json tagName --jq '.[].tagName' \
+    | while read -r t; do \
+        v="${t#mimir-}"; v="${v#cmd/builder/v}"; v="${v#v}"; \
+        [[ "$(echo "$v" | grep -oP '^\d+\.\d+')" == "{{major_minor}}" ]] && echo "$v $t"; \
+      done \
+    | sort -V | tail -n1
+
+# Write a version + source-tag into a folder's rockcraft.yaml (and refresh Go build-snap)
+[private]
+write-version folder version tag:
   #!/usr/bin/env bash
   set -e
-  if [[ -z "{{release_tag}}" ]]; then
-    latest_release="$(gh release list --repo {{source_repo}} --exclude-pre-releases --limit=1 --json tagName --jq '.[0].tagName')"
-    echo "Latest release for {{source_repo}} is $latest_release"
-  else
-    latest_release="{{release_tag}}"
-    echo "Release version manually set to $latest_release"
-  fi
-  # Explicitly filter out prefixes for known rocks, so we can notice if a new rock has a different schema
-  version="${latest_release}"
-  version="${version#mimir-}"  # mimir
-  version="${version#cmd/builder/v}"  # opentelemetry-collector
-  version="${version#v}"  # Generic v- prefix
-  # If the version already exists as a rock, exit here
-  if [[ -d "$version" ]]; then echo "Folder $version already exists, nothing to do" && exit 0; fi
-  # Create the folder for the new version and update the rockcraft.yaml
-  cp -r "{{latest_version}}" "$version"
-  latest_release="$latest_release" version="$version" yq -i \
-    '.version = strenv(version) | .parts.{{rock_name}}["source-tag"] = strenv(latest_release)' \
-    "./$version/rockcraft.yaml"
-  # Automatically update build tools (go) from the upstream repository
+  file="{{folder}}/rockcraft.yaml"
+  version="{{version}}" tag="{{tag}}" yq -i \
+    '.version = strenv(version) | .parts.{{rock_name}}["source-tag"] = strenv(tag)' \
+    "$file"
   TMP_DIR="$(mktemp -d)"
-  gh repo clone "{{source_repo}}" "$TMP_DIR/{{source_repo}}" -- --branch "$latest_release" --depth 1
-  # If it's a Go project, update the Go version
-  if [[ -f "$TMP_DIR/{{source_repo}}/go.mod" ]]; then
-    go_snap_version="$(grep -Po '^go \K(\S+)' "$TMP_DIR/{{source_repo}}/go.mod" | sed -E 's/([0-9]+\.[0-9]+).*/\1/')"
+  gh repo clone "{{source_repo}}" "$TMP_DIR/src" -- --branch "{{tag}}" --depth 1 2>/dev/null || true
+  if [[ -f "$TMP_DIR/src/go.mod" ]]; then
+    go_snap_version="$(grep -Po '^go \K(\S+)' "$TMP_DIR/src/go.mod" | sed -E 's/([0-9]+\.[0-9]+).*/\1/')"
     go_snap_version="$go_snap_version" yq -i \
       '(.parts.{{rock_name}}.build-snaps[] | select(test("^go/"))) = "go/"+strenv(go_snap_version)+"/candidate"' \
-      "./$version/rockcraft.yaml"
+      "$file"
   fi
   rm -rf "$TMP_DIR"
-  echo "✓ Created rock for version $version"
+
+# Create a new major.minor folder, resolving the newest real upstream tag on that line
+[group("maintenance")]
+add-version version:
+  #!/usr/bin/env bash
+  set -e
+  [[ -z "{{source_repo}}" ]] && { echo "× Set 'source_repo' in the local justfile"; exit 1; }
+  # Normalize the requested version to a major.minor line
+  requested="{{version}}"
+  requested="${requested#mimir-}"; requested="${requested#cmd/builder/v}"; requested="${requested#v}"
+  major_minor="$(echo "$requested" | grep -oP '^\d+\.\d+')"
+  [[ -z "$major_minor" ]] && { echo "× could not parse a major.minor from '{{version}}'"; exit 1; }
+  [[ -d "$major_minor" ]] && { echo "→ $major_minor/ already exists, nothing to do"; exit 0; }
+  # Resolve the newest upstream tag on this line before touching anything
+  read -r version tag < <(just resolve-tag "$major_minor")
+  [[ -z "$version" ]] && { echo "× no upstream release found for {{source_repo}} on the $major_minor line"; exit 1; }
+  # Seed from the newest existing minor folder, then pin the resolved version
+  template="{{latest_version}}"
+  [[ -z "$template" ]] && { echo "× no existing X.Y folder to copy from"; exit 1; }
+  echo "Seeding $major_minor/ from $template/ ..."
+  cp -r "$template" "$major_minor"
+  just write-version "$major_minor" "$version" "$tag"
+  echo "✓ Created $major_minor/ at $version (source-tag $tag)"
+
+# Patch all existing major.minor folders to the newest upstream patch version
+[group("maintenance")]
+update:
+  #!/usr/bin/env bash
+  set -e
+  [[ -z "{{source_repo}}" ]] && { echo "× Set 'source_repo' in the local justfile"; exit 1; }
+  updated_folders=""
+  for folder in $(find . -maxdepth 1 -type d -regextype posix-extended -regex '\./[0-9]+\.[0-9]+' -printf '%f\n' | sort -V); do
+    read -r version tag < <(just resolve-tag "$folder")
+    if [[ -z "$version" ]]; then echo "→ no upstream patch found for $folder, skipping"; continue; fi
+    current="$(yq -r '.version' "$folder/rockcraft.yaml")"
+    if [[ "$current" == "$version" ]]; then echo "→ $folder already at $version"; continue; fi
+    echo "Updating $folder: $current → $version (source-tag $tag)"
+    just write-version "$folder" "$version" "$tag"
+    updated_folders="$updated_folders $folder"
+  done
+  if [[ -n "$updated_folders" ]]; then echo; echo "✓ Versions updated"; fi
 
 # Fetch centralized files from canonical/observability
 [group("maintenance")]
@@ -168,21 +208,23 @@ release-oci-factory version=latest_version support="minor" risk="stable":
   if [[ -z "$GITHUB_TOKEN" ]]; then echo "× Please export GITHUB_TOKEN for the user observability-noctua-bot"; exit 1; fi
   if [ ! -e {{version}}/*.rock ]; then echo "× Error: rock not found. Please run 'just pack {{version}}' first."; exit 2; fi
   repository="$(git remote get-url origin | sed -E 's#(git@[^:]+:|https?://[^/]+/)##; s/\.git$//')"
+  # Read the real semver from the rockcraft.yaml (folder name is 'X.Y')
+  rock_version="$(yq -r '.version' "{{version}}/rockcraft.yaml")"
   # Extract the base from the rockcraft.yaml (e.g. "ubuntu@24.04" -> "24.04")
   # For bare-based rocks, fall back to build-base (e.g. "ubuntu@26.04" -> "26.04")
   rock_base="$(yq -r '.base' "{{version}}/rockcraft.yaml" | sed 's/.*@//')"
   if [[ "$rock_base" == "bare" ]]; then
     rock_base="$(yq -r '.["build-base"]' "{{version}}/rockcraft.yaml" | sed 's/.*@//')"
   fi
-  echo "Detected base: $rock_base"
+  echo "Detected version: $rock_version, base: $rock_base"
   # Clone the oci-factory and push data to it
   gh repo sync --force observability-noctua-bot/oci-factory
   TMP_DIR="$(mktemp -d)"
   git clone https://github.com/observability-noctua-bot/oci-factory "$TMP_DIR/oci-factory"
   echo "✓ Cloned observability-noctua-bot/oci-factory"
   # Build the OCI Factory manifest
-  # Check if this version has a custom EOL in lts_releases
-  minor_version="$(echo "{{version}}" | grep -oP '^\d+\.\d+')"
+  # Check if this version has a custom EOL in lts_releases (keyed by major.minor)
+  minor_version="$(echo "$rock_version" | grep -oP '^\d+\.\d+')"
   eol_date="$(echo '{{lts_releases}}' | jq -r --arg v "$minor_version" '.[$v] // empty')"
   eol_flag=""
   if [[ -n "$eol_date" ]]; then
@@ -197,7 +239,7 @@ release-oci-factory version=latest_version support="minor" risk="stable":
     --base="$rock_base" \
     --support="{{support}}" \
     --risk="{{risk}}" \
-    --version="{{version}}" \
+    --version="$rock_version" \
     $eol_flag \
     | tee "$manifest_file"
   echo; echo "✓ OCI Factory manifest generated"
