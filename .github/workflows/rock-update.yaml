@@ -15,10 +15,6 @@ on:
         required: false
         default: "."
         type: string
-      source-repo:
-        description: "Repository of the source application in 'org/repo' form (used for the PR body link; 'source_repo' must also be set in the rock's local justfile)"
-        required: true
-        type: string
       commit-username:
         description: "The username to use for committing the updates on the charm libraries"
         default: 'Noctua'
@@ -109,6 +105,6 @@ jobs:
           committer: "${{ inputs.commit-username }} <${{ inputs.commit-email }}>"
           author: "${{ inputs.commit-username }} <${{ inputs.commit-email }}>"
           title: "chore: bump ${{ steps.update.outputs.rock_name }} patch releases (${{ steps.update.outputs.updated_folders }})"
-          body: Automated patch update to follow upstream [releases](https://github.com/${{ inputs.source-repo }}/releases) of ${{ steps.update.outputs.rock_name }} for the following major.minor folders&colon; `${{ steps.update.outputs.updated_folders }}`.
+          body: Automated patch update to follow upstream releases of ${{ steps.update.outputs.rock_name }} for the following major.minor folders&colon; `${{ steps.update.outputs.updated_folders }}`.
           branch: "chore/update-patches"
           delete-branch: true
