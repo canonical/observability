@@ -26,6 +26,11 @@ source_repo := ''
 @name:
   echo "{{rock_name}}"
 
+# Print the latest major.minor version
+[group("info")]
+@latest-version:
+  echo "{{latest_version}}"
+
 # Push an OCI image to a local registry
 [private]
 @push-to-registry version=latest_version:

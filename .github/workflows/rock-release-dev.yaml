@@ -49,7 +49,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
       run: |
         cd "${{ inputs.rock-path }}"
-        echo "latest_version=$(just --evaluate latest_version)" >> "$GITHUB_ENV"
+        echo "latest_version=$(just latest-version)" >> "$GITHUB_ENV"
         just pack
         just release-ghcr
     - name: Create SBOM
