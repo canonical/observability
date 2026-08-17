@@ -4,8 +4,8 @@ artifacts:
       repo: canonical/alertmanager-k8s-operator
       path: .
       releases:
-        - name: "0.28"
-          branch: track/0.28
+        - name: "0.31"
+          branch: track/0.31
           cycle: 26.04
           support:
             end_of_life: 2041-06-01
