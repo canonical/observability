@@ -22,7 +22,7 @@ jobs:
         id: matrix
         run: |
           set -euo pipefail
-          matrix="$(just list-scan-matrix)"
+          matrix="$(just security::scan-matrix)"
           releases="$(echo "$matrix" | jq '[.[].charms[]] | length')"
           repos="$(echo "$matrix" | jq length)"
           echo "Found $releases charm releases across $repos repo clones"
@@ -46,11 +46,11 @@ jobs:
           sudo snap install yq
           sudo snap install astral-uv --classic
 
-      # All the cloning/checkout/scanning logic lives in `just scan-repo` (see
-      # justfile) so it can be run and debugged locally the same way CI runs it,
-      # e.g.: just scan-repo canonical/litmus-operators
+      # All the cloning/checkout/scanning logic lives in `security.just` so it
+      # can be run and debugged locally the same way CI runs it, e.g.:
+      # just security::scan-repo canonical/litmus-operators
       - name: Scan ${{ matrix.repo }}
-        run: just scan-repo "${{ matrix.repo }}"
+        run: just security::scan-repo "${{ matrix.repo }}"
 
       - name: Compute artifact name
         if: always()
@@ -74,6 +74,12 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: sudo snap install just --classic
+
       - name: Download scan results
         uses: actions/download-artifact@v7
         with:
@@ -81,80 +87,4 @@ jobs:
           path: results
 
       - name: Build report
-        run: |
-          python3 - <<'EOF'
-          import glob
-          import html
-          import json
-          import os
-
-          results = []
-          for path in glob.glob("results/*/*.json"):
-              with open(path) as f:
-                  results.append(json.load(f))
-
-          summary_path = os.environ["GITHUB_STEP_SUMMARY"]
-
-          if not results:
-              with open(summary_path, "a") as f:
-                  f.write("# :mag: Charm Security Scan Report\n\n")
-                  f.write("No charm releases found in `manifest.yaml`.\n")
-              raise SystemExit(0)
-
-          results.sort(key=lambda r: (r["cycle"], r["charm"], r["release"]))
-
-          badges = {
-              "pass": "✅",
-              "vulnerabilities-found": "⚠️",
-              "checkout-failed": "❌",
-          }
-          status_text = {
-              "pass": "pass",
-              "vulnerabilities-found": "vulnerabilities found",
-              "checkout-failed": "checkout failed",
-          }
-
-          counts = {"pass": 0, "vulnerabilities-found": 0, "checkout-failed": 0}
-          for r in results:
-              counts[r["status"]] += 1
-
-          lines = []
-          lines.append("# :mag: Charm Security Scan Report")
-          lines.append("")
-          lines.append(
-              f"**{len(results)} releases scanned** · "
-              f"{badges['pass']} {counts['pass']} pass · "
-              f"{badges['vulnerabilities-found']} {counts['vulnerabilities-found']} flagged · "
-              f"{badges['checkout-failed']} {counts['checkout-failed']} checkout failed"
-          )
-          lines.append("")
-
-          current_cycle = None
-          for r in results:
-              if r["cycle"] != current_cycle:
-                  current_cycle = r["cycle"]
-                  lines.append(f"## Cycle `{current_cycle}`")
-                  lines.append("")
-
-              badge = badges[r["status"]]
-              lts_label = "LTS" if r["lts"] else "non-LTS"
-              summary = (
-                  f"{badge} <b>{r['charm']}</b> {r['release']} ({lts_label}) "
-                  f"— {status_text[r['status']]}"
-              )
-              lines.append("<details>")
-              lines.append(f"<summary>{summary}</summary>")
-              lines.append("")
-              lines.append(f"`{r['repo']}@{r['branch']}`")
-              lines.append("")
-              lines.append(f"<pre>{html.escape(r['log'])}</pre>")
-              lines.append("</details>")
-              lines.append("")
-
-          with open(summary_path, "a") as f:
-              f.write("\n".join(lines) + "\n")
-
-          if counts["checkout-failed"] > 0:
-              print(f"::error::{counts['checkout-failed']} charm(s) failed to check out; see the report above.")
-              raise SystemExit(1)
-          EOF
+        run: just security::build-report results >> "$GITHUB_STEP_SUMMARY"
