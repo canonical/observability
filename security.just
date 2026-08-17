@@ -1,6 +1,10 @@
 set quiet  # Recipes are silent by default
 set export  # Just variables are exported to the environment
 
+[private]
+default:
+  just -f security.just --list
+
 # List the charm-scan matrix as JSON, one entry per unique repo
 [group("security")]
 scan-matrix:
