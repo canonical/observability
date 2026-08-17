@@ -1,0 +1,221 @@
+name: Charm Security Scan (fleet-wide)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-matrix:
+    name: Build charm release matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: sudo snap install yq
+
+      - name: Generate matrix from manifest
+        id: matrix
+        run: |
+          set -euo pipefail
+          matrix="$(yq -o=json manifest.yaml | jq -c '
+            [.artifacts.charms[]
+              | .name as $charm | .repo as $repo | .path as $path
+              | .releases[]?
+              | {
+                  charm: $charm,
+                  repo: $repo,
+                  path: $path,
+                  release: .name,
+                  branch: .branch,
+                  cycle: (.cycle | tostring),
+                  lts: (.support.lts // false)
+                }
+            ]')"
+          echo "Found $(echo "$matrix" | jq length) charm releases to scan"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  scan:
+    name: Scan ${{ matrix.charm }} (${{ matrix.release }})
+    needs: build-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.build-matrix.outputs.matrix) }}
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo snap install just --classic
+          sudo snap install astral-uv --classic
+
+      # A plain `git clone` (rather than actions/checkout) is used here so that a
+      # missing branch's own error output can be captured into the same report the
+      # scan output goes into, instead of only being visible in this job's log.
+      - name: Clone ${{ matrix.repo }}@${{ matrix.branch }}
+        id: checkout
+        continue-on-error: true
+        env:
+          REPO: ${{ matrix.repo }}
+          BRANCH: ${{ matrix.branch }}
+        run: |
+          set -o pipefail
+          git clone --depth=1 --branch "$BRANCH" "https://github.com/${REPO}.git" charm-checkout \
+            2>&1 | tee "$RUNNER_TEMP/scan-output.log"
+
+      - name: Run security scan
+        id: scan
+        if: steps.checkout.outcome == 'success'
+        continue-on-error: true
+        working-directory: charm-checkout/${{ matrix.path }}
+        run: |
+          set -o pipefail
+          just scan 2>&1 | tee "$RUNNER_TEMP/scan-output.log"
+
+      - name: Record result
+        id: result
+        if: always()
+        env:
+          CHARM: ${{ matrix.charm }}
+          RELEASE: ${{ matrix.release }}
+          CYCLE: ${{ matrix.cycle }}
+          LTS: ${{ matrix.lts }}
+          REPO: ${{ matrix.repo }}
+          BRANCH: ${{ matrix.branch }}
+          CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+          SCAN_OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          set -euo pipefail
+          if [[ "$CHECKOUT_OUTCOME" != "success" ]]; then
+            status="checkout-failed"
+          elif [[ "$SCAN_OUTCOME" == "failure" ]]; then
+            status="vulnerabilities-found"
+          else
+            status="pass"
+          fi
+
+          log_file="$RUNNER_TEMP/scan-output.log"
+          [[ -f "$log_file" ]] || echo "(no output captured)" > "$log_file"
+
+          mkdir -p "$RUNNER_TEMP/result"
+          jq -n \
+            --arg charm "$CHARM" \
+            --arg release "$RELEASE" \
+            --arg cycle "$CYCLE" \
+            --argjson lts "$LTS" \
+            --arg repo "$REPO" \
+            --arg branch "$BRANCH" \
+            --arg status "$status" \
+            --rawfile log "$log_file" \
+            '{charm:$charm, release:$release, cycle:$cycle, lts:$lts, repo:$repo, branch:$branch, status:$status, log:$log}' \
+            > "$RUNNER_TEMP/result/result.json"
+
+      - name: Upload scan result
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: scan-result-${{ matrix.charm }}-${{ matrix.release }}
+          path: ${{ runner.temp }}/result/result.json
+          if-no-files-found: error
+
+      # Runs last so the result is always recorded and uploaded first: a missing
+      # branch (or any other clone problem) should fail this job and the overall
+      # run, but vulnerabilities found by `just scan` should not.
+      - name: Fail on checkout error
+        if: steps.checkout.outcome == 'failure'
+        run: |
+          echo "::error::Failed to clone ${{ matrix.repo }}@${{ matrix.branch }} - see the 'Clone' step above for details."
+          exit 1
+
+  report:
+    name: Publish report
+    needs: scan
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download scan results
+        uses: actions/download-artifact@v7
+        with:
+          pattern: scan-result-*
+          path: results
+
+      - name: Build report
+        run: |
+          python3 - <<'EOF'
+          import glob
+          import html
+          import json
+          import os
+
+          results = []
+          for path in glob.glob("results/*/result.json"):
+              with open(path) as f:
+                  results.append(json.load(f))
+
+          summary_path = os.environ["GITHUB_STEP_SUMMARY"]
+
+          if not results:
+              with open(summary_path, "a") as f:
+                  f.write("# :mag: Charm Security Scan Report\n\n")
+                  f.write("No charm releases found in `manifest.yaml`.\n")
+              raise SystemExit(0)
+
+          results.sort(key=lambda r: (r["cycle"], r["charm"], r["release"]))
+
+          badges = {
+              "pass": "✅",
+              "vulnerabilities-found": "⚠️",
+              "checkout-failed": "❌",
+          }
+          status_text = {
+              "pass": "pass",
+              "vulnerabilities-found": "vulnerabilities found",
+              "checkout-failed": "checkout failed",
+          }
+
+          counts = {"pass": 0, "vulnerabilities-found": 0, "checkout-failed": 0}
+          for r in results:
+              counts[r["status"]] += 1
+
+          lines = []
+          lines.append("# :mag: Charm Security Scan Report")
+          lines.append("")
+          lines.append(
+              f"**{len(results)} releases scanned** · "
+              f"{badges['pass']} {counts['pass']} pass · "
+              f"{badges['vulnerabilities-found']} {counts['vulnerabilities-found']} flagged · "
+              f"{badges['checkout-failed']} {counts['checkout-failed']} checkout failed"
+          )
+          lines.append("")
+
+          current_cycle = None
+          for r in results:
+              if r["cycle"] != current_cycle:
+                  current_cycle = r["cycle"]
+                  lines.append(f"## Cycle `{current_cycle}`")
+                  lines.append("")
+
+              badge = badges[r["status"]]
+              lts_label = "LTS" if r["lts"] else "non-LTS"
+              summary = (
+                  f"{badge} <b>{r['charm']}</b> {r['release']} ({lts_label}) "
+                  f"— {status_text[r['status']]}"
+              )
+              lines.append("<details>")
+              lines.append(f"<summary>{summary}</summary>")
+              lines.append("")
+              lines.append(f"`{r['repo']}@{r['branch']}`")
+              lines.append("")
+              lines.append(f"<pre>{html.escape(r['log'])}</pre>")
+              lines.append("</details>")
+              lines.append("")
+
+          with open(summary_path, "a") as f:
+              f.write("\n".join(lines) + "\n")
+
+          if counts["checkout-failed"] > 0:
+              print(f"::error::{counts['checkout-failed']} charm(s) failed to check out; see the report above.")
+              raise SystemExit(1)
+          EOF
