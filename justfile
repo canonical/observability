@@ -11,17 +11,6 @@ lint:
   # Lint the GitHub workflows
   uvx --from=actionlint-py actionlint
 
-# Generate manifest.yaml (charms, rocks, snaps with their supported branches)
-[group("manifest")]
-generate-manifest:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  # GitHub team slugs under the 'canonical' org (bare slugs, no 'canonical/' prefix)
-  teams="observability,tracing-and-profiling,observability-core"
-  # Repos to exclude, as full names (e.g. canonical/observability)
-  ignore="canonical/observability"
-  scripts/generate_manifest.py "${teams}" "${ignore}"
-
 # List all repositories owned by the Observability teams, deduped and sorted
 [group("info")]
 list-repos:
@@ -39,15 +28,55 @@ list-repos:
   } | { grep -vxF -f <(printf '%s\n' "${ignore[@]}") || true; } | sort -u
 
 # List all charms from the manifest
-[group("info")]
+[group("manifest")]
 list-charms:
   #!/usr/bin/env bash
   set -euo pipefail
-  if [[ ! -f manifest.yaml ]]; then
-    echo "manifest.yaml not found; run 'just generate-manifest' first." >&2
-    exit 1
-  fi
-  yq -r '.repositories.charms[].charm' manifest.yaml | sort -u
+  yq -r '.artifacts.charms[].name' manifest.yaml | sort -u
+
+# List all rocks from the manifest
+[group("manifest")]
+list-rocks:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  yq -r '.artifacts.rocks[].name' manifest.yaml | sort -u
+
+# List all snaps from the manifest
+[group("manifest")]
+list-snaps:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  yq -r '.artifacts.snaps[].name' manifest.yaml | sort -u
+
+# List all releases from the manifest that are past their end of life
+[group("manifest")]
+list-expired:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  today=$(date +%F)
+  yq -o=json manifest.yaml | jq -r --arg today "$today" '
+    .artifacts
+    | to_entries[]
+    | .key as $type
+    | .value[]
+    | .name as $artifact
+    | .releases[]?
+    | select(.support.end_of_life != null and .support.end_of_life < $today)
+    | [$type, $artifact, .name, .support.end_of_life] | @tsv
+  ' | column -t -s $'\t'
+
+# Remove releases from the manifest that are past their end of life
+[group("manifest")]
+remove-expired:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  echo "Removing the following EOL releases:"
+  just list-expired
+  export TODAY=$(date +%F)
+  yq -i '
+    (.. | select(has("releases")) | .releases)
+    |= map(select(.support.end_of_life == null or .support.end_of_life >= strenv(TODAY)))
+  ' manifest.yaml
 
 # Set a secret for all unarchived repositories of one or more GitHub teams
 [group("secrets")]

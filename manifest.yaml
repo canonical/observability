@@ -10,18 +10,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: avalanche-k8s
       repo: canonical/avalanche-k8s-operator
       path: .
@@ -32,18 +20,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: blackbox-exporter
       repo: canonical/blackbox-exporter-operator
       path: .
@@ -64,18 +40,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: catalogue-k8s
       repo: canonical/catalogue-k8s-operator
       path: charm
@@ -86,18 +50,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: cos-configuration-k8s
       repo: canonical/cos-configuration-k8s-operator
       path: .
@@ -108,18 +60,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: cos-proxy
       repo: canonical/cos-proxy-operator
       path: .
@@ -130,18 +70,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: grafana-agent
       repo: canonical/grafana-agent-operator
       path: .
@@ -152,18 +80,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: grafana-agent-k8s
       repo: canonical/grafana-agent-k8s-operator
       path: .
@@ -174,18 +90,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: grafana-cloud-integrator
       repo: canonical/grafana-cloud-integrator
       path: .
@@ -196,12 +100,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: grafana-k8s
       repo: canonical/grafana-k8s-operator
       path: .
@@ -212,18 +110,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: k6-k8s
       repo: canonical/k6-k8s-operator
       path: .
@@ -234,12 +120,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: litmus-auth-k8s
       repo: canonical/litmus-operators
       path: auth
@@ -250,12 +130,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: litmus-backend-k8s
       repo: canonical/litmus-operators
       path: backend
@@ -266,12 +140,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: litmus-chaoscenter-k8s
       repo: canonical/litmus-operators
       path: chaoscenter
@@ -282,12 +150,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: litmus-infrastructure-k8s
       repo: canonical/litmus-operators
       path: infrastructure
@@ -298,12 +160,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: loki-k8s
       repo: canonical/loki-k8s-operator
       path: .
@@ -314,18 +170,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: loki-coordinator-k8s
       repo: canonical/loki-operators
       path: coordinator
@@ -336,12 +180,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: loki-worker-k8s
       repo: canonical/loki-operators
       path: worker
@@ -352,12 +190,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: mimir-coordinator-k8s
       repo: canonical/mimir-operators
       path: coordinator
@@ -368,12 +200,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: mimir-worker-k8s
       repo: canonical/mimir-operators
       path: worker
@@ -384,12 +210,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: opentelemetry-collector-integrator
       repo: canonical/opentelemetry-collector-integrator-operator
       path: .
@@ -410,18 +230,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: opentelemetry-collector
       repo: canonical/opentelemetry-collector-operator
       path: .
@@ -432,12 +240,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: otel-ebpf-profiler
       repo: canonical/otel-ebpf-profiler-operator
       path: .
@@ -448,12 +250,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: parca-agent
       repo: canonical/parca-agent-operator
       path: .
@@ -464,18 +260,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: parca-k8s
       repo: canonical/parca-k8s-operator
       path: .
@@ -486,18 +270,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: parca-scrape-target
       repo: canonical/parca-scrape-target-operator
       path: .
@@ -508,12 +280,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: polar-signals-cloud-integrator
       repo: canonical/polar-signals-cloud-integrator-operator
       path: .
@@ -524,12 +290,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: prometheus-k8s
       repo: canonical/prometheus-k8s-operator
       path: .
@@ -540,18 +300,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: prometheus-pushgateway-k8s
       repo: canonical/prometheus-pushgateway-k8s-operator
       path: .
@@ -562,18 +310,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: prometheus-scrape-config-k8s
       repo: canonical/prometheus-scrape-config-k8s-operator
       path: .
@@ -584,18 +320,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: prometheus-scrape-target-k8s
       repo: canonical/prometheus-scrape-target-k8s-operator
       path: .
@@ -606,18 +330,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: pyroscope-coordinator-k8s
       repo: canonical/pyroscope-operators
       path: coordinator
@@ -628,12 +340,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: pyroscope-worker-k8s
       repo: canonical/pyroscope-operators
       path: worker
@@ -644,12 +350,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: script-exporter
       repo: canonical/script-exporter-operator
       path: .
@@ -660,18 +360,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
-        - name: "1"
-          branch: track/1
-          cycle: 25.04
-          support:
-            end_of_life: 2026-03-01
-            lts: false
     - name: sloth-k8s
       repo: canonical/sloth-k8s-operator
       path: .
@@ -686,12 +374,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: tempo-coordinator-k8s
       repo: canonical/tempo-operators
       path: coordinator
@@ -702,12 +384,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
     - name: tempo-worker-k8s
       repo: canonical/tempo-operators
       path: worker
@@ -718,12 +394,6 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
-        - name: "2"
-          branch: track/2
-          cycle: 25.10
-          support:
-            end_of_life: 2026-08-01
-            lts: false
   rocks:
     - name: alertmanager
       repo: canonical/alertmanager-rock
