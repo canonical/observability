@@ -1,0 +1,718 @@
+artifacts:
+  charms:
+    - name: alertmanager-k8s
+      repo: canonical/alertmanager-k8s-operator
+      path: .
+      releases:
+        - name: "0.28"
+          branch: track/0.28
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: avalanche-k8s
+      repo: canonical/avalanche-k8s-operator
+      path: .
+      releases:
+        - name: "0.7"
+          branch: track/0.7
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: blackbox-exporter
+      repo: canonical/blackbox-exporter-operator
+      path: .
+      releases:
+        - name: "0.28"
+          branch: track/0.28
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: blackbox-exporter-k8s
+      repo: canonical/blackbox-exporter-k8s-operator
+      path: .
+      releases:
+        - name: "0.28"
+          branch: track/0.28
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: catalogue-k8s
+      repo: canonical/catalogue-k8s-operator
+      path: charm
+      releases:
+        - name: "3.0"
+          branch: track/3.0
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: cos-configuration-k8s
+      repo: canonical/cos-configuration-k8s-operator
+      path: .
+      releases:
+        - name: "3.0"
+          branch: track/3.0
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: cos-proxy
+      repo: canonical/cos-proxy-operator
+      path: .
+      releases:
+        - name: "3.0"
+          branch: track/3.0
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: grafana-agent
+      repo: canonical/grafana-agent-operator
+      path: .
+      releases:
+        - name: "0.44"
+          branch: track/0.44
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: grafana-agent-k8s
+      repo: canonical/grafana-agent-k8s-operator
+      path: .
+      releases:
+        - name: "0.40"
+          branch: track/0.40
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: grafana-cloud-integrator
+      repo: canonical/grafana-cloud-integrator
+      path: .
+      releases:
+        - name: "3.0"
+          branch: track/3.0
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: grafana-k8s
+      repo: canonical/grafana-k8s-operator
+      path: .
+      releases:
+        - name: "12.4"
+          branch: track/12.4
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: k6-k8s
+      repo: canonical/k6-k8s-operator
+      path: .
+      releases:
+        - name: "1.7"
+          branch: track/1.7
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: litmus-auth-k8s
+      repo: canonical/litmus-operators
+      path: auth
+      releases:
+        - name: "3.29"
+          branch: track/3.29
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: litmus-backend-k8s
+      repo: canonical/litmus-operators
+      path: backend
+      releases:
+        - name: "3.29"
+          branch: track/3.29
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: litmus-chaoscenter-k8s
+      repo: canonical/litmus-operators
+      path: chaoscenter
+      releases:
+        - name: "3.29"
+          branch: track/3.29
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: litmus-infrastructure-k8s
+      repo: canonical/litmus-operators
+      path: infrastructure
+      releases:
+        - name: "3.29"
+          branch: track/3.29
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: loki-k8s
+      repo: canonical/loki-k8s-operator
+      path: .
+      releases:
+        - name: "3.7"
+          branch: track/3.7
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: loki-coordinator-k8s
+      repo: canonical/loki-operators
+      path: coordinator
+      releases:
+        - name: "3.7"
+          branch: track/3.7
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: loki-worker-k8s
+      repo: canonical/loki-operators
+      path: worker
+      releases:
+        - name: "3.7"
+          branch: track/3.7
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: mimir-coordinator-k8s
+      repo: canonical/mimir-operators
+      path: coordinator
+      releases:
+        - name: "2.17"
+          branch: track/2.17
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: mimir-worker-k8s
+      repo: canonical/mimir-operators
+      path: worker
+      releases:
+        - name: "2.17"
+          branch: track/2.17
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: opentelemetry-collector-integrator
+      repo: canonical/opentelemetry-collector-integrator-operator
+      path: .
+      releases:
+        - name: "3.0"
+          branch: track/3.0
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: opentelemetry-collector-k8s
+      repo: canonical/opentelemetry-collector-k8s-operator
+      path: .
+      releases:
+        - name: "0.130"
+          branch: track/0.130
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: opentelemetry-collector
+      repo: canonical/opentelemetry-collector-operator
+      path: .
+      releases:
+        - name: "0.130"
+          branch: track/0.130
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: otel-ebpf-profiler
+      repo: canonical/otel-ebpf-profiler-operator
+      path: .
+      releases:
+        - name: "0.135"
+          branch: track/0.135
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: parca-agent
+      repo: canonical/parca-agent-operator
+      path: .
+      releases:
+        - name: "0.35"
+          branch: track/0.35
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: parca-k8s
+      repo: canonical/parca-k8s-operator
+      path: .
+      releases:
+        - name: "0.27"
+          branch: track/0.27
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: parca-scrape-target
+      repo: canonical/parca-scrape-target-operator
+      path: .
+      releases:
+        - name: "3.0"
+          branch: track/3.0
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: polar-signals-cloud-integrator
+      repo: canonical/polar-signals-cloud-integrator-operator
+      path: .
+      releases:
+        - name: "3.0"
+          branch: track/3.0
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: prometheus-k8s
+      repo: canonical/prometheus-k8s-operator
+      path: .
+      releases:
+        - name: "3.11"
+          branch: track/3.11
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: prometheus-pushgateway-k8s
+      repo: canonical/prometheus-pushgateway-k8s-operator
+      path: .
+      releases:
+        - name: "3.0"
+          branch: track/3.0
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: prometheus-scrape-config-k8s
+      repo: canonical/prometheus-scrape-config-k8s-operator
+      path: .
+      releases:
+        - name: "3.0"
+          branch: track/3.0
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: prometheus-scrape-target-k8s
+      repo: canonical/prometheus-scrape-target-k8s-operator
+      path: .
+      releases:
+        - name: "3.0"
+          branch: track/3.0
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: pyroscope-coordinator-k8s
+      repo: canonical/pyroscope-operators
+      path: coordinator
+      releases:
+        - name: "1.18"
+          branch: track/1.18
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: pyroscope-worker-k8s
+      repo: canonical/pyroscope-operators
+      path: worker
+      releases:
+        - name: "1.18"
+          branch: track/1.18
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: script-exporter
+      repo: canonical/script-exporter-operator
+      path: .
+      releases:
+        - name: "3.2"
+          branch: track/3.2
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: sloth-k8s
+      repo: canonical/sloth-k8s-operator
+      path: .
+      releases: []
+    - name: snmp-exporter
+      repo: canonical/snmp-exporter-operator
+      path: .
+      releases:
+        - name: "0.24"
+          branch: track/0.24
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: tempo-coordinator-k8s
+      repo: canonical/tempo-operators
+      path: coordinator
+      releases:
+        - name: "2.10"
+          branch: track/2.10
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: tempo-worker-k8s
+      repo: canonical/tempo-operators
+      path: worker
+      releases:
+        - name: "2.10"
+          branch: track/2.10
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+  rocks:
+    - name: alertmanager
+      repo: canonical/alertmanager-rock
+      path: .
+      releases:
+        - name: "0.28"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: blackbox-exporter
+      repo: canonical/blackbox-exporter-rock
+      path: .
+      releases:
+        - name: "0.28"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: catalogue
+      repo: canonical/catalogue-k8s-operator
+      path: workload
+      releases:
+        - name: "0.15"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+    - name: git-sync
+      repo: canonical/git-sync-rock
+      path: .
+      releases:
+        - name: "3.0"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: grafana-agent
+      repo: canonical/grafana-agent-rock
+      path: .
+      releases:
+        - name: "0.40"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2026-11-01
+            lts: false
+    - name: grafana
+      repo: canonical/grafana-rock
+      path: .
+      releases:
+        - name: "12.4"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: litestream
+      repo: canonical/litestream-rock
+      path: .
+      releases:
+        - name: "0.5"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2027-04-01
+            lts: false
+    - name: litmus-auth
+      repo: canonical/litmus-rocks
+      path: auth
+      releases:
+        - name: "3.29"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2027-04-01
+            lts: false
+    - name: litmus-backend
+      repo: canonical/litmus-rocks
+      path: backend
+      releases:
+        - name: "3.29"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2027-04-01
+            lts: false
+    - name: litmus-chaoscenter
+      repo: canonical/litmus-rocks
+      path: chaoscenter
+      releases:
+        - name: "3.29"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2027-04-01
+            lts: false
+    - name: litmus-infrastructure
+      repo: canonical/litmus-rocks
+      path: infrastructure
+      releases:
+        - name: "3.29"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2027-04-01
+            lts: false
+    - name: loki
+      repo: canonical/loki-rock
+      path: .
+      releases:
+        - name: "3.7"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+        - name: "2.9"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2026-11-01
+            lts: false
+    - name: mimir
+      repo: canonical/mimir-rock
+      path: .
+      releases:
+        - name: "2.17"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: nginx-prometheus-exporter
+      repo: canonical/nginx-prometheus-exporter-rock
+      path: .
+      releases:
+        - name: "1.5"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: nginx
+      repo: canonical/nginx-rock
+      path: .
+      releases:
+        - name: "1.27"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+        - name: "1.28"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2026-11-01
+            lts: false
+        - name: "1.30"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2026-11-01
+            lts: false
+    - name: node-exporter
+      repo: canonical/node-exporter-rock
+      path: .
+      releases:
+        - name: "1.11"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2027-04-01
+            lts: false
+    - name: opentelemetry-collector
+      repo: canonical/opentelemetry-collector-rock
+      path: .
+      releases:
+        - name: "0.130"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: parca
+      repo: canonical/parca-rock
+      path: .
+      releases:
+        - name: "0.27"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2027-04-01
+            lts: false
+    - name: prometheus
+      repo: canonical/prometheus-rock
+      path: .
+      releases:
+        - name: "3.11"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: prometheus-pushgateway
+      repo: canonical/prometheus-pushgateway-rock
+      path: .
+      releases:
+        - name: "1.11"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: pyroscope
+      repo: canonical/pyroscope-rock
+      path: .
+      releases:
+        - name: "1.18"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2027-04-01
+            lts: false
+    - name: sloth
+      repo: canonical/sloth-rock
+      path: .
+      releases:
+        - name: "0.15"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2027-04-01
+    - name: tempo
+      repo: canonical/tempo-rock
+      path: .
+      releases:
+        - name: "2.10"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: xk6
+      repo: canonical/xk6-rock
+      path: .
+      releases:
+        - name: "1.7"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2027-04-01
+            lts: false
+  snaps:
+    - name: apache-exporter
+      repo: canonical/apache-exporter-snap
+      path: .
+      releases: []
+    - name: cassandra-exporter
+      repo: canonical/cassandra-exporter-snap
+      path: .
+      releases: []
+    - name: grafana-agent
+      repo: canonical/grafana-agent-snap
+      path: .
+      releases:
+        - name: "0.44"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2026-11-01
+            lts: false
+    - name: memcached-exporter
+      repo: canonical/memcached-exporter-snap
+      path: .
+      releases: []
+    - name: node-exporter
+      repo: canonical/node-exporter-snap
+      path: .
+      releases: []
+    - name: opentelemetry-collector
+      repo: canonical/opentelemetry-collector-snap
+      path: .
+      releases:
+        - name: "0.130"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: otel-ebpf-profiler
+      repo: canonical/otel-ebpf-profiler-snap
+      path: .
+      releases:
+        - name: "0.135"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2027-04-01
+            lts: false
+    - name: postgres-exporter
+      repo: canonical/postgres-exporter-snap
+      path: .
+      releases: []
+    - name: prometheus-blackbox-exporter
+      repo: canonical/prometheus-blackbox-exporter-snap
+      path: .
+      releases:
+        - name: "0.28"
+          branch: main
+          cycle: 26.04
+          support:
+            end_of_life: 2041-06-01
+            lts: true
+    - name: rabbitmq-exporter
+      repo: canonical/rabbitmq-exporter-snap
+      path: .
+      releases: []
