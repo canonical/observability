@@ -20,10 +20,10 @@ jobs:
         id: matrix
         run: |
           set -euo pipefail
-          # Grouped by repo+branch (not by charm) so a repo hosting several charms
-          # at the same track (litmus-operators, loki-operators, mimir-operators,
-          # pyroscope-operators, tempo-operators, ...) is only cloned once instead
-          # of once per charm that lives in it.
+          # Grouped by repo only (not repo+branch), so a repo is cloned exactly
+          # once regardless of how many charms or active release branches it
+          # hosts. Multiple branches of the same repo are checked out one after
+          # another from that single clone (see the `scan` job below).
           matrix="$(yq -o=json manifest.yaml | jq -c '
             [.artifacts.charms[]
               | .name as $charm | .repo as $repo | .path as $path
@@ -38,20 +38,19 @@ jobs:
                   lts: (.support.lts // false)
                 }
             ]
-            | group_by(.repo + "@" + .branch)
+            | group_by(.repo)
             | map({
                 repo: .[0].repo,
-                branch: .[0].branch,
-                charms: map({charm, path, release, cycle, lts})
+                charms: map({charm, path, release, branch, cycle, lts})
               })
           ')"
           releases="$(echo "$matrix" | jq '[.[].charms[]] | length')"
-          clones="$(echo "$matrix" | jq length)"
-          echo "Found $releases charm releases across $clones repo+branch clones"
+          repos="$(echo "$matrix" | jq length)"
+          echo "Found $releases charm releases across $repos repo clones"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
 
   scan:
-    name: Scan ${{ matrix.repo }}@${{ matrix.branch }}
+    name: Scan ${{ matrix.repo }}
     needs: build-matrix
     runs-on: ubuntu-latest
     strategy:
@@ -64,78 +63,87 @@ jobs:
           sudo snap install just --classic
           sudo snap install astral-uv --classic
 
-      # A plain `git clone` (rather than actions/checkout) is used here so that a
-      # missing branch's own error output can be captured into the same report the
-      # scan output goes into, instead of only being visible in this job's log.
-      - name: Clone ${{ matrix.repo }}@${{ matrix.branch }}
-        id: checkout
-        continue-on-error: true
-        env:
-          REPO: ${{ matrix.repo }}
-          BRANCH: ${{ matrix.branch }}
-        run: |
-          set -o pipefail
-          git clone --depth=1 --branch "$BRANCH" "https://github.com/${REPO}.git" charm-checkout \
-            2>&1 | tee "$RUNNER_TEMP/clone-output.log"
-
-      # One clone can back several charms (see the grouping in build-matrix), so
-      # this loops `just scan` over each of them and records one result per charm
-      # - a shared clone failure is recorded against all of them, each with its
-      # own status otherwise.
+      # One clone can back several charms and several release branches (see the
+      # grouping in build-matrix). `--depth=1 --no-single-branch` fetches shallow
+      # history for *every* branch in a single network round trip, so each branch
+      # below is then just a local `git checkout` - no re-cloning per branch, and
+      # a bad branch name (missing from manifest.yaml) fails locally and cheaply.
       - name: Run scans and record results
         id: scans
-        if: always()
         env:
           CHARMS_JSON: ${{ toJSON(matrix.charms) }}
           REPO: ${{ matrix.repo }}
-          BRANCH: ${{ matrix.branch }}
-          CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
         run: |
           set -uo pipefail
           mkdir -p "$RUNNER_TEMP/results"
-          clone_log="$RUNNER_TEMP/clone-output.log"
-          [[ -f "$clone_log" ]] || echo "(no output captured)" > "$clone_log"
 
-          while read -r entry; do
-            charm="$(jq -r '.charm' <<<"$entry")"
-            path="$(jq -r '.path' <<<"$entry")"
-            release="$(jq -r '.release' <<<"$entry")"
-            cycle="$(jq -r '.cycle' <<<"$entry")"
-            lts="$(jq -r '.lts' <<<"$entry")"
-
-            log_file="$RUNNER_TEMP/scan-${charm}.log"
-
-            if [[ "$CHECKOUT_OUTCOME" != "success" ]]; then
-              status="checkout-failed"
-              cp "$clone_log" "$log_file"
-            elif (cd "charm-checkout/$path" && just scan) >"$log_file" 2>&1; then
-              status="pass"
-            else
-              status="vulnerabilities-found"
-            fi
-
+          record_result() {
+            # args: charm release cycle lts branch status log_file
             jq -n \
-              --arg charm "$charm" \
-              --arg release "$release" \
-              --arg cycle "$cycle" \
-              --argjson lts "$lts" \
-              --arg repo "$REPO" \
-              --arg branch "$BRANCH" \
-              --arg status "$status" \
-              --rawfile log "$log_file" \
+              --arg charm "$1" --arg release "$2" --arg cycle "$3" \
+              --argjson lts "$4" --arg repo "$REPO" --arg branch "$5" \
+              --arg status "$6" --rawfile log "$7" \
               '{charm:$charm, release:$release, cycle:$cycle, lts:$lts, repo:$repo, branch:$branch, status:$status, log:$log}' \
-              > "$RUNNER_TEMP/results/${charm}-${release}.json"
-          done < <(jq -c '.[]' <<<"$CHARMS_JSON")
+              > "$RUNNER_TEMP/results/$1-$2.json"
+          }
+
+          any_failed=0
+          clone_log="$RUNNER_TEMP/clone-output.log"
+          if git clone --quiet --no-checkout --depth=1 --no-single-branch \
+               "https://github.com/${REPO}.git" charm-checkout >"$clone_log" 2>&1; then
+            cd charm-checkout
+
+            for branch in $(jq -r '[.[].branch] | unique | .[]' <<<"$CHARMS_JSON"); do
+              branch_log="$RUNNER_TEMP/checkout-${branch//\//-}.log"
+              if git checkout --quiet -B "$branch" "origin/$branch" >"$branch_log" 2>&1; then
+                branch_ok=1
+              else
+                branch_ok=0
+                any_failed=1
+              fi
+
+              while read -r entry; do
+                charm="$(jq -r '.charm' <<<"$entry")"
+                path="$(jq -r '.path' <<<"$entry")"
+                release="$(jq -r '.release' <<<"$entry")"
+                cycle="$(jq -r '.cycle' <<<"$entry")"
+                lts="$(jq -r '.lts' <<<"$entry")"
+
+                log_file="$RUNNER_TEMP/scan-${charm}.log"
+                if [[ "$branch_ok" -ne 1 ]]; then
+                  status="checkout-failed"
+                  cp "$branch_log" "$log_file"
+                elif (cd "$path" && just scan) >"$log_file" 2>&1; then
+                  status="pass"
+                else
+                  status="vulnerabilities-found"
+                fi
+                record_result "$charm" "$release" "$cycle" "$lts" "$branch" "$status" "$log_file"
+              done < <(jq -c --arg b "$branch" '.[] | select(.branch == $b)' <<<"$CHARMS_JSON")
+            done
+          else
+            # The repo itself couldn't be cloned at all - every charm/branch it
+            # would have backed is reported as checkout-failed against this one log.
+            any_failed=1
+            while read -r entry; do
+              charm="$(jq -r '.charm' <<<"$entry")"
+              release="$(jq -r '.release' <<<"$entry")"
+              cycle="$(jq -r '.cycle' <<<"$entry")"
+              lts="$(jq -r '.lts' <<<"$entry")"
+              branch="$(jq -r '.branch' <<<"$entry")"
+              record_result "$charm" "$release" "$cycle" "$lts" "$branch" "checkout-failed" "$clone_log"
+            done < <(jq -c '.[]' <<<"$CHARMS_JSON")
+          fi
+
+          echo "any-failed=$any_failed" >> "$GITHUB_OUTPUT"
 
       - name: Compute artifact name
         if: always()
         id: artifact-name
         env:
           REPO: ${{ matrix.repo }}
-          BRANCH: ${{ matrix.branch }}
         run: |
-          safe="${REPO//\//-}-${BRANCH//\//-}"
-          echo "name=scan-results-${safe}" >> "$GITHUB_OUTPUT"
+          echo "name=scan-results-${REPO//\//-}" >> "$GITHUB_OUTPUT"
 
       - name: Upload scan results
         if: always()
@@ -146,12 +154,12 @@ jobs:
           if-no-files-found: error
 
       # Runs last so results are always recorded and uploaded first: a missing
-      # branch (or any other clone problem) should fail this job and the overall
-      # run, but vulnerabilities found by `just scan` should not.
+      # branch (or any other clone/checkout problem) should fail this job and the
+      # overall run, but vulnerabilities found by `just scan` should not.
       - name: Fail on checkout error
-        if: steps.checkout.outcome == 'failure'
+        if: steps.scans.outputs.any-failed == '1'
         run: |
-          echo "::error::Failed to clone ${{ matrix.repo }}@${{ matrix.branch }} - see the 'Clone' step above for details."
+          echo "::error::One or more branches of ${{ matrix.repo }} failed to check out - see the scan step above for details."
           exit 1
 
   report:
