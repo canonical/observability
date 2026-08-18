@@ -35,7 +35,7 @@ scan-matrix:
       })
   '
 
-# Scan every charm hosted in one repo for security vulnerabilities
+# Run `just scan` on charms in a single repository
 [group("charms")]
 [arg("repo", help="Repository in 'org/repo' form, as it appears in manifest.yaml")]
 scan-charm-repo repo:
@@ -110,7 +110,7 @@ scan-charm-repo repo:
       print(f"::error::One or more branches of {repo} failed to check out", file=sys.stderr)
       sys.exit(1)
 
-# Run `uv audit` on every charm across every repo in manifest.yaml, one repo at a time
+# Run `just scan` on every charm in manifest.yaml, one repo at a time
 [group("charms")]
 scan-charms:
   #!/usr/bin/env bash
@@ -133,7 +133,7 @@ scan-charms:
 
   exit "$any_failed"
 
-# Build the charm-scan markdown report from a directory of result JSON files
+# Build the scan-charm markdown report from a directory of result JSON files
 [group("report")]
 build-report results_dir="results":
   #!/usr/bin/env python3

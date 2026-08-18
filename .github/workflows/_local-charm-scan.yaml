@@ -1,4 +1,4 @@
-name: Charm Security Scan (fleet-wide)
+name: Charm Security Scan
 
 on:
   workflow_dispatch:
@@ -17,9 +17,6 @@ jobs:
           sudo snap install yq
           sudo snap install astral-uv --classic
 
-      # All the cloning/checkout/scanning logic lives in `security.just` so it
-      # can be run and debugged locally the same way CI runs it, e.g.:
-      # just security::scan-charms
       - name: Scan every charm in manifest.yaml
         run: just security::scan-charms
 
