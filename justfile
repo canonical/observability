@@ -1,6 +1,8 @@
 set quiet  # Recipes are silent by default
 set export  # Just variables are exported to the environment
 
+mod security
+
 [private]
 default:
   just --list
@@ -28,21 +30,21 @@ list-repos:
   } | { grep -vxF -f <(printf '%s\n' "${ignore[@]}") || true; } | sort -u
 
 # List all charms from the manifest
-[group("manifest")]
+[group("info")]
 list-charms:
   #!/usr/bin/env bash
   set -euo pipefail
   yq -r '.artifacts.charms[].name' manifest.yaml | sort -u
 
 # List all rocks from the manifest
-[group("manifest")]
+[group("info")]
 list-rocks:
   #!/usr/bin/env bash
   set -euo pipefail
   yq -r '.artifacts.rocks[].name' manifest.yaml | sort -u
 
 # List all snaps from the manifest
-[group("manifest")]
+[group("info")]
 list-snaps:
   #!/usr/bin/env bash
   set -euo pipefail

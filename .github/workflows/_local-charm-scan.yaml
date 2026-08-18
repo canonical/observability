@@ -1,0 +1,25 @@
+name: Charm Security Scan
+
+on:
+  workflow_dispatch:
+
+jobs:
+  scan:
+    name: Scan fleet
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo snap install just --classic
+          sudo snap install yq
+          sudo snap install astral-uv --classic
+
+      - name: Scan every charm in manifest.yaml
+        run: just security::scan-charms
+
+      - name: Build report
+        if: always()
+        run: just security::build-report "$RUNNER_TEMP/results" >> "$GITHUB_STEP_SUMMARY"
