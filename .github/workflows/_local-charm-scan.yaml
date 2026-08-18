@@ -19,9 +19,9 @@ jobs:
 
       # All the cloning/checkout/scanning logic lives in `security.just` so it
       # can be run and debugged locally the same way CI runs it, e.g.:
-      # just security::scan-fleet
+      # just security::scan-charms
       - name: Scan every charm in manifest.yaml
-        run: just security::scan-fleet
+        run: just security::scan-charms
 
       - name: Build report
         if: always()

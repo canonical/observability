@@ -6,13 +6,14 @@ default:
   just -f security.just --list
 
 # List every charm release as JSON, grouped by unique repo
+[private]
 [group("security")]
 scan-matrix:
   #!/usr/bin/env bash
   set -euo pipefail
   # One entry per repo, with the charms/paths/branches it hosts - used by
-  # `scan-fleet` to enumerate repos, and by `scan-repo` to look up the charms
-  # hosted in one of them.
+  # `scan-charms` to enumerate repos, and by `scan-charm-repo` to look up the
+  # charms hosted in one of them.
   yq -o=json manifest.yaml | jq -c '
     [.artifacts.charms[]
       | .name as $charm | .repo as $repo | .path as $path
@@ -35,9 +36,9 @@ scan-matrix:
   '
 
 # Scan every charm hosted in one repo for security vulnerabilities
-[group("security")]
+[group("charms")]
 [arg("repo", help="Repository in 'org/repo' form, as it appears in manifest.yaml")]
-scan-repo repo:
+scan-charm-repo repo:
   #!/usr/bin/env python3
   # Clones `repo` once and checks out each branch it hosts charms on in turn -
   # only branches that are actually listed in manifest.yaml, nothing else -
@@ -45,7 +46,7 @@ scan-repo repo:
   # $RUNNER_TEMP/results (or ./results outside CI). Exits non-zero if any branch
   # failed to check out; vulnerabilities found by `just scan` are recorded but
   # don't fail the recipe. Used by the _local-charm-scan.yaml workflow, but also
-  # runs standalone, e.g.: just security::scan-repo canonical/litmus-operators
+  # runs standalone, e.g.: just security::scan-charm-repo canonical/litmus-operators
   import json
   import os
   import subprocess
@@ -109,16 +110,16 @@ scan-repo repo:
       print(f"::error::One or more branches of {repo} failed to check out", file=sys.stderr)
       sys.exit(1)
 
-# Scan every charm across every repo in manifest.yaml, one repo at a time
-[group("security")]
-scan-fleet:
+# Run `uv audit` on every charm across every repo in manifest.yaml, one repo at a time
+[group("charms")]
+scan-charms:
   #!/usr/bin/env bash
   set -euo pipefail
-  # Sequential on purpose: each `scan-repo` call is a shallow clone plus a
-  # handful of lightweight `uv audit` runs, so parallelizing this across one
+  # Sequential on purpose: each `scan-charm-repo` call is a shallow clone plus
+  # a handful of lightweight `uv audit` runs, so parallelizing this across one
   # runner per repo bought little beyond N-times the runner/artifact overhead.
-  # Continues past a repo that fails (matching scan-repo's own per-branch
-  # tolerance) but still exits non-zero at the end if any of them did.
+  # Continues past a repo that fails (matching scan-charm-repo's own
+  # per-branch tolerance) but still exits non-zero at the end if any did.
   matrix="$(just security::scan-matrix)"
   releases="$(echo "$matrix" | jq '[.[].charms[]] | length')"
   repos="$(echo "$matrix" | jq -r '.[].repo')"
@@ -127,13 +128,13 @@ scan-fleet:
 
   any_failed=0
   while IFS= read -r repo; do
-    just security::scan-repo "$repo" || any_failed=1
+    just security::scan-charm-repo "$repo" || any_failed=1
   done <<< "$repos"
 
   exit "$any_failed"
 
 # Build the charm-scan markdown report from a directory of result JSON files
-[group("security")]
+[group("report")]
 build-report results_dir="results":
   #!/usr/bin/env python3
   # Searches results_dir recursively, so this works with both a flat directory
