@@ -49,8 +49,10 @@ scan-charm-repo repo:
   # runs standalone, e.g.: just security::scan-charm-repo canonical/litmus-operators
   import json
   import os
+  import shutil
   import subprocess
   import sys
+  import tempfile
   from pathlib import Path
 
   repo = "{{ repo }}"
@@ -80,31 +82,37 @@ scan-charm-repo repo:
       print(f"No charms found for repo '{repo}' in manifest.yaml", file=sys.stderr)
       sys.exit(1)
 
-  checkout_dir = Path("charm-checkout")
-  clone = run(
-      "git", "clone", "--quiet", "--no-checkout", "--depth=1", "--no-single-branch",
-      f"https://github.com/{repo}.git", str(checkout_dir),
-  )
+  # A fresh temp dir per call, cleaned up on the way out - `scan-charms` calls
+  # this once per repo from the same cwd, so a fixed checkout path would
+  # collide with the previous repo's leftover clone.
+  checkout_dir = Path(tempfile.mkdtemp(prefix="charm-checkout-"))
+  try:
+      clone = run(
+          "git", "clone", "--quiet", "--no-checkout", "--depth=1", "--no-single-branch",
+          f"https://github.com/{repo}.git", str(checkout_dir),
+      )
 
-  any_failed = False
-  if clone.returncode != 0:
-      any_failed = True
-      for c in charms:
-          record(c["charm"], c["release"], c["cycle"], c["lts"], c["branch"], "checkout-failed", clone.stdout)
-  else:
-      for branch in sorted({c["branch"] for c in charms}):
-          checkout = run("git", "checkout", "--quiet", "-B", branch, f"origin/{branch}", cwd=checkout_dir)
-          branch_ok = checkout.returncode == 0
-          any_failed = any_failed or not branch_ok
+      any_failed = False
+      if clone.returncode != 0:
+          any_failed = True
+          for c in charms:
+              record(c["charm"], c["release"], c["cycle"], c["lts"], c["branch"], "checkout-failed", clone.stdout)
+      else:
+          for branch in sorted({c["branch"] for c in charms}):
+              checkout = run("git", "checkout", "--quiet", "-B", branch, f"origin/{branch}", cwd=checkout_dir)
+              branch_ok = checkout.returncode == 0
+              any_failed = any_failed or not branch_ok
 
-          for c in (c for c in charms if c["branch"] == branch):
-              if not branch_ok:
-                  status, log = "checkout-failed", checkout.stdout
-              else:
-                  scan = run("just", "scan", cwd=checkout_dir / c["path"])
-                  status = "pass" if scan.returncode == 0 else "vulnerabilities-found"
-                  log = scan.stdout
-              record(c["charm"], c["release"], c["cycle"], c["lts"], branch, status, log)
+              for c in (c for c in charms if c["branch"] == branch):
+                  if not branch_ok:
+                      status, log = "checkout-failed", checkout.stdout
+                  else:
+                      scan = run("just", "scan", cwd=checkout_dir / c["path"])
+                      status = "pass" if scan.returncode == 0 else "vulnerabilities-found"
+                      log = scan.stdout
+                  record(c["charm"], c["release"], c["cycle"], c["lts"], branch, status, log)
+  finally:
+      shutil.rmtree(checkout_dir, ignore_errors=True)
 
   if any_failed:
       print(f"::error::One or more branches of {repo} failed to check out", file=sys.stderr)
