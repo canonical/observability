@@ -5,7 +5,7 @@ on:
 
 jobs:
   scan:
-    name: Scan fleet
+    name: Scan charms
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
