@@ -24,8 +24,10 @@ jobs:
         steps:
           - name: Checkout
             uses: actions/checkout@v6
-          - name: Install yq
-            run: sudo snap install yq
+          - name: Install dependencies
+            run: |
+              sudo snap install just --classic
+              sudo snap install yq
           - name: Generate manifest
             env:
               SSDLC_MANIFEST_OUTPUT: /tmp/ssdlc-manifest.yaml
