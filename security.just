@@ -202,9 +202,9 @@ build-report results_dir="results":
           lines.append("")
 
       badge = badges[r["status"]]
-      lts_label = "LTS" if r["lts"] else "non-LTS"
+      lts_label = "(LTS)" if r["lts"] else ""
       summary = (
-          f"{badge} <b>{r['charm']}</b> {r['release']} ({lts_label}) "
+          f"{badge} <b>{r['charm']}</b> {r['release']} {lts_label} "
           f"— {status_text[r['status']]}"
       )
       lines.append("<details>")
