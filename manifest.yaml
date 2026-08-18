@@ -18,8 +18,8 @@ artifacts:
           branch: track/0.7
           cycle: 26.04
           support:
-            end_of_life: 2041-06-01
-            lts: true
+            end_of_life: 2027-02-01
+            lts: false
     - name: blackbox-exporter
       repo: canonical/blackbox-exporter-operator
       path: .
@@ -78,8 +78,8 @@ artifacts:
           branch: track/0.44
           cycle: 26.04
           support:
-            end_of_life: 2041-06-01
-            lts: true
+            end_of_life: 2027-02-01
+            lts: false
     - name: grafana-agent-k8s
       repo: canonical/grafana-agent-k8s-operator
       path: .
@@ -88,8 +88,8 @@ artifacts:
           branch: track/0.40
           cycle: 26.04
           support:
-            end_of_life: 2041-06-01
-            lts: true
+            end_of_life: 2027-02-01
+            lts: false
     - name: grafana-cloud-integrator
       repo: canonical/grafana-cloud-integrator
       path: .
@@ -98,8 +98,8 @@ artifacts:
           branch: track/3.0
           cycle: 26.04
           support:
-            end_of_life: 2041-06-01
-            lts: true
+            end_of_life: 2027-02-01
+            lts: false
     - name: grafana-k8s
       repo: canonical/grafana-k8s-operator
       path: .
@@ -118,8 +118,8 @@ artifacts:
           branch: track/1.7
           cycle: 26.04
           support:
-            end_of_life: 2041-06-01
-            lts: true
+            end_of_life: 2027-02-01
+            lts: false
     - name: litmus-auth-k8s
       repo: canonical/litmus-operators
       path: auth
@@ -128,8 +128,8 @@ artifacts:
           branch: track/3.29
           cycle: 26.04
           support:
-            end_of_life: 2041-06-01
-            lts: true
+            end_of_life: 2027-02-01
+            lts: false
     - name: litmus-backend-k8s
       repo: canonical/litmus-operators
       path: backend
@@ -138,8 +138,8 @@ artifacts:
           branch: track/3.29
           cycle: 26.04
           support:
-            end_of_life: 2041-06-01
-            lts: true
+            end_of_life: 2027-02-01
+            lts: false
     - name: litmus-chaoscenter-k8s
       repo: canonical/litmus-operators
       path: chaoscenter
@@ -148,8 +148,8 @@ artifacts:
           branch: track/3.29
           cycle: 26.04
           support:
-            end_of_life: 2041-06-01
-            lts: true
+            end_of_life: 2027-02-01
+            lts: false
     - name: litmus-infrastructure-k8s
       repo: canonical/litmus-operators
       path: infrastructure
@@ -158,8 +158,8 @@ artifacts:
           branch: track/3.29
           cycle: 26.04
           support:
-            end_of_life: 2041-06-01
-            lts: true
+            end_of_life: 2027-02-01
+            lts: false
     - name: loki-k8s
       repo: canonical/loki-k8s-operator
       path: .
@@ -248,8 +248,8 @@ artifacts:
           branch: track/0.135
           cycle: 26.04
           support:
-            end_of_life: 2041-06-01
-            lts: true
+            end_of_life: 2027-02-01
+            lts: false
     - name: parca-agent
       repo: canonical/parca-agent-operator
       path: .
@@ -258,8 +258,8 @@ artifacts:
           branch: track/0.35
           cycle: 26.04
           support:
-            end_of_life: 2041-06-01
-            lts: true
+            end_of_life: 2027-02-01
+            lts: false
     - name: parca-k8s
       repo: canonical/parca-k8s-operator
       path: .
@@ -268,8 +268,8 @@ artifacts:
           branch: track/0.27
           cycle: 26.04
           support:
-            end_of_life: 2041-06-01
-            lts: true
+            end_of_life: 2027-02-01
+            lts: false
     - name: parca-scrape-target
       repo: canonical/parca-scrape-target-operator
       path: .
@@ -278,8 +278,8 @@ artifacts:
           branch: track/3.0
           cycle: 26.04
           support:
-            end_of_life: 2041-06-01
-            lts: true
+            end_of_life: 2027-02-01
+            lts: false
     - name: polar-signals-cloud-integrator
       repo: canonical/polar-signals-cloud-integrator-operator
       path: .
@@ -288,8 +288,8 @@ artifacts:
           branch: track/3.0
           cycle: 26.04
           support:
-            end_of_life: 2041-06-01
-            lts: true
+            end_of_life: 2027-02-01
+            lts: false
     - name: prometheus-k8s
       repo: canonical/prometheus-k8s-operator
       path: .
@@ -338,8 +338,8 @@ artifacts:
           branch: track/1.18
           cycle: 26.04
           support:
-            end_of_life: 2041-06-01
-            lts: true
+            end_of_life: 2027-02-01
+            lts: false
     - name: pyroscope-worker-k8s
       repo: canonical/pyroscope-operators
       path: worker
@@ -348,8 +348,8 @@ artifacts:
           branch: track/1.18
           cycle: 26.04
           support:
-            end_of_life: 2041-06-01
-            lts: true
+            end_of_life: 2027-02-01
+            lts: false
     - name: script-exporter
       repo: canonical/script-exporter-operator
       path: .
@@ -462,7 +462,7 @@ artifacts:
           branch: main
           cycle: 26.04
           support:
-            end_of_life: 2027-04-01
+            end_of_life: 2027-02-01
             lts: false
     - name: litmus-auth
       repo: canonical/litmus-rocks
@@ -472,7 +472,7 @@ artifacts:
           branch: main
           cycle: 26.04
           support:
-            end_of_life: 2027-04-01
+            end_of_life: 2027-02-01
             lts: false
     - name: litmus-backend
       repo: canonical/litmus-rocks
@@ -482,7 +482,7 @@ artifacts:
           branch: main
           cycle: 26.04
           support:
-            end_of_life: 2027-04-01
+            end_of_life: 2027-02-01
             lts: false
     - name: litmus-chaoscenter
       repo: canonical/litmus-rocks
@@ -492,7 +492,7 @@ artifacts:
           branch: main
           cycle: 26.04
           support:
-            end_of_life: 2027-04-01
+            end_of_life: 2027-02-01
             lts: false
     - name: litmus-infrastructure
       repo: canonical/litmus-rocks
@@ -502,7 +502,7 @@ artifacts:
           branch: main
           cycle: 26.04
           support:
-            end_of_life: 2027-04-01
+            end_of_life: 2027-02-01
             lts: false
     - name: loki
       repo: canonical/loki-rock
@@ -570,7 +570,7 @@ artifacts:
           branch: main
           cycle: 26.04
           support:
-            end_of_life: 2027-04-01
+            end_of_life: 2027-02-01
             lts: false
     - name: opentelemetry-collector
       repo: canonical/opentelemetry-collector-rock
@@ -590,7 +590,7 @@ artifacts:
           branch: main
           cycle: 26.04
           support:
-            end_of_life: 2027-04-01
+            end_of_life: 2027-02-01
             lts: false
     - name: prometheus
       repo: canonical/prometheus-rock
@@ -620,7 +620,7 @@ artifacts:
           branch: main
           cycle: 26.04
           support:
-            end_of_life: 2027-04-01
+            end_of_life: 2027-02-01
             lts: false
     - name: sloth
       repo: canonical/sloth-rock
@@ -630,7 +630,7 @@ artifacts:
           branch: main
           cycle: 26.04
           support:
-            end_of_life: 2027-04-01
+            end_of_life: 2027-02-01
     - name: tempo
       repo: canonical/tempo-rock
       path: .
@@ -649,7 +649,7 @@ artifacts:
           branch: main
           cycle: 26.04
           support:
-            end_of_life: 2027-04-01
+            end_of_life: 2027-02-01
             lts: false
   snaps:
     - name: apache-exporter
