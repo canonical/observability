@@ -1,4 +1,4 @@
-name: Charm Security Scan
+name: Charm Vulnerability Scan
 
 on:
   workflow_dispatch:
