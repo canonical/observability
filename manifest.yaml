@@ -6,7 +6,7 @@ artifacts:
       releases:
         - name: "0.31"
           branch: track/0.31
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -16,7 +16,7 @@ artifacts:
       releases:
         - name: "0.7"
           branch: track/0.7
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -26,7 +26,7 @@ artifacts:
       releases:
         - name: "0.28"
           branch: track/0.28
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -36,7 +36,7 @@ artifacts:
       releases:
         - name: "0.28"
           branch: track/0.28
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -46,7 +46,7 @@ artifacts:
       releases:
         - name: "3.0"
           branch: track/3.0
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -56,7 +56,7 @@ artifacts:
       releases:
         - name: "3.0"
           branch: track/3.0
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -66,7 +66,7 @@ artifacts:
       releases:
         - name: "3.0"
           branch: track/3.0
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -76,7 +76,7 @@ artifacts:
       releases:
         - name: "0.44"
           branch: track/0.44
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -86,7 +86,7 @@ artifacts:
       releases:
         - name: "0.40"
           branch: track/0.40
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -96,7 +96,7 @@ artifacts:
       releases:
         - name: "3.0"
           branch: track/3.0
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -106,7 +106,7 @@ artifacts:
       releases:
         - name: "12.4"
           branch: track/12.4
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -116,7 +116,7 @@ artifacts:
       releases:
         - name: "1.7"
           branch: track/1.7
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -126,7 +126,7 @@ artifacts:
       releases:
         - name: "3.29"
           branch: track/3.29
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -136,7 +136,7 @@ artifacts:
       releases:
         - name: "3.29"
           branch: track/3.29
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -146,7 +146,7 @@ artifacts:
       releases:
         - name: "3.29"
           branch: track/3.29
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -156,7 +156,7 @@ artifacts:
       releases:
         - name: "3.29"
           branch: track/3.29
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -166,7 +166,7 @@ artifacts:
       releases:
         - name: "3.7"
           branch: track/3.7
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -176,7 +176,7 @@ artifacts:
       releases:
         - name: "3.7"
           branch: track/3.7
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -186,7 +186,7 @@ artifacts:
       releases:
         - name: "3.7"
           branch: track/3.7
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -196,7 +196,7 @@ artifacts:
       releases:
         - name: "2.17"
           branch: track/2.17
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -206,7 +206,7 @@ artifacts:
       releases:
         - name: "2.17"
           branch: track/2.17
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -216,7 +216,7 @@ artifacts:
       releases:
         - name: "3.0"
           branch: track/3.0
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -226,7 +226,7 @@ artifacts:
       releases:
         - name: "0.130"
           branch: track/0.130
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -236,7 +236,7 @@ artifacts:
       releases:
         - name: "0.130"
           branch: track/0.130
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -246,7 +246,7 @@ artifacts:
       releases:
         - name: "0.135"
           branch: track/0.135
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -256,7 +256,7 @@ artifacts:
       releases:
         - name: "0.35"
           branch: track/0.35
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -266,7 +266,7 @@ artifacts:
       releases:
         - name: "0.27"
           branch: track/0.27
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -276,7 +276,7 @@ artifacts:
       releases:
         - name: "3.0"
           branch: track/3.0
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -286,7 +286,7 @@ artifacts:
       releases:
         - name: "3.0"
           branch: track/3.0
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -296,7 +296,7 @@ artifacts:
       releases:
         - name: "3.11"
           branch: track/3.11
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -306,7 +306,7 @@ artifacts:
       releases:
         - name: "3.0"
           branch: track/3.0
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -316,7 +316,7 @@ artifacts:
       releases:
         - name: "3.0"
           branch: track/3.0
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -326,7 +326,7 @@ artifacts:
       releases:
         - name: "3.0"
           branch: track/3.0
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -336,7 +336,7 @@ artifacts:
       releases:
         - name: "1.18"
           branch: track/1.18
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -346,7 +346,7 @@ artifacts:
       releases:
         - name: "1.18"
           branch: track/1.18
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -356,7 +356,7 @@ artifacts:
       releases:
         - name: "3.2"
           branch: track/3.2
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -370,7 +370,7 @@ artifacts:
       releases:
         - name: "0.24"
           branch: track/0.24
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -380,7 +380,7 @@ artifacts:
       releases:
         - name: "2.10"
           branch: track/2.10
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -390,7 +390,7 @@ artifacts:
       releases:
         - name: "2.10"
           branch: track/2.10
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -401,7 +401,7 @@ artifacts:
       releases:
         - name: "0.28"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -411,7 +411,7 @@ artifacts:
       releases:
         - name: "0.28"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -421,7 +421,7 @@ artifacts:
       releases:
         - name: "0.15"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
     - name: git-sync
@@ -430,7 +430,7 @@ artifacts:
       releases:
         - name: "3.0"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -440,7 +440,7 @@ artifacts:
       releases:
         - name: "0.40"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2026-11-01
             lts: false
@@ -450,7 +450,7 @@ artifacts:
       releases:
         - name: "12.4"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -460,7 +460,7 @@ artifacts:
       releases:
         - name: "0.5"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -470,7 +470,7 @@ artifacts:
       releases:
         - name: "3.29"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -480,7 +480,7 @@ artifacts:
       releases:
         - name: "3.29"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -490,7 +490,7 @@ artifacts:
       releases:
         - name: "3.29"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -500,7 +500,7 @@ artifacts:
       releases:
         - name: "3.29"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -510,13 +510,13 @@ artifacts:
       releases:
         - name: "3.7"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
         - name: "2.9"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2026-11-01
             lts: false
@@ -526,7 +526,7 @@ artifacts:
       releases:
         - name: "2.17"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -536,7 +536,7 @@ artifacts:
       releases:
         - name: "1.5"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -546,19 +546,19 @@ artifacts:
       releases:
         - name: "1.27"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
         - name: "1.28"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2026-11-01
             lts: false
         - name: "1.30"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2026-11-01
             lts: false
@@ -568,7 +568,7 @@ artifacts:
       releases:
         - name: "1.11"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -578,7 +578,7 @@ artifacts:
       releases:
         - name: "0.130"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -588,7 +588,7 @@ artifacts:
       releases:
         - name: "0.27"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -598,7 +598,7 @@ artifacts:
       releases:
         - name: "3.11"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -608,7 +608,7 @@ artifacts:
       releases:
         - name: "1.11"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -618,7 +618,7 @@ artifacts:
       releases:
         - name: "1.18"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -628,7 +628,7 @@ artifacts:
       releases:
         - name: "0.15"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
     - name: tempo
@@ -637,7 +637,7 @@ artifacts:
       releases:
         - name: "2.10"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -647,7 +647,7 @@ artifacts:
       releases:
         - name: "1.7"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-02-01
             lts: false
@@ -666,7 +666,7 @@ artifacts:
       releases:
         - name: "0.44"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2026-11-01
             lts: false
@@ -684,7 +684,7 @@ artifacts:
       releases:
         - name: "0.130"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -694,7 +694,7 @@ artifacts:
       releases:
         - name: "0.135"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2027-04-01
             lts: false
@@ -708,7 +708,7 @@ artifacts:
       releases:
         - name: "0.28"
           branch: main
-          cycle: 26.04
+          cycle: "26.04"
           support:
             end_of_life: 2041-06-01
             lts: true

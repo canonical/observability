@@ -5,6 +5,112 @@ set export  # Just variables are exported to the environment
 default:
   just -f security.just --list
 
+# Generate an SSDLC sbomber manifest from manifest.yaml
+[group("ssdlc")]
+[arg("type", pattern="^(sbom|secscan)$", help="Manifest type: 'sbom' or 'secscan'")]
+[arg("artifact", pattern="^(charm|rock)$", help="Artifact type: 'charm' or 'rock'" )]
+generate-ssdlc-manifest type artifact:
+  #!/usr/bin/env python3
+  # Produces a sbomber-compatible YAML manifest, derived from manifest.yaml.
+  # Keeps the same schema the action expects:
+  #   clients: { sbom|secscan: {…} }
+  #   artifacts: [ { name, channel|image, base|version, type } … ]
+  #
+  # When the SSDLC_MANIFEST_OUTPUT environment variable is set, writes to that
+  # file path instead of stdout.  This avoids the stdout capture that
+  # `set export` applies to shebang recipes, which breaks shell redirection
+  # (`> file`).
+  import json
+  import os
+  import subprocess
+  import sys
+  from pathlib import Path
+
+  artifact_type = "{{ artifact }}"
+  scan_type = "{{ type }}"
+  output_path = os.environ.get("SSDLC_MANIFEST_OUTPUT", "")
+
+  if artifact_type not in ("charm", "rock"):
+      print(f"Unknown artifact type: {artifact_type}", file=sys.stderr)
+      sys.exit(1)
+  if scan_type not in ("sbom", "secscan"):
+      print(f"Unknown scan type: {scan_type}", file=sys.stderr)
+      sys.exit(1)
+
+  manifest = json.loads(subprocess.run(
+      ["yq", "-o=json", "manifest.yaml"],
+      capture_output=True, text=True, check=True,
+  ).stdout)
+
+  def yaml_str(s):
+      """Quote a string for YAML if it could be misinterpreted."""
+      return f'"{s}"'
+
+  def lts_base(cycle):
+      """Map any cycle to the nearest preceding LTS (YY.04) base.
+
+      Ubuntu LTS releases ship in even years on .04; point releases and
+      interim releases in between all trace back to the most recent .04 LTS.
+      """
+      parts = str(cycle).split(".")
+      year, month = int(parts[0]), int(parts[1])
+      if month == 4 and year % 2 == 0:
+          return f"{year}.04"
+      return f"{year - (year % 2)}.04"
+
+  # Collect lines, then write once to avoid stdout capture issues.
+  lines = []
+
+  # --- clients section ---
+  lines.append("clients:")
+  if scan_type == "sbom":
+      lines.append("  sbom:")
+      lines.append("    department: charm_engineering")
+      lines.append("    email: luca.bello@canonical.com")
+      lines.append("    team: observability")
+  else:
+      lines.append("  secscan: {}")
+
+  # --- artifacts section ---
+  lines.append("artifacts:")
+
+  if artifact_type == "charm":
+      for charm in manifest["artifacts"]["charms"]:
+          name = charm["name"]
+          for release in charm.get("releases", []):
+              base = lts_base(release["cycle"])
+              channel = f"{release['name']}/edge"
+              lines.append(f"  - name: {yaml_str(name)}")
+              lines.append(f"    channel: {yaml_str(channel)}")
+              lines.append(f"    base: ubuntu@{base}")
+              lines.append(f"    type: charm")
+          # Always include dev/edge for the charm itself
+          if charm.get("releases"):
+              base = lts_base(charm["releases"][0]["cycle"])
+              lines.append(f"  - name: {yaml_str(name)}")
+              lines.append(f"    channel: dev/edge")
+              lines.append(f"    base: ubuntu@{base}")
+              lines.append(f"    type: charm")
+  else:
+      for rock in manifest["artifacts"]["rocks"]:
+          for release in rock.get("releases", []):
+              base = lts_base(release["cycle"])
+              version = f"{release['name']}-{base}"
+              name = f"{rock['name']}-rock"
+              image = f"ubuntu/{rock['name']}"
+              lines.append(f"  - name: {yaml_str(name)}")
+              lines.append(f"    image: {yaml_str(image)}")
+              lines.append(f"    version: {yaml_str(version)}")
+              lines.append(f"    type: rock")
+
+  content = "\n".join(lines) + "\n"
+
+  if output_path:
+      Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+      Path(output_path).write_text(content)
+  else:
+      sys.stdout.write(content)
+
 # List every charm release as JSON, grouped by unique repo
 [private]
 [group("security")]
