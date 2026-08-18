@@ -5,13 +5,14 @@ set export  # Just variables are exported to the environment
 default:
   just -f security.just --list
 
-# List the charm-scan matrix as JSON, one entry per unique repo
+# List every charm release as JSON, grouped by unique repo
 [group("security")]
 scan-matrix:
   #!/usr/bin/env bash
   set -euo pipefail
-  # One entry per repo, with the charms/paths/branches it hosts - used as the
-  # matrix for the _local-charm-scan.yaml workflow (see also: `scan-repo`).
+  # One entry per repo, with the charms/paths/branches it hosts - used by
+  # `scan-fleet` to enumerate repos, and by `scan-repo` to look up the charms
+  # hosted in one of them.
   yq -o=json manifest.yaml | jq -c '
     [.artifacts.charms[]
       | .name as $charm | .repo as $repo | .path as $path
@@ -107,6 +108,29 @@ scan-repo repo:
   if any_failed:
       print(f"::error::One or more branches of {repo} failed to check out", file=sys.stderr)
       sys.exit(1)
+
+# Scan every charm across every repo in manifest.yaml, one repo at a time
+[group("security")]
+scan-fleet:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  # Sequential on purpose: each `scan-repo` call is a shallow clone plus a
+  # handful of lightweight `uv audit` runs, so parallelizing this across one
+  # runner per repo bought little beyond N-times the runner/artifact overhead.
+  # Continues past a repo that fails (matching scan-repo's own per-branch
+  # tolerance) but still exits non-zero at the end if any of them did.
+  matrix="$(just security::scan-matrix)"
+  releases="$(echo "$matrix" | jq '[.[].charms[]] | length')"
+  repos="$(echo "$matrix" | jq -r '.[].repo')"
+  repo_count="$(echo "$repos" | wc -l)"
+  echo "Scanning $releases charm releases across $repo_count repos"
+
+  any_failed=0
+  while IFS= read -r repo; do
+    just security::scan-repo "$repo" || any_failed=1
+  done <<< "$repos"
+
+  exit "$any_failed"
 
 # Build the charm-scan markdown report from a directory of result JSON files
 [group("security")]

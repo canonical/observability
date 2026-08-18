@@ -4,38 +4,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-matrix:
-    name: Build charm release matrix
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.matrix.outputs.matrix }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Install dependencies
-        run: |
-          sudo snap install just --classic
-          sudo snap install yq
-
-      - name: Generate matrix from manifest
-        id: matrix
-        run: |
-          set -euo pipefail
-          matrix="$(just security::scan-matrix)"
-          releases="$(echo "$matrix" | jq '[.[].charms[]] | length')"
-          repos="$(echo "$matrix" | jq length)"
-          echo "Found $releases charm releases across $repos repo clones"
-          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
-
   scan:
-    name: Scan ${{ matrix.repo }}
-    needs: build-matrix
+    name: Scan fleet
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJSON(needs.build-matrix.outputs.matrix) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -48,43 +19,10 @@ jobs:
 
       # All the cloning/checkout/scanning logic lives in `security.just` so it
       # can be run and debugged locally the same way CI runs it, e.g.:
-      # just security::scan-repo canonical/litmus-operators
-      - name: Scan ${{ matrix.repo }}
-        run: just security::scan-repo "${{ matrix.repo }}"
-
-      - name: Compute artifact name
-        if: always()
-        id: artifact-name
-        env:
-          REPO: ${{ matrix.repo }}
-        run: |
-          echo "name=scan-results-${REPO//\//-}" >> "$GITHUB_OUTPUT"
-
-      - name: Upload scan results
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: ${{ steps.artifact-name.outputs.name }}
-          path: ${{ runner.temp }}/results/
-          if-no-files-found: error
-
-  report:
-    name: Publish report
-    needs: scan
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Install dependencies
-        run: sudo snap install just --classic
-
-      - name: Download scan results
-        uses: actions/download-artifact@v7
-        with:
-          pattern: scan-results-*
-          path: results
+      # just security::scan-fleet
+      - name: Scan every charm in manifest.yaml
+        run: just security::scan-fleet
 
       - name: Build report
-        run: just security::build-report results >> "$GITHUB_STEP_SUMMARY"
+        if: always()
+        run: just security::build-report "$RUNNER_TEMP/results" >> "$GITHUB_STEP_SUMMARY"
