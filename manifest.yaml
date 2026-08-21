@@ -464,9 +464,9 @@ artifacts:
           support:
             end_of_life: 2027-02-01
             lts: false
-    - name: litmus-auth
+    - name: litmuschaos-authserver
       repo: canonical/litmus-rocks
-      path: auth
+      path: litmuschaos-authserver
       releases:
         - name: "3.29"
           branch: main
@@ -474,9 +474,9 @@ artifacts:
           support:
             end_of_life: 2027-02-01
             lts: false
-    - name: litmus-backend
+    - name: litmuschaos-event-tracker
       repo: canonical/litmus-rocks
-      path: backend
+      path: litmuschaos-event-tracker
       releases:
         - name: "3.29"
           branch: main
@@ -484,9 +484,9 @@ artifacts:
           support:
             end_of_life: 2027-02-01
             lts: false
-    - name: litmus-chaoscenter
+    - name: litmuschaos-exporter
       repo: canonical/litmus-rocks
-      path: chaoscenter
+      path: litmuschaos-exporter
       releases:
         - name: "3.29"
           branch: main
@@ -494,9 +494,49 @@ artifacts:
           support:
             end_of_life: 2027-02-01
             lts: false
-    - name: litmus-infrastructure
+    - name: litmuschaos-frontend
       repo: canonical/litmus-rocks
-      path: infrastructure
+      path: litmuschaos-frontend
+      releases:
+        - name: "3.29"
+          branch: main
+          cycle: "26.04"
+          support:
+            end_of_life: 2027-02-01
+            lts: false
+    - name: litmuschaos-operator
+      repo: canonical/litmus-rocks
+      path: litmuschaos-operator
+      releases:
+        - name: "3.29"
+          branch: main
+          cycle: "26.04"
+          support:
+            end_of_life: 2027-02-01
+            lts: false
+    - name: litmuschaos-runner
+      repo: canonical/litmus-rocks
+      path: litmuschaos-runner
+      releases:
+        - name: "3.29"
+          branch: main
+          cycle: "26.04"
+          support:
+            end_of_life: 2027-02-01
+            lts: false
+    - name: litmuschaos-server
+      repo: canonical/litmus-rocks
+      path: litmuschaos-server
+      releases:
+        - name: "3.29"
+          branch: main
+          cycle: "26.04"
+          support:
+            end_of_life: 2027-02-01
+            lts: false
+    - name: litmuschaos-subscriber
+      repo: canonical/litmus-rocks
+      path: litmuschaos-subscriber
       releases:
         - name: "3.29"
           branch: main
