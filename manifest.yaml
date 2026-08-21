@@ -7,6 +7,11 @@ artifacts:
         - name: "0.31"
           branch: track/0.31
           cycle: "26.04"
+          solutions:
+            - name: cos
+              versions: ["3.0"]
+            - name: cos-lite
+              versions: ["3.0"]
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -47,6 +52,11 @@ artifacts:
         - name: "3.0"
           branch: track/3.0
           cycle: "26.04"
+          solutions:
+            - name: cos
+              versions: ["3.0"]
+            - name: cos-lite
+              versions: ["3.0"]
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -107,6 +117,11 @@ artifacts:
         - name: "12.4"
           branch: track/12.4
           cycle: "26.04"
+          solutions:
+            - name: cos
+              versions: ["3.0"]
+            - name: cos-lite
+              versions: ["3.0"]
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -167,6 +182,11 @@ artifacts:
         - name: "3.7"
           branch: track/3.7
           cycle: "26.04"
+          solutions:
+            - name: cos
+              versions: ["3.0"]
+            - name: cos-lite
+              versions: ["3.0"]
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -177,6 +197,9 @@ artifacts:
         - name: "3.7"
           branch: track/3.7
           cycle: "26.04"
+          solutions:
+            - name: cos
+              versions: ["3.0"]
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -187,6 +210,9 @@ artifacts:
         - name: "3.7"
           branch: track/3.7
           cycle: "26.04"
+          solutions:
+            - name: cos
+              versions: ["3.0"]
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -197,6 +223,9 @@ artifacts:
         - name: "2.17"
           branch: track/2.17
           cycle: "26.04"
+          solutions:
+            - name: cos
+              versions: ["3.0"]
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -207,6 +236,9 @@ artifacts:
         - name: "2.17"
           branch: track/2.17
           cycle: "26.04"
+          solutions:
+            - name: cos
+              versions: ["3.0"]
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -227,6 +259,9 @@ artifacts:
         - name: "0.130"
           branch: track/0.130
           cycle: "26.04"
+          solutions:
+            - name: cos
+              versions: ["3.0"]
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -297,6 +332,11 @@ artifacts:
         - name: "3.11"
           branch: track/3.11
           cycle: "26.04"
+          solutions:
+            - name: cos
+              versions: ["3.0"]
+            - name: cos-lite
+              versions: ["3.0"]
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -381,6 +421,9 @@ artifacts:
         - name: "2.10"
           branch: track/2.10
           cycle: "26.04"
+          solutions:
+            - name: cos
+              versions: ["3.0"]
           support:
             end_of_life: 2041-06-01
             lts: true
@@ -391,6 +434,9 @@ artifacts:
         - name: "2.10"
           branch: track/2.10
           cycle: "26.04"
+          solutions:
+            - name: cos
+              versions: ["3.0"]
           support:
             end_of_life: 2041-06-01
             lts: true
