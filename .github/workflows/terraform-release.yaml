@@ -116,29 +116,23 @@ jobs:
           TAG_PREFIX: ${{ inputs.terraform-tag-prefix }}
           TAG_SUFFIX: ${{ inputs.terraform-tag-suffix }}
           TRACK_VERSION: ${{ steps.validate-branch.outputs.track_version }}
-          EXPLICIT_TRACK: ${{ inputs.track }}
           GH_TOKEN: ${{ secrets.OBSERVABILITY_NOCTUA_TOKEN }}
         run: |
           track_version="$TRACK_VERSION"
-          if [[ -n "$EXPLICIT_TRACK" ]]; then
-            # Patch derived from existing tags: (highest existing patch) + 1, or 0 if none.
-            # This is robust regardless of branch topology (e.g. running from main).
-            tag_pattern="${TAG_PREFIX}${track_version}.*${TAG_SUFFIX}"
-            latest_tag=$(git tag --list "$tag_pattern" --sort=-version:refname | head -n1)
-            if [ -z "$latest_tag" ]; then
-              patch=0
-            else
-              # Strip prefix and suffix to isolate '<major>.<minor>.<patch>', then take the patch.
-              version="${latest_tag#"$TAG_PREFIX"}"
-              version="${version%"$TAG_SUFFIX"}"
-              last_patch="${version##*.}"
-              patch=$((last_patch + 1))
-            fi
+          # Patch derived from existing tags: (highest existing patch) + 1, or 0 if none.
+          # This is used for both explicit-track and branch-based releases so the
+          # tag's patch number is always consistent with what's already been
+          # published, regardless of branch topology or path renames.
+          tag_pattern="${TAG_PREFIX}${track_version}.*${TAG_SUFFIX}"
+          latest_tag=$(git tag --list "$tag_pattern" --sort=-version:refname | head -n1)
+          if [ -z "$latest_tag" ]; then
+            patch=0
           else
-            # Branch-based: patch = commits on this track branch touching terraform/ since diverging from main.
-            git fetch origin main
-            merge_base=$(git merge-base HEAD origin/main)
-            patch=$(git rev-list --count "$merge_base"..HEAD -- "$TERRAFORM_PATH/")
+            # Strip prefix and suffix to isolate '<major>.<minor>.<patch>', then take the patch.
+            version="${latest_tag#"$TAG_PREFIX"}"
+            version="${version%"$TAG_SUFFIX"}"
+            last_patch="${version##*.}"
+            patch=$((last_patch + 1))
           fi
           # Build the tag
           tag="${TAG_PREFIX}${track_version}.${patch}${TAG_SUFFIX}"
