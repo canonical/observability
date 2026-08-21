@@ -36,20 +36,31 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 2 # Needed to check modified files
-      - name: Find rockcraft.yaml changes
+      - name: Find changes inside version folders
         id: changed-files
         uses: tj-actions/changed-files@v47
         with:
           path: ${{ inputs.rock-path }}
-          files: "**/rockcraft.yaml"
+          # Any file changed inside a version folder (e.g. 0.130/rockcraft.yaml,
+          # 0.130/manifest.yaml, ...) should trigger a release, not just rockcraft.yaml.
+          # The glob is restricted to major.minor(.patch) folders so changes in
+          # non-version folders (e.g. .github/, tests/, docs/) are ignored.
+          files: "[0-9]*\\.[0-9]*/**"
       - name: Extract the versions
         id: changed-versions
         env:
-          ROCK_PATH: ${{ inputs.rock-path }}
-          # CHANGED_FILES is a space-separated list
+          # CHANGED_FILES is a space-separated list of paths relative to rock-path
           CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          versions="${CHANGED_FILES//\/rockcraft.yaml/}"  # space-separated versions
+          versions=""
+          for f in $CHANGED_FILES; do
+            version="${f%%/*}"  # top-level folder of the changed file, i.e. the version
+            case " $versions " in
+              *" $version "*) ;;  # already collected
+              *) versions="$versions $version" ;;
+            esac
+          done
+          versions="${versions# }"  # space-separated versions
           echo "versions=$versions"
           echo "versions=$versions" >> "$GITHUB_OUTPUT"
 
