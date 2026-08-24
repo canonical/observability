@@ -14,9 +14,12 @@ on:
       # See https://documentation.ubuntu.com/snapcraft/stable/how-to/sign-in/
       SNAPCRAFT_STORE_CREDENTIALS:
         required: true
-      # Launchpad credentials, previously required for `snapcraft remote-build`.
-      # Native per-architecture builds no longer use remote-build, so this is
-      # kept optional for backward compatibility with existing callers.
+      # Launchpad credentials for `snapcraft remote-build`. Required only when a
+      # snap targets an architecture with no GitHub-hosted or self-hosted runner
+      # (e.g. riscv64), which falls back to remote-building on Launchpad.
+      # This is the contents of ~/.local/share/snapcraft/launchpad-credentials
+      # after running `snapcraft remote-build` locally and completing the OAuth
+      # flow. See https://documentation.ubuntu.com/snapcraft/stable/explanation/remote-build/
       LAUNCHPAD_TOKEN:
         required: false
 
@@ -56,6 +59,12 @@ jobs:
             echo "matrix={\"include\":[]}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          # Architectures for which dedicated self-hosted runners exist. Any
+          # architecture that is neither GitHub-hosted (amd64/arm64) nor listed
+          # here has no runner capable of packing it natively, so it falls back
+          # to `snapcraft remote-build` on Launchpad (e.g. riscv64).
+          self_hosted_archs="s390x ppc64el"
+
           matrix='{"include":[]}'
           for file in $FILES; do
             # Extract the version folder (e.g. "1.2" from "1.2/snap/snapcraft.yaml")
@@ -64,22 +73,41 @@ jobs:
             # Parse platforms from the snapcraft.yaml
             platforms="$(yq -r '.platforms | keys | .[]' "$snapcraft_file")"
             for platform in $platforms; do
-              # Map each platform's architecture to a native runner so the snap
-              # is packed on matching hardware instead of remote-built on
-              # Launchpad: GitHub-hosted for amd64, the dedicated Ubuntu_ARM64
-              # runner for arm64, and self-hosted runners for the remaining
-              # architectures such as s390x/ppc64el. The platform key may be a
-              # bare arch (e.g. `amd64`) or an `<arch>` inside a larger string;
-              # extract the trailing arch either way.
+              # Choose where and how to build each platform, in priority order:
+              #   1. GitHub-hosted runners for amd64/arm64 (native pack).
+              #   2. A dedicated self-hosted runner when one exists for the arch
+              #      (native pack), e.g. s390x/ppc64el.
+              #   3. `snapcraft remote-build` on Launchpad for everything else
+              #      (e.g. riscv64), packed on ubuntu-latest.
+              # The platform key may be a bare arch (e.g. `amd64`) or an `<arch>`
+              # inside a larger string; extract the trailing arch either way.
               arch="${platform##*:}"
               case "$arch" in
-                amd64) runner="ubuntu-latest" ;;
-                arm64) runner="Ubuntu_ARM64_4C_16G_03" ;;
-                *)     runner="self-hosted-linux-${arch}-resolute-medium" ;;
+                amd64) runner="ubuntu-latest";           method="native" ;;
+                arm64) runner="Ubuntu_ARM64_4C_16G_03";  method="native" ;;
+                *)
+                  if [[ " $self_hosted_archs " == *" $arch "* ]]; then
+                    runner="self-hosted-linux-${arch}-resolute-medium"
+                    method="native"
+                  else
+                    runner="ubuntu-latest"
+                    method="remote"
+                  fi
+                  ;;
               esac
+              # Serialize remote-build legs per snap: Launchpad allows only one
+              # concurrent remote-build per snap, so every remote leg shares a
+              # single concurrency group. Native legs run on distinct runners
+              # and get a unique group so they never queue behind each other.
+              if [[ "$method" == "remote" ]]; then
+                group="remote-build"
+              else
+                group="native-${version}-${platform}"
+              fi
               matrix="$(echo "$matrix" | jq -c \
                 --arg v "$version" --arg p "$platform" --arg r "$runner" \
-                '.include += [{"version": $v, "platform": $p, "runner": $r}]')"
+                --arg m "$method" --arg g "$group" \
+                '.include += [{"version": $v, "platform": $p, "runner": $r, "method": $m, "group": $g}]')"
             done
           done
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
@@ -91,10 +119,16 @@ jobs:
     runs-on: ${{ matrix.runner }}
     needs: [changes]
     if: ${{ fromJSON(needs.changes.outputs.matrix).include[0] != null }}
+    # Launchpad allows only one concurrent remote-build per snap, so all remote
+    # legs share one group (scoped by snap-path) and run one at a time. Native
+    # legs get a unique group per version+platform and never block each other.
+    concurrency:
+      group: snap-release-${{ inputs.snap-path }}-${{ matrix.group }}
+      cancel-in-progress: false
     strategy:
       fail-fast: false
-      # Native builds fan out across distinct runners, so there is no shared
-      # Launchpad git repo to serialize on; let all legs run in parallel.
+      # Legs fan out across distinct runners; remote-build serialization is
+      # handled by the per-leg concurrency group above, not by max-parallel.
       max-parallel: 256
       matrix: ${{ fromJSON(needs.changes.outputs.matrix) }}
     steps:
@@ -107,9 +141,18 @@ jobs:
       - name: Build and release snap
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
         run: |
           cd "${{ inputs.snap-path }}"
-          just pack ${{ matrix.version }} ${{ matrix.platform }}
+          if [[ "${{ matrix.method }}" == "remote" ]]; then
+            # No native runner exists for this architecture (e.g. riscv64), so
+            # build on Launchpad. remote-build needs Launchpad credentials.
+            mkdir -p "$HOME/.local/share/snapcraft"
+            echo -e "$LAUNCHPAD_TOKEN" > "$HOME/.local/share/snapcraft/launchpad-credentials"
+            just remote-build ${{ matrix.version }} ${{ matrix.platform }}
+          else
+            just pack ${{ matrix.version }} ${{ matrix.platform }}
+          fi
           just release ${{ matrix.version }}
       - name: Open SSH session on failure
         if: ${{ failure() && (runner.debug == '1') }}
