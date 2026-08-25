@@ -50,6 +50,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install dependencies
+        run: |
+          sudo snap install charmcraft --classic --channel "${{ inputs.charmcraft-channel }}"
+
+
       - name: Merge any pre-existing PRs from the automatically generated branch if the CI is green
         run: |
           # If a PR from the chore branch is open and CI checks are passing, merge it
