@@ -207,6 +207,10 @@ jobs:
     name: Release any bumped charm library
     needs:
       - release-charm
+    # Libraries are only ever bumped and released from `main`: track branches
+    # fork off an older library version, so re-publishing from them would
+    # fail (or wrongly regress) the version already in the store.
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the source
