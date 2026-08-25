@@ -98,7 +98,7 @@ set-team-secret secret +teams:
 
 # Promote a charm through all non-dev/non-latest tracks (beta→candidate, edge→beta)
 [group("maintenance")]
-promote-train charm:
+promote-charm-train charm:
   #!/usr/bin/env bash
   set -euo pipefail
   tracks=$(juju info {{charm}} --format=json | jq -r '.tracks[]')
@@ -112,4 +112,15 @@ promote-train charm:
     # charmcraft promote --yes --name "{{charm}}" --from-channel="${track}/edge" --to-channel="${track}/beta"
     charmcraft promote --yes --name "{{charm}}" --from-channel="${track}/edge" --to-channel="${track}/beta"
     charmcraft promote --yes --name "{{charm}}" --from-channel="${track}/edge" --to-channel="${track}/candidate"
+  done
+
+# Promote a snap through all available tracks (edge→stable)
+[group("maintenance")]
+promote-snap-train snap:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  tracks=$(snapcraft tracks {{snap}} | tail -n +2 | awk '{print $1}')
+  for track in $tracks; do
+    echo "Promoting {{snap}} on track ${track}..."
+    snapcraft promote --yes {{snap}} --from-channel="${track}/edge" --to-channel="${track}/stable"
   done

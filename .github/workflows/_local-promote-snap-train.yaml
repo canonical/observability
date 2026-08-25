@@ -1,0 +1,49 @@
+name: Promote Snap Train
+
+on:
+  schedule:
+      - cron: '0 7 * * *'
+  workflow_dispatch:
+
+jobs:
+  matrix:
+    name: Build snap matrix
+    runs-on: ubuntu-latest
+    outputs:
+      snaps: ${{ steps.list-snaps.outputs.snaps }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo snap install just --classic
+          sudo snap install yq
+
+      - name: List snaps
+        id: list-snaps
+        run: |
+          snaps=$(just list-snaps | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "snaps=${snaps}" >> "$GITHUB_OUTPUT"
+
+  promote:
+    name: Promote Snap
+    runs-on: ubuntu-latest
+    needs: matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        snap: ${{ fromJSON(needs.matrix.outputs.snaps) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo snap install just --classic
+          sudo snap install snapcraft --classic
+
+      - name: Promote snap
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: just promote-snap-train ${{ matrix.snap }}
