@@ -1,0 +1,50 @@
+name: Promote Charm Train
+
+on:
+  schedule:
+      - cron: '0 7 * * *'
+  workflow_dispatch:
+
+jobs:
+  matrix:
+    name: Build charm matrix
+    runs-on: ubuntu-latest
+    outputs:
+      charms: ${{ steps.list-charms.outputs.charms }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo snap install just --classic
+          sudo snap install yq
+
+      - name: List charms
+        id: list-charms
+        run: |
+          charms=$(just list-charms | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "charms=${charms}" >> "$GITHUB_OUTPUT"
+
+  promote:
+    name: Promote Charm
+    runs-on: ubuntu-latest
+    needs: matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        charm: ${{ fromJSON(needs.matrix.outputs.charms) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo snap install just --classic
+          sudo snap install charmcraft --classic
+          sudo snap install juju --classic
+
+      - name: Promote charm
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+        run: just promote-charm-train ${{ matrix.charm }}
