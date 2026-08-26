@@ -36,6 +36,13 @@ list-charms:
   set -euo pipefail
   yq -r '.artifacts.charms[].name' manifest.yaml | sort -u
 
+# List all repositories of charms from the manifest
+[group("info")]
+list-charm-repos:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  yq -r '.artifacts.charms[].repo' manifest.yaml | sort -u
+
 # List all rocks from the manifest
 [group("info")]
 list-rocks:
@@ -43,12 +50,26 @@ list-rocks:
   set -euo pipefail
   yq -r '.artifacts.rocks[].name' manifest.yaml | sort -u
 
+# List all repositories of rocks from the manifest
+[group("info")]
+list-rock-repos:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  yq -r '.artifacts.rocks[].repo' manifest.yaml | sort -u
+
 # List all snaps from the manifest
 [group("info")]
 list-snaps:
   #!/usr/bin/env bash
   set -euo pipefail
   yq -r '.artifacts.snaps[].name' manifest.yaml | sort -u
+
+# List all repositories of snaps from the manifest
+[group("info")]
+list-snap-repos:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  yq -r '.artifacts.snaps[].repo' manifest.yaml | sort -u
 
 # List all releases from the manifest that are past their end of life
 [group("manifest")]
@@ -93,6 +114,45 @@ set-team-secret secret +teams:
     gh api "orgs/canonical/teams/${team}/repos" --paginate \
       | jq -r '.[] | select(.archived == false and .disabled == false) | .full_name'
   done | sort -u | while read -r repo; do
+    gh secret set "{{secret}}" --repo "$repo" --body "${{secret}}"
+  done
+
+# Set a secret for all charm repositories from the manifest
+[group("secrets")]
+set-charm-secret secret:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  if [[ -z "${{secret}}" ]]; then
+    echo "You must set the {{secret}} environment variable with the secret contents."
+    exit 1
+  fi
+  just list-charm-repos | while read -r repo; do
+    gh secret set "{{secret}}" --repo "$repo" --body "${{secret}}"
+  done
+
+# Set a secret for all snap repositories from the manifest
+[group("secrets")]
+set-snap-secret secret:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  if [[ -z "${{secret}}" ]]; then
+    echo "You must set the {{secret}} environment variable with the secret contents."
+    exit 1
+  fi
+  just list-snap-repos | while read -r repo; do
+    gh secret set "{{secret}}" --repo "$repo" --body "${{secret}}"
+  done
+
+# Set a secret for all rock repositories from the manifest
+[group("secrets")]
+set-rock-secret secret:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  if [[ -z "${{secret}}" ]]; then
+    echo "You must set the {{secret}} environment variable with the secret contents."
+    exit 1
+  fi
+  just list-rock-repos | while read -r repo; do
     gh secret set "{{secret}}" --repo "$repo" --body "${{secret}}"
   done
 
