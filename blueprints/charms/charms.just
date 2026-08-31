@@ -344,5 +344,31 @@ changelog from_ref="" to_ref="":
             print("\n".join(categories[key]))
             print()
 
+# Set the default track for a charm on Charmhub
+[group("release")]
+[confirm]
+set-default-track track:
+  #!/usr/bin/env bash
+  # Verify CHARMCRAFT_AUTH is specified
+  if [[ -z "$CHARMCRAFT_AUTH" ]]; then
+    echo "You must set the CHARMCRAFT_AUTH environment variable. Please run:"
+    echo '  charmcraft login --export ~/.charmcraft.auth && export CHARMCRAFT_AUTH="$(cat ~/.charmcraft.auth)"'
+    exit 1
+  fi
+  # Prepare the authentication header
+  CHARMHUB_MACAROON_HEADER="Authorization: Macaroon $(echo "$CHARMCRAFT_AUTH" | base64 -d | jq -r .v)"
+  # Send the request to change the default track
+  curl -X PATCH "https://api.charmhub.io/v1/charm/{{charm_name}}" \
+    -H "$CHARMHUB_MACAROON_HEADER" \
+    -H "Content-Type: application/json" \
+    -d '{"default-track": "{{track}}"}'
 
 
+# Close a track on Charmhub (i.e., point it to no revisions)
+[group("release")]
+[confirm]
+close-track track:
+  charmcraft close {{track}}/edge
+  charmcraft close {{track}}/beta
+  charmcraft close {{track}}/candidate
+  charmcraft close {{track}}/stable
