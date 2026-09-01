@@ -415,6 +415,12 @@ artifacts:
       repo: canonical/alertmanager-rock
       path: .
       releases:
+        - name: "0.34"
+          branch: main
+          cycle: "26.10"
+          support:
+            end_of_life: 2027-08-01
+            lts: false
         - name: "0.28"
           branch: main
           cycle: "26.04"
@@ -652,6 +658,12 @@ artifacts:
       repo: canonical/prometheus-rock
       path: .
       releases:
+        - name: "3.14"
+          branch: main
+          cycle: "26.10"
+          support:
+            end_of_life: 2027-08-01
+            lts: false
         - name: "3.11"
           branch: main
           cycle: "26.04"
