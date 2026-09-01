@@ -43,6 +43,11 @@ jobs:
             syft:
         EOF
         sudo concierge prepare -c concierge.yaml
+    - name: Work around AppArmor unprivileged userns restriction
+      # Newer ubuntu-24.04 runner images enforce AppArmor mediation of
+      # unprivileged user namespaces, which breaks LXD-based builds.
+      # See https://github.com/canonical/concierge/issues/253
+      run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
     - name: Build rock and release to GHCR
       id: build-and-release
       env:

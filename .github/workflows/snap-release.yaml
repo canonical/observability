@@ -138,6 +138,11 @@ jobs:
         run: |
           sudo snap install concierge --classic
           sudo concierge prepare -p crafts --extra-snaps=just,yq
+      - name: Work around AppArmor unprivileged userns restriction
+        # Newer ubuntu-24.04 runner images enforce AppArmor mediation of
+        # unprivileged user namespaces, which breaks LXD-based builds.
+        # See https://github.com/canonical/concierge/issues/253
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - name: Build and release snap
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}

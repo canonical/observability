@@ -90,6 +90,12 @@ jobs:
           EOF
           sudo concierge prepare -c concierge.yaml
           sudo snap install astral-uv --classic  # used to run noctua
+      - name: Work around AppArmor unprivileged userns restriction
+        # Newer ubuntu-24.04 runner images enforce AppArmor mediation of
+        # unprivileged user namespaces, which breaks LXD-based builds.
+        # See https://github.com/canonical/concierge/issues/253
+        if: steps.changed-files.outputs.all_changed_and_modified_files != ''
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - name: Pack the rocks
         if: steps.changed-files.outputs.all_changed_and_modified_files != ''
         env:
