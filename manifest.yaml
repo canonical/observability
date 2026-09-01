@@ -4,6 +4,12 @@ artifacts:
       repo: canonical/alertmanager-k8s-operator
       path: .
       releases:
+        - name: "0.34"
+          branch: track/0.34
+          cycle: "26.10"
+          support:
+            end_of_life: 2027-08-01
+            lts: false
         - name: "0.31"
           branch: track/0.31
           cycle: "26.04"
@@ -298,6 +304,12 @@ artifacts:
       repo: canonical/prometheus-k8s-operator
       path: .
       releases:
+        - name: "3.14"
+          branch: track/3.14
+          cycle: "26.10"
+          support:
+            end_of_life: 2027-08-01
+            lts: false
         - name: "3.11"
           branch: track/3.11
           cycle: "26.04"
