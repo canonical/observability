@@ -70,6 +70,10 @@ artifacts:
           support:
             end_of_life: 2041-06-01
             lts: true
+    - name: generic-exporter
+      repo: canonical/generic-exporter-operator
+      path: .
+      releases: []
     - name: grafana-agent
       repo: canonical/grafana-agent-operator
       path: .
