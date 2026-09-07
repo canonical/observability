@@ -63,10 +63,16 @@ jobs:
           sudo concierge prepare -p microk8s --extra-snaps rockcraft,just,kubectl
           sudo microk8s enable registry
           # FIXME: install via the goss snap when available
-          goss_base_url="https://github.com/goss-org/goss/releases/latest/download"
-          curl -L ${goss_base_url}/goss-linux-$(dpkg --print-architecture) -o /usr/local/bin/goss
+          GOSS_VERSION="v0.4.10"
+          goss_base_url="https://github.com/goss-org/goss/releases/download/${GOSS_VERSION}"
+          case "$(dpkg --print-architecture)" in
+            amd64) goss_arch="x86_64" ;;
+            arm64) goss_arch="arm64" ;;
+            *) echo "Unsupported architecture: $(dpkg --print-architecture)" >&2; exit 1 ;;
+          esac
+          curl -fL "${goss_base_url}/goss_${GOSS_VERSION#v}_linux_${goss_arch}.tar.gz" | tar xz -C /usr/local/bin goss
           chmod +rx /usr/local/bin/goss
-          curl -L ${goss_base_url}/kgoss -o /usr/local/bin/kgoss
+          curl -fL "${goss_base_url}/kgoss" -o /usr/local/bin/kgoss
           chmod +rx /usr/local/bin/kgoss
       - name: Print disk utilization
         if: ${{ (runner.debug == '1') }}
