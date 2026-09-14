@@ -199,7 +199,7 @@ release-ghcr version=latest_version github_user="observability-noctua-bot":
 [arg("risk", pattern="stable|candidate|beta|edge")]
 release-oci-factory version=latest_version support="minor" risk="stable":
   #!/usr/bin/env bash
-  set -e
+  set -eo pipefail
   if [[ -z "$GITHUB_TOKEN" ]]; then echo "× Please export GITHUB_TOKEN for the user observability-noctua-bot"; exit 1; fi
   if [ ! -e {{version}}/*.rock ]; then echo "× Error: rock not found. Please run 'just pack {{version}}' first."; exit 2; fi
   repository="$(git remote get-url origin | sed -E 's#(git@[^:]+:|https?://[^/]+/)##; s/\.git$//')"
@@ -219,6 +219,11 @@ release-oci-factory version=latest_version support="minor" risk="stable":
   echo "✓ Cloned observability-noctua-bot/oci-factory"
   echo "Building the OCI Factory manifest..."; echo
   manifest_file="$TMP_DIR/oci-factory/oci/{{rock_name}}/image.yaml"
+  # OCI Factory checks out the repo root and reads '<directory>/rockcraft.yaml', but
+  # noctua names the directory after the version folder only. Prefix it with the path
+  # of the rock inside its repository, which is empty for single-rock repositories and
+  # 'rocks/<rock>-rock/' for rocks living in a monorepo.
+  rock_prefix="$(git rev-parse --show-prefix)"
   uvx --from=git+https://github.com/lucabello/noctua noctua rock manifest \
     "$repository" \
     --commit="$(git rev-parse HEAD)" \
@@ -226,6 +231,7 @@ release-oci-factory version=latest_version support="minor" risk="stable":
     --support="{{support}}" \
     --risk="{{risk}}" \
     --version="$rock_version" \
+    | yq "(.upload[].directory) |= \"$rock_prefix\" + ." \
     | tee "$manifest_file"
   echo; echo "✓ OCI Factory manifest generated"
   # If there's nothing to upload, exit early
