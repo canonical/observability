@@ -226,7 +226,7 @@ release-oci-factory version=latest_version support="minor" risk="stable":
     --support="{{support}}" \
     --risk="{{risk}}" \
     --version="$rock_version" \
-    --directory="$(git rev-parse --show-prefix)"
+    --directory="$(git rev-parse --show-prefix)" \
     | tee "$manifest_file"
   echo; echo "✓ OCI Factory manifest generated"
   # If there's nothing to upload, exit early
