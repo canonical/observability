@@ -156,23 +156,66 @@ set-rock-secret secret:
     gh secret set "{{secret}}" --repo "$repo" --body "${{secret}}"
   done
 
-# Promote a charm through all non-dev/non-latest tracks (beta→candidate, edge→beta)
+# Prepare a charm checkout for the beta gate (no quality checks yet)
+[group("maintenance")]
+[private]
+beta-gate-check charm track:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  charm="{{charm}}"
+  track="{{track}}"
+
+  # Find the charm and its release branch in the manifest.
+  charm_config=$(yq -o=json manifest.yaml | jq -c --arg charm "$charm" '
+    [.artifacts.charms[] | select(.name == $charm)][0]
+  ')
+  if [[ "$charm_config" == "null" ]]; then
+    echo "'$charm' not in manifest.yaml - cannot run the beta gate." >&2
+    exit 1
+  fi
+  repo=$(jq -r '.repo' <<< "$charm_config")
+  charm_path=$(jq -r '.path // "."' <<< "$charm_config")
+  branch=$(jq -r --arg track "$track" '
+    [.releases[]? | select(.name == $track)][0].branch // "main"
+  ' <<< "$charm_config")
+
+  # Clone the branch and clean up the temporary checkout on exit.
+  checkout_dir=$(mktemp -d -t beta-gate-XXXXXXXX)
+  trap 'rm -rf -- "$checkout_dir"' EXIT
+  if ! git clone --quiet --depth=1 --branch "$branch" "https://github.com/$repo.git" "$checkout_dir"; then
+    echo "Could not check out $repo@$branch - beta gate blocks promotion." >&2
+    exit 1
+  fi
+  cd "$checkout_dir/$charm_path"
+
+  # TODO: add beta-gate checks here, e.g. load/chaos tests.
+  echo "No beta-gate checks configured yet for '$charm' on track '$track' - passing."
+
+# Promote a charm through all non-latest tracks (beta gate, edge→beta, beta→candidate)
 [group("maintenance")]
 promote-charm-train charm:
   #!/usr/bin/env bash
+  # The beta gate authorizes both promotions until a separate candidate gate is added.
   set -euo pipefail
   tracks=$(juju info {{charm}} --format=json | jq -r '.tracks[]')
+  gate_failed=0
   for track in $tracks; do
-    if [[ "$track" == "dev" || "$track" == "latest" ]]; then
+    if [[ "$track" == "latest" ]]; then
       continue
     fi
-    echo "Promoting {{charm}} on track ${track}..."
-    # FIXME: We're shortcircuiting this until we have quality gates in place, so that `/edge` goes directly to `/candidate`
-    # charmcraft promote --yes --name "{{charm}}" --from-channel="${track}/beta" --to-channel="${track}/candidate"
-    # charmcraft promote --yes --name "{{charm}}" --from-channel="${track}/edge" --to-channel="${track}/beta"
-    charmcraft promote --yes --name "{{charm}}" --from-channel="${track}/edge" --to-channel="${track}/beta"
-    charmcraft promote --yes --name "{{charm}}" --from-channel="${track}/edge" --to-channel="${track}/candidate"
+    echo "Running the beta gate for {{charm}} on track ${track}..."
+    if just beta-gate-check {{charm}} "${track}"; then
+      echo "Beta gate passed - promoting {{charm}} on track ${track} from edge to beta..."
+      charmcraft promote --yes --name "{{charm}}" --from-channel="${track}/edge" --to-channel="${track}/beta"
+    else
+      echo "Beta gate failed for {{charm}} on track ${track} - skipping beta and candidate promotion."
+      gate_failed=1
+      continue
+    fi
+    # FIXME: add a separate candidate gate before promoting beta to candidate.
+    charmcraft promote --yes --name "{{charm}}" --from-channel="${track}/beta" --to-channel="${track}/candidate"
   done
+  exit "$gate_failed"
 
 # Promote a snap through all available tracks (edge→stable)
 [group("maintenance")]
