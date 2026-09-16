@@ -43,6 +43,18 @@ list-charm-repos:
   set -euo pipefail
   yq -r '.artifacts.charms[].repo' manifest.yaml | sort -u
 
+# List all charm releases from the manifest as JSON (name, repo, path, branch, track)
+[group("info")]
+list-charm-releases:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  yq -o=json manifest.yaml | jq -c '
+    [.artifacts.charms[]
+      | .name as $name | .repo as $repo | .path as $path
+      | .releases[]?
+      | {name: $name, repo: $repo, path: $path, branch: .branch, track: .name}]
+  '
+
 # List all rocks from the manifest
 [group("info")]
 list-rocks:
@@ -156,7 +168,7 @@ set-rock-secret secret:
     gh secret set "{{secret}}" --repo "$repo" --body "${{secret}}"
   done
 
-# Promote a charm through all non-dev/non-latest tracks (beta→candidate, edge→beta)
+# Promote a charm through all non-dev/non-latest tracks (beta→candidate)
 [group("maintenance")]
 promote-charm-train charm:
   #!/usr/bin/env bash
@@ -167,11 +179,9 @@ promote-charm-train charm:
       continue
     fi
     echo "Promoting {{charm}} on track ${track}..."
-    # FIXME: We're shortcircuiting this until we have quality gates in place, so that `/edge` goes directly to `/candidate`
-    # charmcraft promote --yes --name "{{charm}}" --from-channel="${track}/beta" --to-channel="${track}/candidate"
-    # charmcraft promote --yes --name "{{charm}}" --from-channel="${track}/edge" --to-channel="${track}/beta"
-    charmcraft promote --yes --name "{{charm}}" --from-channel="${track}/edge" --to-channel="${track}/beta"
-    charmcraft promote --yes --name "{{charm}}" --from-channel="${track}/edge" --to-channel="${track}/candidate"
+    # Edge to beta is handled by the beta-quality-gate.yaml workflow.
+    # FIXME: gate beta to candidate once a candidate quality gate is in place.
+    charmcraft promote --yes --name "{{charm}}" --from-channel="${track}/beta" --to-channel="${track}/candidate"
   done
 
 # Promote a snap through all available tracks (edge→stable)

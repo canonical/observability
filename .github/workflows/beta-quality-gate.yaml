@@ -1,0 +1,75 @@
+name: Beta Quality Gate
+
+on:
+  schedule:
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+jobs:
+  build-charm-matrix:
+    name: Build matrix
+    runs-on: ubuntu-latest
+    outputs:
+      charms: ${{ steps.list-charm-releases.outputs.charms }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo snap install just --classic
+          sudo snap install yq
+
+      - name: List charm releases
+        id: list-charm-releases
+        run: echo "charms=$(just list-charm-releases)" >> "$GITHUB_OUTPUT"
+
+  quality-gate-beta:
+    name: Quality gate (edge -> beta) - ${{ matrix.charm.name }} ${{ matrix.charm.track }}
+    needs: build-charm-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        charm: ${{ fromJSON(needs.build-charm-matrix.outputs.charms) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ matrix.charm.repo }}
+          ref: ${{ matrix.charm.branch }}
+
+      - name: Install dependencies
+        run: |
+          sudo snap install astral-uv --classic
+          sudo snap install charmcraft --classic
+
+      - name: Detect load and chaos test environments
+        id: tox-envs
+        working-directory: ${{ matrix.charm.path }}
+        run: |
+          envs=$(uvx tox list --no-desc 2>/dev/null || true)
+          for env in load chaos; do
+            if grep -qx "$env" <<< "$envs"; then found=true; else found=false; fi
+            echo "$env=$found" >> "$GITHUB_OUTPUT"
+          done
+
+      - name: Run load tests
+        if: steps.tox-envs.outputs.load == 'true'
+        working-directory: ${{ matrix.charm.path }}
+        run: uvx tox -e load
+
+      - name: Run chaos tests
+        if: steps.tox-envs.outputs.chaos == 'true'
+        working-directory: ${{ matrix.charm.path }}
+        run: uvx tox -e chaos
+
+      - name: Promote from edge to beta
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMHUB_TOKEN }}
+          CHARM_NAME: ${{ matrix.charm.name }}
+          TRACK: ${{ matrix.charm.track }}
+        run: |
+          uvx --quiet --from git+https://github.com/lucabello/noctua \
+            noctua charm promote "$CHARM_NAME" --from="$TRACK/edge"
+          echo "Promoted from edge to beta!"
