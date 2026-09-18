@@ -50,9 +50,9 @@ list-charm-releases:
   set -euo pipefail
   yq -o=json manifest.yaml | jq -c '
     [.artifacts.charms[]
-      | .name as $name | .repo as $repo | .path as $path
-      | .releases[]?
-      | {name: $name, repo: $repo, path: $path, branch: .branch, track: .name}]
+      | {name, repo, path} as $charm
+      | ($charm + {branch: "main", track: "dev"}),
+        (.releases[]? | $charm + {branch: .branch, track: .name})]
   '
 
 # List all rocks from the manifest
