@@ -43,6 +43,18 @@ list-charm-repos:
   set -euo pipefail
   yq -r '.artifacts.charms[].repo' manifest.yaml | sort -u
 
+# List all charm releases from the manifest as JSON (name, repo, path, branch, track)
+[group("info")]
+list-charm-releases:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  yq -o=json manifest.yaml | jq -c '
+    [.artifacts.charms[]
+      | {name, repo, path} as $charm
+      | ($charm + {branch: "main", track: "dev"}),
+        (.releases[]? | $charm + {branch: .branch, track: .name})]
+  '
+
 # List all rocks from the manifest
 [group("info")]
 list-rocks:
