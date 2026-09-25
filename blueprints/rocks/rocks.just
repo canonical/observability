@@ -163,7 +163,7 @@ update:
     if [[ "$current" == "$version" ]]; then echo "→ $folder already at $version"; continue; fi
     echo "Updating $folder: $current → $version (source-tag $tag)"
     just write-version "$folder" "$version" "$tag"
-    updated_folders="$updated_folders $folder"
+    updated_folders="${updated_folders:+$updated_folders }$folder"
   done
   if [[ -n "$updated_folders" ]]; then echo; echo "✓ Versions updated"; fi
 
