@@ -1,9 +1,6 @@
 products:
   - name: cos
     releases:
-      - name: "1"
-      - name: "2"
-        upgrades_from: ["1"]
       - name: "3.0"
         upgrades_from: ["2"]
         components:
@@ -20,7 +17,7 @@ products:
       - name: "3.1"
         upgrades_from: ["3.0"]
         components:
-          alertmanager: "0.33"
+          alertmanager: "0.34"
           catalogue: "3.0"
           grafana: "12.4"
           loki: "3.7"
@@ -32,9 +29,6 @@ products:
           traefik: "latest"
   - name: cos-lite
     releases:
-      - name: "1"
-      - name: "2"
-        upgrades_from: ["1"]
       - name: "3.0"
         upgrades_from: ["2"]
         components:
@@ -48,11 +42,11 @@ products:
       - name: "3.1"
         upgrades_from: ["3.0"]
         components:
-          alertmanager: "0.33"
+          alertmanager: "0.34"
           catalogue: "3.0"
           grafana: "12.4"
           loki: "3.7"
-          prometheus: "3.12"
+          prometheus: "3.14"
           ssc: "1"
           traefik: "latest"
 
