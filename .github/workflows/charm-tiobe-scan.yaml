@@ -26,12 +26,19 @@ on:
         default: "cover"
         required: false
         type: string
+      detach:
+        description: "Detach TICS QServer before the run (fixes 'project already connected' errors after interrupted runs)."
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   scan:
     name: Scan and upload
     runs-on: [self-hosted, linux, amd64, tiobe, jammy]
     timeout-minutes: 60
+    env:
+      PROJECT: ${{ inputs.tiobe-project-name || github.event.repository.name }}
     steps:
       - name: Checkout the project
         uses: actions/checkout@v6
@@ -79,11 +86,26 @@ jobs:
           echo "PATH=$PATH" >> "$GITHUB_ENV"
           popd
 
+      - if: ${{ inputs.detach }}
+        name: Detach TICS QServer to prevent "project already connected" issue
+        env:
+          TICSAUTHTOKEN: ${{ secrets.TICSAUTHTOKEN }}
+        run: &tics-detach |
+          # shellcheck source=/dev/null
+          source ~/.profile
+          TICSMaintenance -project "${PROJECT}" -detach
+
       - name: Run TICS analysis with github-action
         uses: tiobe/tics-github-action@v3
         with:
           mode: qserver
-          project: ${{ inputs.tiobe-project-name || github.event.repository.name }}
+          project: ${{ env.PROJECT }}
           viewerUrl: https://canonical.tiobe.com/tiobeweb/TICS/api/cfg?name=default
           ticsAuthToken: ${{ secrets.TICSAUTHTOKEN }}
           installTics: true
+
+      - if: ${{ cancelled() }}
+        name: Detach TICS QServer to prevent "project already connected" issue
+        env:
+          TICSAUTHTOKEN: ${{ secrets.TICSAUTHTOKEN }}
+        run: *tics-detach
