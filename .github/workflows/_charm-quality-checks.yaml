@@ -39,6 +39,13 @@ on:
         type: boolean
         default: true
         required: false
+      enable-juju-lens:
+        description: |
+          Record integration tests with juju-lens (k8s provider only) and upload
+          the recording as an artifact if the tests fail.
+        type: boolean
+        default: true
+        required: false
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -298,6 +305,23 @@ jobs:
         with:
           name: ${{ needs.pack-charm.outputs.artifact-name }}
           path: ${{ inputs.charm-path }}
+      - name: Install juju-lens
+        if: ${{ inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        run: |
+          sudo snap install go --classic
+          GOBIN="$RUNNER_TEMP/gobin" go install github.com/lucabello/juju-lens/cmd/...@latest
+          sudo install -m 0755 "$RUNNER_TEMP"/gobin/juju-lens* /usr/local/bin/
+      - name: Start juju-lens recording
+        if: ${{ inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        run: |
+          rec_dir="$RUNNER_TEMP/recordings/integration"
+          mkdir -p "$RUNNER_TEMP/recordings"
+          sudo setsid nohup juju-lens record "integration" --output "$rec_dir" --max-size 2147483648 --max-duration 3h > "$RUNNER_TEMP/juju-lens.log" 2>&1 < /dev/null &
+          for _ in $(seq 30); do
+            [[ -f "$rec_dir/recorder.pid" ]] && break
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/juju-lens.log" || true
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
@@ -305,6 +329,29 @@ jobs:
           CHARM_PATH="$(realpath "$charm_relative_path")"
           export CHARM_PATH
           uvx tox -e integration
+      - name: Stop juju-lens recording
+        if: ${{ always() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        run: |
+          sudo juju-lens stop "$RUNNER_TEMP/recordings/integration" || true
+          sudo chown -R "$USER" "$RUNNER_TEMP/recordings" || true
+      - name: Compute juju-lens artifact name
+        id: lens-name
+        if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        env:
+          CHARM_PATH: "${{ inputs.charm-path }}"
+          REC_NAME: "integration"
+        run: |
+          prefix="${CHARM_PATH//\//-}"
+          [[ "$prefix" == "." || -z "$prefix" ]] && prefix="root"
+          echo "name=juju-lens-${prefix}-${REC_NAME}" >> "$GITHUB_OUTPUT"
+      - name: Upload juju-lens recording
+        if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ steps.lens-name.outputs.name }}
+          path: ${{ runner.temp }}/recordings/integration
+          retention-days: 7
+          if-no-files-found: warn
 
   integration-matrix:
     name: Define Integration tests matrix
@@ -419,6 +466,23 @@ jobs:
         with:
           name: ${{ needs.pack-charm.outputs.artifact-name }}
           path: ${{ inputs.charm-path }}
+      - name: Install juju-lens
+        if: ${{ inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        run: |
+          sudo snap install go --classic
+          GOBIN="$RUNNER_TEMP/gobin" go install github.com/lucabello/juju-lens/cmd/...@latest
+          sudo install -m 0755 "$RUNNER_TEMP"/gobin/juju-lens* /usr/local/bin/
+      - name: Start juju-lens recording
+        if: ${{ inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        run: |
+          rec_dir="$RUNNER_TEMP/recordings/${{ matrix.suite }}"
+          mkdir -p "$RUNNER_TEMP/recordings"
+          sudo setsid nohup juju-lens record "${{ matrix.suite }}" --output "$rec_dir" --max-size 2147483648 --max-duration 3h > "$RUNNER_TEMP/juju-lens.log" 2>&1 < /dev/null &
+          for _ in $(seq 30); do
+            [[ -f "$rec_dir/recorder.pid" ]] && break
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/juju-lens.log" || true
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
@@ -432,6 +496,29 @@ jobs:
           else
             uvx tox -e integration -- -k "${{ matrix.suite }}"
           fi
+      - name: Stop juju-lens recording
+        if: ${{ always() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        run: |
+          sudo juju-lens stop "$RUNNER_TEMP/recordings/${{ matrix.suite }}" || true
+          sudo chown -R "$USER" "$RUNNER_TEMP/recordings" || true
+      - name: Compute juju-lens artifact name
+        id: lens-name
+        if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        env:
+          CHARM_PATH: "${{ inputs.charm-path }}"
+          REC_NAME: "${{ matrix.suite }}"
+        run: |
+          prefix="${CHARM_PATH//\//-}"
+          [[ "$prefix" == "." || -z "$prefix" ]] && prefix="root"
+          echo "name=juju-lens-${prefix}-${REC_NAME}" >> "$GITHUB_OUTPUT"
+      - name: Upload juju-lens recording
+        if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ steps.lens-name.outputs.name }}
+          path: ${{ runner.temp }}/recordings/${{ matrix.suite }}
+          retention-days: 7
+          if-no-files-found: warn
       - name: Open SSH session on failure
         if: ${{ failure() && (runner.debug == '1') }}
         uses: mxschmitt/action-tmate@v3
