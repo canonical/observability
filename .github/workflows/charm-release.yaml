@@ -83,6 +83,14 @@ on:
         default: ''
         required: false
         type: string
+      exclude-modules:
+        description: >
+          Comma- or whitespace-separated Terraform module directories
+          (relative to the repository root) to skip in the compliance check.
+          Defaults to checking every module in the repository.
+        type: string
+        default: ""
+        required: false
     secrets:
       CHARMHUB_TOKEN:
         required: true
@@ -185,7 +193,16 @@ jobs:
       parallelize-integration: ${{ inputs.parallelize-integration }}
       automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
       enable-integration: ${{ inputs.enable-integration }}
-    
+
+  # Sibling of quality-checks: a violation turns this job red, but it is not a
+  # dependency of release-charm/release-terraform, so it never blocks a release.
+  terraform-compliance:
+    name: Terraform module compliance
+    needs: [define-matrix]
+    uses: ./.github/workflows/terraform-compliance.yaml
+    with:
+      exclude-modules: ${{ inputs.exclude-modules }}
+
   release-charm:
     name: Release the charm
     needs:
