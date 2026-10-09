@@ -39,6 +39,13 @@ on:
         type: boolean
         default: true
         required: false
+      enable-juju-lens:
+        description: |
+          Record integration tests with juju-lens (k8s provider only) and upload
+          the recording as an artifact if the tests fail.
+        type: boolean
+        default: true
+        required: false
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -236,6 +243,8 @@ jobs:
     if: ${{ ! inputs.parallelize-integration && inputs.enable-integration }}
     runs-on: ubuntu-latest
     needs: [snap-channels, pack-charm]
+    env:
+      RECORDING_FOLDER: /tmp/juju-lens-recordings
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -298,6 +307,14 @@ jobs:
         with:
           name: ${{ needs.pack-charm.outputs.artifact-name }}
           path: ${{ inputs.charm-path }}
+      - name: Install juju-lens
+        if: ${{ inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/lucabello/juju-lens/main/install.sh | sudo sh
+      - name: Start juju-lens recording
+        if: ${{ inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        run: |
+          sudo juju-lens record "integration" --output "$RECORDING_FOLDER" --max-size 2147483648 --max-duration 3h --detach
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
@@ -305,6 +322,28 @@ jobs:
           CHARM_PATH="$(realpath "$charm_relative_path")"
           export CHARM_PATH
           uvx tox -e integration
+      - name: Stop juju-lens recording
+        if: ${{ always() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        run: |
+          sudo juju-lens stop "$RECORDING_FOLDER" || true
+          sudo chown -R "$USER" "$RECORDING_FOLDER" || true
+      - name: Compute juju-lens artifact name
+        id: lens-name
+        if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        env:
+          CHARM_PATH: "${{ inputs.charm-path }}"
+        run: |
+          prefix="${CHARM_PATH//\//-}"
+          [[ "$prefix" == "." || -z "$prefix" ]] && prefix="root"
+          echo "name=juju-lens-${prefix}-integration" >> "$GITHUB_OUTPUT"
+      - name: Upload juju-lens recording
+        if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ steps.lens-name.outputs.name }}
+          path: ${{ env.RECORDING_FOLDER }}
+          retention-days: 3
+          if-no-files-found: warn
 
   integration-matrix:
     name: Define Integration tests matrix
@@ -338,6 +377,8 @@ jobs:
       fail-fast: false
       matrix:
         suite: ${{ fromJSON(needs.integration-matrix.outputs.suites) }}
+    env:
+      RECORDING_FOLDER: /tmp/juju-lens-recordings
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -419,6 +460,14 @@ jobs:
         with:
           name: ${{ needs.pack-charm.outputs.artifact-name }}
           path: ${{ inputs.charm-path }}
+      - name: Install juju-lens
+        if: ${{ inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/lucabello/juju-lens/main/install.sh | sudo sh
+      - name: Start juju-lens recording
+        if: ${{ inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        run: |
+          sudo juju-lens record "${{ matrix.suite }}" --output "$RECORDING_FOLDER" --max-size 2147483648 --max-duration 3h --detach
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
@@ -432,6 +481,28 @@ jobs:
           else
             uvx tox -e integration -- -k "${{ matrix.suite }}"
           fi
+      - name: Stop juju-lens recording
+        if: ${{ always() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        run: |
+          sudo juju-lens stop "$RECORDING_FOLDER" || true
+          sudo chown -R "$USER" "$RECORDING_FOLDER" || true
+      - name: Compute juju-lens artifact name
+        id: lens-name
+        if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        env:
+          CHARM_PATH: "${{ inputs.charm-path }}"
+        run: |
+          prefix="${CHARM_PATH//\//-}"
+          [[ "$prefix" == "." || -z "$prefix" ]] && prefix="root"
+          echo "name=juju-lens-${prefix}-${{ matrix.suite }}" >> "$GITHUB_OUTPUT"
+      - name: Upload juju-lens recording
+        if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ steps.lens-name.outputs.name }}
+          path: ${{ env.RECORDING_FOLDER }}
+          retention-days: 3
+          if-no-files-found: warn
       - name: Open SSH session on failure
         if: ${{ failure() && (runner.debug == '1') }}
         uses: mxschmitt/action-tmate@v3
