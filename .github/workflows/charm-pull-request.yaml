@@ -129,7 +129,7 @@ jobs:
       contents: read
       actions: read
       security-events: write
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@feat/juju-lens-recording
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v2
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}
