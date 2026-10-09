@@ -316,7 +316,7 @@ jobs:
         run: |
           rec_dir="$RUNNER_TEMP/recordings/integration"
           mkdir -p "$RUNNER_TEMP/recordings"
-          sudo setsid nohup juju-lens record "integration" --output "$rec_dir" --max-size 2147483648 --max-duration 3h > "$RUNNER_TEMP/juju-lens.log" 2>&1 < /dev/null &
+          { sudo setsid nohup juju-lens record "integration" --output "$rec_dir" --max-size 2147483648 --max-duration 3h; } > "$RUNNER_TEMP/juju-lens.log" 2>&1 < /dev/null &
           for _ in $(seq 30); do
             [[ -f "$rec_dir/recorder.pid" ]] && break
             sleep 1
@@ -477,7 +477,7 @@ jobs:
         run: |
           rec_dir="$RUNNER_TEMP/recordings/${{ matrix.suite }}"
           mkdir -p "$RUNNER_TEMP/recordings"
-          sudo setsid nohup juju-lens record "${{ matrix.suite }}" --output "$rec_dir" --max-size 2147483648 --max-duration 3h > "$RUNNER_TEMP/juju-lens.log" 2>&1 < /dev/null &
+          { sudo setsid nohup juju-lens record "${{ matrix.suite }}" --output "$rec_dir" --max-size 2147483648 --max-duration 3h; } > "$RUNNER_TEMP/juju-lens.log" 2>&1 < /dev/null &
           for _ in $(seq 30); do
             [[ -f "$rec_dir/recorder.pid" ]] && break
             sleep 1
