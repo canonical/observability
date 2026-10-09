@@ -315,7 +315,7 @@ jobs:
         if: ${{ inputs.provider == 'k8s' && inputs.enable-juju-lens }}
         run: |
           mkdir -p "$(dirname "$RECORDING_FOLDER")"
-          sudo juju-lens record "integration" --output "$RECORDING_FOLDER" --max-size 2147483648 --max-duration 3h --detach
+          sudo juju-lens record "$(basename "$RECORDING_FOLDER")" --output "$RECORDING_FOLDER" --max-size 2147483648 --max-duration 3h --detach
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
@@ -333,11 +333,10 @@ jobs:
         if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
         env:
           CHARM_PATH: "${{ inputs.charm-path }}"
-          REC_NAME: "integration"
         run: |
           prefix="${CHARM_PATH//\//-}"
           [[ "$prefix" == "." || -z "$prefix" ]] && prefix="root"
-          echo "name=juju-lens-${prefix}-${REC_NAME}" >> "$GITHUB_OUTPUT"
+          echo "name=juju-lens-${prefix}-$(basename "$RECORDING_FOLDER")" >> "$GITHUB_OUTPUT"
       - name: Upload juju-lens recording
         if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
         uses: actions/upload-artifact@v6
@@ -470,7 +469,7 @@ jobs:
         if: ${{ inputs.provider == 'k8s' && inputs.enable-juju-lens }}
         run: |
           mkdir -p "$(dirname "$RECORDING_FOLDER")"
-          sudo juju-lens record "${{ matrix.suite }}" --output "$RECORDING_FOLDER" --max-size 2147483648 --max-duration 3h --detach
+          sudo juju-lens record "$(basename "$RECORDING_FOLDER")" --output "$RECORDING_FOLDER" --max-size 2147483648 --max-duration 3h --detach
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
@@ -494,11 +493,10 @@ jobs:
         if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
         env:
           CHARM_PATH: "${{ inputs.charm-path }}"
-          REC_NAME: "${{ matrix.suite }}"
         run: |
           prefix="${CHARM_PATH//\//-}"
           [[ "$prefix" == "." || -z "$prefix" ]] && prefix="root"
-          echo "name=juju-lens-${prefix}-${REC_NAME}" >> "$GITHUB_OUTPUT"
+          echo "name=juju-lens-${prefix}-$(basename "$RECORDING_FOLDER")" >> "$GITHUB_OUTPUT"
       - name: Upload juju-lens recording
         if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
         uses: actions/upload-artifact@v6
