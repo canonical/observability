@@ -350,7 +350,7 @@ jobs:
         with:
           name: ${{ steps.lens-name.outputs.name }}
           path: ${{ runner.temp }}/recordings/integration
-          retention-days: 7
+          retention-days: 3
           if-no-files-found: warn
 
   integration-matrix:
@@ -517,7 +517,7 @@ jobs:
         with:
           name: ${{ steps.lens-name.outputs.name }}
           path: ${{ runner.temp }}/recordings/${{ matrix.suite }}
-          retention-days: 7
+          retention-days: 3
           if-no-files-found: warn
       - name: Open SSH session on failure
         if: ${{ failure() && (runner.debug == '1') }}
