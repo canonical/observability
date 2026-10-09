@@ -1,0 +1,86 @@
+name: Terraform compliance
+
+on:
+  workflow_call:
+    inputs:
+      exclude-modules:
+        description: >
+          Comma- or whitespace-separated Terraform module directories
+          (relative to the repository root) to skip. Every other module in the
+          repository is checked, so newly added modules are covered by
+          default. An entry also excludes everything beneath it, so e.g.
+          "coordinator" skips "coordinator/terraform".
+        type: string
+        required: false
+        default: ""
+      fail-on-violations:
+        description: >
+          Fail the job when a module is non-compliant. Defaults to true so
+          violations are surfaced as a failed (red) job. The job is wired as a
+          sibling of the release jobs, so a failure never gates a release.
+          Set to false for a report-only run.
+        type: boolean
+        required: false
+        default: true
+      checker-ref:
+        description: >
+          Git ref of canonical/operator-workflows to install the
+          terraform-check CLI from.
+        type: string
+        required: false
+        # TODO: point at a released ref once canonical/operator-workflows#1058 merges.
+        default: d8528e7cf6e0e87e0b6d37ec94f861fc90b53746
+
+permissions:
+  contents: read
+
+jobs:
+  check-compliance:
+    name: Terraform module compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install uv
+        run: sudo snap install astral-uv --classic
+      - name: Check Terraform module compliance
+        continue-on-error: ${{ ! inputs.fail-on-violations }}
+        env:
+          EXCLUDE_MODULES: ${{ inputs.exclude-modules }}
+          CHECKER_REF: ${{ inputs.checker-ref }}
+        run: |
+          uvx --from "git+https://github.com/canonical/operator-workflows@${CHECKER_REF}#subdirectory=terraform-compliance" \
+            python - <<'PY'
+          import os
+          import re
+          import sys
+          from pathlib import Path
+
+          import terraform_check
+          import terraform_check_all
+
+          def normalise(entry: str) -> Path:
+              return Path(entry.strip().removeprefix("./"))
+
+          excludes = {
+              normalise(entry)
+              for entry in re.split(r"[,\s]+", os.environ.get("EXCLUDE_MODULES", ""))
+              if entry.strip()
+          }
+
+          def is_excluded(module: Path) -> bool:
+              # An exclude entry also excludes everything beneath it.
+              return any(module == entry or entry in module.parents for entry in excludes)
+
+          modules = [
+              module
+              for module in terraform_check_all.discover_module_directories(Path("."))
+              if not is_excluded(module)
+          ]
+
+          if not modules:
+              print("No Terraform modules to check (none found, or all excluded)")
+              sys.exit(0)
+
+          sys.exit(terraform_check.main(["--verbose", *(str(module) for module in modules)]))
+          PY

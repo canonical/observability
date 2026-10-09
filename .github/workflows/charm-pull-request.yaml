@@ -44,6 +44,14 @@ on:
         type: boolean
         default: true
         required: false
+      exclude-modules:
+        description: >
+          Comma- or whitespace-separated Terraform module directories
+          (relative to the repository root) to skip in the compliance check.
+          Defaults to checking every module in the repository.
+        type: string
+        default: ""
+        required: false
     secrets:
       CHARMHUB_TOKEN:
         required: false
@@ -139,4 +147,14 @@ jobs:
       parallelize-integration: ${{ inputs.parallelize-integration }}
       automatically-retry-hooks: ${{ inputs.automatically-retry-hooks }}
       enable-integration: ${{ inputs.enable-integration }}
+
+  # Runs as a sibling of quality-checks: a violation turns this job red without
+  # gating quality-checks, so it can never block a release.
+  terraform-compliance:
+    name: Terraform module compliance
+    needs: [ci-ignore]
+    if: needs.ci-ignore.outputs.any_modified == 'true'
+    uses: ./.github/workflows/terraform-compliance.yaml
+    with:
+      exclude-modules: ${{ inputs.exclude-modules }}
 
