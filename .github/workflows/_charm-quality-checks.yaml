@@ -308,20 +308,13 @@ jobs:
       - name: Install juju-lens
         if: ${{ inputs.provider == 'k8s' && inputs.enable-juju-lens }}
         run: |
-          sudo snap install go --classic
-          GOBIN="$RUNNER_TEMP/gobin" go install github.com/lucabello/juju-lens/cmd/...@latest
-          sudo install -m 0755 "$RUNNER_TEMP"/gobin/juju-lens* /usr/local/bin/
+          curl -fsSL https://raw.githubusercontent.com/lucabello/juju-lens/main/install.sh | sudo sh
       - name: Start juju-lens recording
         if: ${{ inputs.provider == 'k8s' && inputs.enable-juju-lens }}
         run: |
           rec_dir="$RUNNER_TEMP/recordings/integration"
           mkdir -p "$RUNNER_TEMP/recordings"
-          { sudo setsid nohup juju-lens record "integration" --output "$rec_dir" --max-size 2147483648 --max-duration 3h; } > "$RUNNER_TEMP/juju-lens.log" 2>&1 < /dev/null &
-          for _ in $(seq 30); do
-            [[ -f "$rec_dir/recorder.pid" ]] && break
-            sleep 1
-          done
-          cat "$RUNNER_TEMP/juju-lens.log" || true
+          sudo juju-lens record "integration" --output "$rec_dir" --max-size 2147483648 --max-duration 3h --detach
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
@@ -469,20 +462,13 @@ jobs:
       - name: Install juju-lens
         if: ${{ inputs.provider == 'k8s' && inputs.enable-juju-lens }}
         run: |
-          sudo snap install go --classic
-          GOBIN="$RUNNER_TEMP/gobin" go install github.com/lucabello/juju-lens/cmd/...@latest
-          sudo install -m 0755 "$RUNNER_TEMP"/gobin/juju-lens* /usr/local/bin/
+          curl -fsSL https://raw.githubusercontent.com/lucabello/juju-lens/main/install.sh | sudo sh
       - name: Start juju-lens recording
         if: ${{ inputs.provider == 'k8s' && inputs.enable-juju-lens }}
         run: |
           rec_dir="$RUNNER_TEMP/recordings/${{ matrix.suite }}"
           mkdir -p "$RUNNER_TEMP/recordings"
-          { sudo setsid nohup juju-lens record "${{ matrix.suite }}" --output "$rec_dir" --max-size 2147483648 --max-duration 3h; } > "$RUNNER_TEMP/juju-lens.log" 2>&1 < /dev/null &
-          for _ in $(seq 30); do
-            [[ -f "$rec_dir/recorder.pid" ]] && break
-            sleep 1
-          done
-          cat "$RUNNER_TEMP/juju-lens.log" || true
+          sudo juju-lens record "${{ matrix.suite }}" --output "$rec_dir" --max-size 2147483648 --max-duration 3h --detach
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
