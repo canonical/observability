@@ -21,22 +21,22 @@ We don't share feature files or step definitions between charm repositories. Eac
 
 What we do share:
 
-- **API clients** for our workloads. Plain Python with no Gherkin, in [`observability-clients`](https://github.com/canonical/observability-libs/tree/main/observability-clients), as today.
-- **Conventions**: how to word steps, where step modules live, and so on.
-- **Examples to copy once** when a charm adopts feature files. They are never kept in sync.
+- API clients for our workloads, in [`observability-clients`](https://github.com/canonical/observability-libs/tree/main/observability-clients), as today.
+- Conventions: how to word steps, where step modules live, and so on.
+- Examples that a charm copies once when it adopts feature files. We don't keep them in sync.
 
 ## Benefits
 
 ### Not sharing worked better for the solution tests
 
-When developing the solution tests in `observability-stack`, we learned that not sharing features between solutions was better. The tests started with one shared `features/` directory and used `@cos` / `@cos-lite` tags to pick scenarios for each solution. In [#491](https://github.com/canonical/observability-stack/pull/491) they moved to one folder per solution, for two reasons:
+While writing the solution tests in `observability-stack`, we learned that not sharing features between solutions was better. The tests started with one shared `features/` directory, using `@cos` / `@cos-lite` tags to pick the scenarios for each solution. In [#491](https://github.com/canonical/observability-stack/pull/491) we moved to one folder per solution instead, for two reasons:
 
-- **The sharing was only on paper.** No scenario carried both tags, so the shared directory and the tags only added indirection.
-- **It's easier to know where to look.** With every feature of a solution in that solution's folder, you know where to find all of them. That's why we [duplicated even `smoke.feature`](https://github.com/canonical/observability-stack/pull/491#discussion_r4155017340), which was identical for both solutions.
+- No scenario carried both tags, so the shared directory and the tags only added indirection.
+- With all of a solution's features in its own folder, it's obvious where to look. That's why we [duplicated even `smoke.feature`](https://github.com/canonical/observability-stack/pull/491#discussion_r4155017340), which was identical for both solutions.
 
 ### Similar behaviours aren't checked the same way
 
-"Metrics reach the backend" sounds like one step, but it isn't. In `observability-stack`, [Prometheus and Mimir have separate steps](https://github.com/canonical/observability-stack/blob/3c0b48170b0d2920b58c5721de0842bb8a0e82e4/tests/solution/steps/telemetry.py#L10-L35): Prometheus retries for two minutes because scraping is periodic, while Mimir doesn't retry at all.
+Behaviours that read the same in a feature file can need different checks. In `observability-stack`, "metrics reach the backend" has [separate steps for Prometheus and Mimir](https://github.com/canonical/observability-stack/blob/3c0b48170b0d2920b58c5721de0842bb8a0e82e4/tests/solution/steps/telemetry.py#L10-L35): Prometheus retries for two minutes because scraping is periodic, while Mimir doesn't retry at all.
 
 We'd face the same problem reusing self-monitoring steps across charms, since the metrics backend in a test can be either Prometheus or Mimir.
 
@@ -50,12 +50,12 @@ When every step lives in the charm's own `tests/integration/steps/`, finding a s
 
 ### The duplication is similar to today's
 
-Behaviours that every charm has (or should have), like self-monitoring, are already tested separately in each charm's integration tests. Keeping feature files and steps in each charm leaves the amount of duplication at about the same order of magnitude as it is today.
+Behaviours that every charm has (or should have), like self-monitoring, are already tested separately in each charm's integration tests. Keeping feature files and steps in each charm keeps the duplication in the same order of magnitude as today.
 
 ## Disadvantages
 
-- **We lose reusability.** Steps for behaviours that look alike are written again in each charm, which adds some duplication.
-- **Charms can drift apart.** Both the way we implement steps and the language of our feature files can diverge from charm to charm.
+- We lose reusability: steps for behaviours that look alike are written again in each charm, which adds some duplication.
+- Charms can drift apart, both in how we implement steps and in the language of our feature files.
 
 ## Alternatives considered
 
