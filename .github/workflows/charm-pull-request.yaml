@@ -49,6 +49,12 @@ on:
         required: false
       OBSERVABILITY_NOCTUA_TOKEN:
         required: false
+      TAILSCALE_CLIENT_ID:
+        required: false
+      TAILSCALE_CLIENT_SECRET:
+        required: false
+      TAILSCALE_TEST_AUTH_KEY:
+        required: false
 
 concurrency:
   group: ${{ github.ref }}${{ (inputs.charm-path && inputs.charm-path != '.') && format('-{0}', inputs.charm-path) || '' }}
