@@ -135,7 +135,7 @@ jobs:
       contents: read
       actions: read
       security-events: write
-    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@v2
+    uses: canonical/observability/.github/workflows/_charm-quality-checks.yaml@feat/propagate-tailscale-secrets
     secrets: inherit
     with:
       charm-path: ${{ inputs.charm-path }}
