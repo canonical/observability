@@ -49,6 +49,13 @@ on:
     secrets:
       CHARMHUB_TOKEN:
         required: false
+      TAILSCALE_CLIENT_ID:
+        required: false
+      TAILSCALE_CLIENT_SECRET:
+        required: false
+      TAILSCALE_TEST_AUTH_KEY:
+        required: false
+
 jobs:
   snap-channels:
     name: Select snap channels
@@ -469,6 +476,10 @@ jobs:
         run: |
           sudo juju-lens record "${{ matrix.suite }}" --output "$RECORDING_FOLDER" --max-size 2147483648 --max-duration 3h --detach
       - name: Run integration tests
+        env:
+          TAILSCALE_CLIENT_ID: ${{ secrets.TAILSCALE_CLIENT_ID }}
+          TAILSCALE_CLIENT_SECRET: ${{ secrets.TAILSCALE_CLIENT_SECRET }}
+          TAILSCALE_TEST_AUTH_KEY: ${{ secrets.TAILSCALE_TEST_AUTH_KEY }}  
         run: |
           cd ${{ inputs.charm-path }}
           charm_relative_path="$(find . -maxdepth 1 -name '*.charm' | sort | tail -n1)"
