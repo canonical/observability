@@ -73,10 +73,19 @@ jobs:
 
   call-inclusive-naming-check:
     # Issues with this workflow can be addressed by adding a .wokeignore in the repository root
+    # NOTE: this job intentionally doesn't call canonical/Inclusive-naming/.github/workflows/woke.yaml@main
+    # directly, since that reusable workflow still pins actions/checkout@v4 (deprecated Node.js 20 runtime).
     name: Inclusive naming
-    uses: canonical/Inclusive-naming/.github/workflows/woke.yaml@main
-    with:
-      fail-on-error: "false"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: woke
+        uses: canonical/inclusive-naming@main
+        with:
+          fail-on-error: "false"
+          woke-version: "v0.19.0"
+          woke-args: ". -c /home/runner/work/_actions/canonical/inclusive-naming/main/config.yml"
 
   codeql:
     name: CodeQL analysis
