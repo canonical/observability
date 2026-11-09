@@ -256,17 +256,19 @@ jobs:
           CONCIERGE_EXTRA_SNAPS: "astral-uv,terraform"
         run: |
           sudo snap install concierge --classic
+          # sudo-rs (Ubuntu 26.04) ignores `-E`, so list the variables explicitly.
+          CONCIERGE_ENV=CONCIERGE_JUJU_CHANNEL,CONCIERGE_CHARMCRAFT_CHANNEL,CONCIERGE_EXTRA_SNAPS
           case "$PROVIDER" in
             machine)
-              sudo -E concierge prepare -p machine
+              sudo --preserve-env="$CONCIERGE_ENV" concierge prepare -p machine
               juju model-defaults -c concierge-lxd automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
             microk8s)
-              sudo -E concierge prepare -p microk8s
+              sudo --preserve-env="$CONCIERGE_ENV" concierge prepare -p microk8s
               juju model-defaults -c concierge-microk8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
             k8s)
-              sudo -E concierge prepare -p k8s
+              sudo --preserve-env="$CONCIERGE_ENV" concierge prepare -p k8s
               juju model-defaults -c concierge-k8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               # Configure Cilium for Istio ambient service mesh compatibility
               sudo k8s kubectl patch configmap cilium-config -n kube-system --type merge -p '{"data":{"bpf-lb-sock-hostns-only":"true"}}'
@@ -390,17 +392,19 @@ jobs:
           CONCIERGE_EXTRA_SNAPS: "astral-uv,terraform"
         run: |
           sudo snap install concierge --classic
+          # sudo-rs (Ubuntu 26.04) ignores `-E`, so list the variables explicitly.
+          CONCIERGE_ENV=CONCIERGE_JUJU_CHANNEL,CONCIERGE_CHARMCRAFT_CHANNEL,CONCIERGE_EXTRA_SNAPS
           case "$PROVIDER" in
             machine)
-              sudo -E concierge prepare -p machine
+              sudo --preserve-env="$CONCIERGE_ENV" concierge prepare -p machine
               juju model-defaults -c concierge-lxd automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
             microk8s)
-              sudo -E concierge prepare -p microk8s
+              sudo --preserve-env="$CONCIERGE_ENV" concierge prepare -p microk8s
               juju model-defaults -c concierge-microk8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               ;;
             k8s)
-              sudo -E concierge prepare -p k8s
+              sudo --preserve-env="$CONCIERGE_ENV" concierge prepare -p k8s
               juju model-defaults -c concierge-k8s automatically-retry-hooks=${{ inputs.automatically-retry-hooks }}
               # Configure Cilium for Istio ambient service mesh compatibility
               sudo k8s kubectl patch configmap cilium-config -n kube-system --type merge -p '{"data":{"bpf-lb-sock-hostns-only":"true"}}'
