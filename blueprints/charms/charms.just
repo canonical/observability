@@ -173,7 +173,7 @@ features:
     fi
     # Calculate totals first
     total_features=$(find "$features_dir" -name "*.feature" -type f | wc -l)
-    total_scenarios=$(grep -rh "^[[:space:]]*Scenario:" "$features_dir" 2>/dev/null | wc -l || echo "0")
+    total_scenarios=$(grep -rhE "^[[:space:]]*Scenario( Outline)?:" "$features_dir" 2>/dev/null | wc -l || echo "0")
     printf "Total: \033[1m%d features\033[0m with \033[1m%d scenarios\033[0m\n" "$total_features" "$total_scenarios"
     echo ""
     for feature_file in "$features_dir"/*.feature; do
@@ -182,10 +182,10 @@ features:
         feature_name="${filename%.feature}"
         # Extract the Feature: line
         feature_title=$(grep -m1 "^Feature:" "$feature_file" | sed 's/Feature: //')
-        # Extract feature description (lines after Feature: until first Scenario, skipping blank lines)
-        description=$(awk '/^Feature:/{found=1; next} found && /^[[:space:]]*Scenario/{exit} found && /^[[:space:]]*$/{next} found{gsub(/^[[:space:]]+/, ""); print}' "$feature_file" | head -3)
+        # Extract feature description (lines after Feature: until the first Background or Scenario, skipping blank lines)
+        description=$(awk '/^Feature:/{found=1; next} found && /^[[:space:]]*(Background|Scenario)/{exit} found && /^[[:space:]]*$/{next} found{gsub(/^[[:space:]]+/, ""); print}' "$feature_file" | head -3)
         # Count scenarios
-        scenario_count=$(grep -c "^[[:space:]]*Scenario:" "$feature_file" || echo "0")
+        scenario_count=$(grep -cE "^[[:space:]]*Scenario( Outline)?:" "$feature_file" || echo "0")
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         printf "\033[1m%s\033[0m (%d scenarios)\n" "$feature_title" "$scenario_count"
         echo "   $feature_file"
@@ -196,8 +196,8 @@ features:
             done
             echo ""
         fi
-        # List scenarios
-        grep "^[[:space:]]*Scenario:" "$feature_file" | sed 's/^[[:space:]]*Scenario:[[:space:]]*//' | while IFS= read -r scenario; do
+        # List scenarios, marking the outlines
+        grep -E "^[[:space:]]*Scenario( Outline)?:" "$feature_file" | sed -E 's/^[[:space:]]*Scenario Outline:[[:space:]]*(.*)$/\1 (outline)/; s/^[[:space:]]*Scenario:[[:space:]]*//' | while IFS= read -r scenario; do
             echo "   - $scenario"
         done
         echo ""
