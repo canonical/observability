@@ -124,6 +124,8 @@ lint: sync
     uv run ty check src
     # Check for misspellings
     uv run codespell src
+    # Check that every feature file is loaded by a test module (CI runs one job per test_*.py)
+    for f in tests/integration/features/*.feature; do [ -e "$f" ] || continue; t="tests/integration/test_$(basename "$f" .feature).py"; grep -qsF "features/$(basename "$f")" "$t" || { echo "× $f is not loaded by $t"; exit 1; }; done
     # Check for dead code (heuristic, so failures are ignored)
     uv run vulture src --min-confidence=80 || true
     # Run actionlint on GitHub Actions workflows
