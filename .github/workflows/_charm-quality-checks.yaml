@@ -245,6 +245,7 @@ jobs:
     needs: [snap-channels, pack-charm]
     env:
       RECORDING_FOLDER: /tmp/juju-lens-recordings
+      RECORDING_FILE: /tmp/juju-lens-recording.tar.gz
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -316,7 +317,7 @@ jobs:
       - name: Start juju-lens recording
         if: ${{ inputs.provider == 'k8s' && inputs.enable-juju-lens }}
         run: |
-          sudo juju-lens record "integration" --output "$RECORDING_FOLDER" --max-size 2147483648 --max-duration 3h --detach
+          juju-lens record "integration" --output "$RECORDING_FOLDER" --max-size 2147483648 --max-duration 3h --detach
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
@@ -327,8 +328,7 @@ jobs:
       - name: Stop juju-lens recording
         if: ${{ always() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
         run: |
-          sudo juju-lens stop "$RECORDING_FOLDER" || true
-          sudo chown -R "$USER" "$RECORDING_FOLDER" || true
+          juju-lens stop "$RECORDING_FOLDER" || true
       - name: Compute juju-lens artifact name
         id: lens-name
         if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
@@ -338,12 +338,16 @@ jobs:
           prefix="${CHARM_PATH//\//-}"
           [[ "$prefix" == "." || -z "$prefix" ]] && prefix="root"
           echo "name=juju-lens-${prefix}-integration" >> "$GITHUB_OUTPUT"
+      - name: Pack juju-lens recording
+        if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        run: |
+          juju-lens export "$RECORDING_FOLDER" --output "$RECORDING_FILE"
       - name: Upload juju-lens recording
         if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
         uses: actions/upload-artifact@v6
         with:
           name: ${{ steps.lens-name.outputs.name }}
-          path: ${{ env.RECORDING_FOLDER }}
+          path: ${{ env.RECORDING_FILE }}
           retention-days: 3
           if-no-files-found: warn
 
@@ -381,6 +385,7 @@ jobs:
         suite: ${{ fromJSON(needs.integration-matrix.outputs.suites) }}
     env:
       RECORDING_FOLDER: /tmp/juju-lens-recordings
+      RECORDING_FILE: /tmp/juju-lens-recording.tar.gz
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -471,7 +476,7 @@ jobs:
       - name: Start juju-lens recording
         if: ${{ inputs.provider == 'k8s' && inputs.enable-juju-lens }}
         run: |
-          sudo juju-lens record "${{ matrix.suite }}" --output "$RECORDING_FOLDER" --max-size 2147483648 --max-duration 3h --detach
+          juju-lens record "${{ matrix.suite }}" --output "$RECORDING_FOLDER" --max-size 2147483648 --max-duration 3h --detach
       - name: Run integration tests
         run: |
           cd ${{ inputs.charm-path }}
@@ -488,8 +493,7 @@ jobs:
       - name: Stop juju-lens recording
         if: ${{ always() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
         run: |
-          sudo juju-lens stop "$RECORDING_FOLDER" || true
-          sudo chown -R "$USER" "$RECORDING_FOLDER" || true
+          juju-lens stop "$RECORDING_FOLDER" || true
       - name: Compute juju-lens artifact name
         id: lens-name
         if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
@@ -499,12 +503,16 @@ jobs:
           prefix="${CHARM_PATH//\//-}"
           [[ "$prefix" == "." || -z "$prefix" ]] && prefix="root"
           echo "name=juju-lens-${prefix}-${{ matrix.suite }}" >> "$GITHUB_OUTPUT"
+      - name: Pack juju-lens recording
+        if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
+        run: |
+          juju-lens export "$RECORDING_FOLDER" --output "$RECORDING_FILE"
       - name: Upload juju-lens recording
         if: ${{ failure() && inputs.provider == 'k8s' && inputs.enable-juju-lens }}
         uses: actions/upload-artifact@v6
         with:
           name: ${{ steps.lens-name.outputs.name }}
-          path: ${{ env.RECORDING_FOLDER }}
+          path: ${{ env.RECORDING_FILE }}
           retention-days: 3
           if-no-files-found: warn
       - name: Open SSH session on failure
