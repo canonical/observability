@@ -192,7 +192,10 @@ jobs:
 
   pack-charm:
     name: Pack the charm
-    runs-on: ubuntu-latest
+    # FIXME: pinned to 24.04 because ubuntu-latest is 26.04 (kernel 7.x), where snapd cannot start
+    # in the ubuntu@20.04 build container and `charmcraft pack` fails for 20.04 platforms.
+    # Switch back to ubuntu-latest once fixed: https://bugs.launchpad.net/bugs/2174837
+    runs-on: ubuntu-24.04
     needs:
       - linting
       - linting-rules
