@@ -74,10 +74,11 @@ jobs:
             # Platform keys may be either a bare arch (e.g. `amd64`) or an
             # `ubuntu@<ver>:<arch>` form; extract the arch from either shape.
             #
-            # FIXME: the amd64 runner is pinned to ubuntu-24.04 because ubuntu-latest is 26.04
-            # (kernel 7.x), where snapd cannot start in the ubuntu@20.04 build container and
-            # `charmcraft pack` fails for 20.04 platforms. Switch back to ubuntu-latest once
-            # fixed: https://bugs.launchpad.net/bugs/2174837
+            # FIXME: the amd64 and ppc64el runners are pinned to Ubuntu 24.04 images because
+            # ubuntu-latest and the resolute self-hosted runners use Ubuntu 26.04 (kernel 7.x),
+            # where snapd cannot start in the ubuntu@20.04 build container and `charmcraft pack`
+            # fails for 20.04 platforms. Switch back once fixed:
+            # https://bugs.launchpad.net/bugs/2174837
             matrix="$(
               yq -o=json -I=0 '.platforms | keys' "$CHARM_PATH/charmcraft.yaml" \
                 | jq -c '
@@ -85,6 +86,7 @@ jobs:
                     def runner_for(a):
                       if a == "amd64" then "ubuntu-24.04"
                       elif a == "arm64" then "Ubuntu_ARM64_4C_16G_03"
+                      elif a == "ppc64el" then "self-hosted-linux-ppc64el-noble-edge"
                       else "self-hosted-linux-" + a + "-resolute-medium"
                       end;
                     map(arch_of) | unique
